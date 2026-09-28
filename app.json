@@ -8,12 +8,23 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.climbdex.app",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "appleTeamId": "UZTXXV5UD5"
     },
     "plugins": [
       "expo-video",
-      ["expo-image-picker", { "photosPermission": "자를 등반 영상을 고르기 위해 사진 앱 접근이 필요해요." }],
-      ["expo-media-library", { "savePhotosPermission": "자른 클립을 사진 앱에 저장하기 위해 필요해요." }]
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "자를 등반 영상을 고르기 위해 사진 앱 접근이 필요해요."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "savePhotosPermission": "자른 클립을 사진 앱에 저장하기 위해 필요해요."
+        }
+      ]
     ]
   }
 }

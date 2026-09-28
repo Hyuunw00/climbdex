@@ -7,6 +7,7 @@
     "@types/react": "~19.1.10",
     "expo": "~54.0.37",
     "expo-dev-client": "~6.0.21",
+    "expo-file-system": "~19.0.24",
     "expo-image-picker": "~17.0.11",
     "expo-media-library": "~18.2.1",
     "expo-status-bar": "~3.0.9",

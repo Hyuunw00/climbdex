@@ -5,6 +5,8 @@ import type { PickedVideo } from '../types';
 type Props = {
   videos: PickedVideo[];
   onAdd: (videos: PickedVideo[]) => void;
+  onRemove: (index: number) => void;
+  onClear: () => void;
   onOpen: (index: number) => void;
 };
 
@@ -14,7 +16,7 @@ function formatSeconds(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function VideoListScreen({ videos, onAdd, onOpen }: Props) {
+export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOpen }: Props) {
   const pick = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
@@ -27,6 +29,7 @@ export default function VideoListScreen({ videos, onAdd, onOpen }: Props) {
     onAdd(
       result.assets.map((a) => ({
         uri: a.uri,
+        assetId: a.assetId ?? null,
         duration: (a.duration ?? 0) / 1000,
         width: a.width,
         height: a.height,
@@ -40,6 +43,11 @@ export default function VideoListScreen({ videos, onAdd, onOpen }: Props) {
       <Pressable style={styles.addButton} onPress={pick}>
         <Text style={styles.addButtonText}>영상 고르기</Text>
       </Pressable>
+      {videos.length > 0 && (
+        <Pressable onPress={onClear}>
+          <Text style={styles.clear}>전체 비우기</Text>
+        </Pressable>
+      )}
       <FlatList
         data={videos}
         keyExtractor={(item, index) => `${item.uri}-${index}`}
@@ -49,7 +57,13 @@ export default function VideoListScreen({ videos, onAdd, onOpen }: Props) {
             <Text style={styles.rowTitle} numberOfLines={1}>
               {item.fileName ?? `영상 ${index + 1}`}
             </Text>
+            <Text style={styles.rowMeta}>
+              {item.segments === undefined ? '찾는 중' : `구간 ${item.segments.length}개`}
+            </Text>
             <Text style={styles.rowMeta}>{formatSeconds(item.duration)}</Text>
+            <Pressable hitSlop={8} onPress={() => onRemove(index)}>
+              <Text style={styles.remove}>삭제</Text>
+            </Pressable>
           </Pressable>
         )}
       />
@@ -76,4 +90,6 @@ const styles = StyleSheet.create({
   },
   rowTitle: { flex: 1, fontSize: 15 },
   rowMeta: { color: '#666', marginLeft: 12 },
+  remove: { color: '#c00', marginLeft: 16, fontSize: 14 },
+  clear: { color: '#c00', textAlign: 'right', fontSize: 14, paddingVertical: 4 },
 });

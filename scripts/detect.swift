@@ -1,72 +1,24 @@
-import ExpoModulesCore
 import AVFoundation
 import Vision
 
-struct PoseSample {
+struct Sample {
   let t: Double
   let ankleY: Double
   let torso: Double?
 }
 
-struct DetectParams {
-  var enter = 0.08
-  var exit = 0.02
-  var minRise = 0.12
-  var minDuration = 3.0
-  var maxGap = 10.0
-  var baselineWindow = 4.0
-  var torsoBand = 0.5...2.0
-}
+struct Segment { let start: Double; let end: Double }
 
-public class ClimbVideoModule: Module {
-  public func definition() -> ModuleDefinition {
-    Name("ClimbVideo")
-
-    AsyncFunction("trim") { (uri: String, start: Double, end: Double) async throws -> String in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
-      let asset = AVURLAsset(url: url)
-      guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
-        throw Exception(name: "ExportSessionUnavailable", description: uri)
-      }
-      let output = FileManager.default.temporaryDirectory
-        .appendingPathComponent("climbdex-\(UUID().uuidString).mov")
-      session.outputURL = output
-      session.outputFileType = .mov
-      session.timeRange = CMTimeRange(
-        start: CMTime(seconds: start, preferredTimescale: 600),
-        end: CMTime(seconds: end, preferredTimescale: 600)
-      )
-      await session.export()
-      if let error = session.error {
-        throw Exception(name: "ExportFailed", description: error.localizedDescription)
-      }
-      return output.absoluteString
-    }
-
-    AsyncFunction("detect") { (uri: String) throws -> [[String: Double]] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
-      let samples = try samplePoses(url: url, fps: 5, minConfidence: 0.3)
-      return segments(samples, DetectParams()).map { ["start": $0.0, "end": $0.1] }
-    }
-  }
-}
-
-private func orientation(for t: CGAffineTransform) -> CGImagePropertyOrientation {
+func orientation(for t: CGAffineTransform) -> CGImagePropertyOrientation {
   if t.a == 0 && t.b == 1 && t.c == -1 && t.d == 0 { return .right }
   if t.a == 0 && t.b == -1 && t.c == 1 && t.d == 0 { return .left }
   if t.a == -1 && t.b == 0 && t.c == 0 && t.d == -1 { return .down }
   return .up
 }
 
-private func samplePoses(url: URL, fps: Double, minConfidence: Float) throws -> [PoseSample] {
+func sample(url: URL, fps: Double, minConfidence: Float) throws -> ([Sample], Double) {
   let asset = AVURLAsset(url: url)
-  guard let track = asset.tracks(withMediaType: .video).first else {
-    throw Exception(name: "NoVideoTrack", description: url.absoluteString)
-  }
+  guard let track = asset.tracks(withMediaType: .video).first else { throw NSError(domain: "detect", code: 1) }
   let reader = try AVAssetReader(asset: asset)
   let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
     kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
@@ -79,9 +31,11 @@ private func samplePoses(url: URL, fps: Double, minConfidence: Float) throws -> 
   let size = track.naturalSize.applying(track.preferredTransform)
   let aspect = abs(size.width / size.height)
   var nextT = 0.0
-  var samples: [PoseSample] = []
+  var samples: [Sample] = []
+  var last = 0.0
   while let buffer = output.copyNextSampleBuffer() {
     let t = CMSampleBufferGetPresentationTimeStamp(buffer).seconds
+    last = t
     if t + 1e-6 < nextT { continue }
     nextT += 1.0 / fps
     guard let pixel = CMSampleBufferGetImageBuffer(buffer) else { continue }
@@ -97,22 +51,32 @@ private func samplePoses(url: URL, fps: Double, minConfidence: Float) throws -> 
       let dy = Double(neck.y - root.y)
       torso = (dx * dx + dy * dy).squareRoot()
     }
-    samples.append(PoseSample(t: t, ankleY: ankleY, torso: torso))
+    samples.append(Sample(t: t, ankleY: ankleY, torso: torso))
   }
-  return samples
+  return (samples, last)
 }
 
-private func median(_ xs: [Double]) -> Double {
+func median(_ xs: [Double]) -> Double {
   let s = xs.sorted()
   return s.isEmpty ? 0 : s[s.count / 2]
 }
 
-private func segments(_ d: [PoseSample], _ p: DetectParams) -> [(Double, Double)] {
+struct Params {
+  var enter = 0.08
+  var exit = 0.02
+  var minRise = 0.12
+  var minDuration = 3.0
+  var maxGap = 10.0
+  var baselineWindow = 4.0
+  var torsoBand = 0.5...2.0
+}
+
+func segments(_ d: [Sample], _ p: Params) -> [Segment] {
   func sameDistance(_ torso: Double?, _ ref: Double) -> Bool {
     guard let torso = torso, ref > 0 else { return true }
     return p.torsoBand.contains(torso / ref)
   }
-  var result: [(Double, Double)] = []
+  var result: [Segment] = []
   var i = 0
   while i < d.count {
     let window = d[..<i].filter { $0.t > d[i].t - p.baselineWindow && sameDistance($0.torso, d[i].torso ?? 0) }
@@ -136,9 +100,27 @@ private func segments(_ d: [PoseSample], _ p: DetectParams) -> [(Double, Double)
 
     let start = d[startIdx].t, end = d[endIdx].t
     if d[peak].ankleY - ground >= p.minRise, end - start >= p.minDuration {
-      result.append((start, end))
+      result.append(Segment(start: start, end: end))
     }
     i = max(endIdx, j) + 1
   }
   return result
+}
+
+let args = CommandLine.arguments
+guard args.count >= 2 else {
+  print("usage: detect <video> [csv-out]")
+  exit(1)
+}
+let (samples, duration) = try sample(url: URL(fileURLWithPath: args[1]), fps: 5, minConfidence: 0.3)
+if args.count >= 3 {
+  var csv = "t,ankleY,torso\n"
+  for s in samples {
+    csv += "\(String(format: "%.2f", s.t)),\(String(format: "%.4f", s.ankleY)),\(s.torso.map { String(format: "%.4f", $0) } ?? "")\n"
+  }
+  try csv.write(toFile: args[2], atomically: true, encoding: .utf8)
+}
+print("detected \(samples.count), duration \(String(format: "%.1f", duration))s")
+for s in segments(samples, Params()) {
+  print("segment \(String(format: "%.1f", s.start))s - \(String(format: "%.1f", s.end))s")
 }

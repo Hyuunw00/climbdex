@@ -43,3 +43,8 @@ yarn-error.*
 # climbdex
 samples/
 .env
+
+# native module build output
+modules/climb-video/android/build/
+# 카카오 원본 응답 (재배포 제한)
+data/gyms-raw.json

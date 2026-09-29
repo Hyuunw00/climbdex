@@ -83,11 +83,12 @@ export default function Timeline({ thumbnails, duration, start, end, position, o
         setWidth(e.nativeEvent.layout.width);
       }}
     >
-      <View style={styles.strip} {...scrubResponder.panHandlers}>
+      <View style={styles.strip} pointerEvents="none">
         {thumbnails.map((uri, i) => (
           <Image key={i} source={{ uri }} style={styles.thumb} />
         ))}
       </View>
+      <View style={styles.scrubLayer} {...scrubResponder.panHandlers} />
       {width > 0 && (
         <>
           <View pointerEvents="none" style={[styles.dim, { left: 0, width: toX(start) }]} />
@@ -109,6 +110,7 @@ export default function Timeline({ thumbnails, duration, start, end, position, o
 const styles = StyleSheet.create({
   container: { height: HEIGHT, marginVertical: 8 },
   strip: { flexDirection: 'row', height: HEIGHT, borderRadius: 6, overflow: 'hidden', backgroundColor: '#ddd' },
+  scrubLayer: { position: 'absolute', left: 0, right: 0, top: 0, height: HEIGHT },
   thumb: { flex: 1, height: HEIGHT },
   dim: { position: 'absolute', top: 0, height: HEIGHT, backgroundColor: 'rgba(255,255,255,0.65)' },
   window: { position: 'absolute', top: 0, height: HEIGHT, borderWidth: 2, borderColor: '#111', borderRadius: 4 },

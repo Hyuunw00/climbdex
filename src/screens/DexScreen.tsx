@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, SectionList, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { type Gym, formatNo, gyms, nearestGym, regions } from '../data/gyms';
 import { type DexState, visitedToday } from '../store/dex';
+import { RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters } from '../components/dex';
 
 type Props = {
   dex: DexState;
@@ -11,19 +12,6 @@ type Props = {
 };
 
 const COLUMNS = 3;
-const NEARBY_METERS = 200;
-export const RED = '#d7263d';
-
-export function Silhouette({ size, visited }: { size: number; visited: boolean }) {
-  const color = visited ? '#f2a900' : '#3a3a44';
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: size * 0.52, height: size * 0.34, backgroundColor: color, borderTopLeftRadius: size * 0.26, borderTopRightRadius: size * 0.2, borderBottomLeftRadius: size * 0.08, borderBottomRightRadius: size * 0.3 }} />
-      <View style={{ width: size * 0.22, height: size * 0.16, backgroundColor: color, borderRadius: size * 0.11, marginTop: size * 0.06, marginLeft: size * 0.2 }} />
-    </View>
-  );
-}
-
 function Progress({ value, total, color = RED, track = '#eee' }: { value: number; total: number; color?: string; track?: string }) {
   const ratio = total > 0 ? value / total : 0;
   return (
@@ -51,9 +39,9 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
       const permission = await Location.requestForegroundPermissionsAsync();
       if (!permission.granted) return;
       try {
-        const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
         const found = nearestGym(position.coords.latitude, position.coords.longitude);
-        if (found && found.distance <= NEARBY_METERS) setNearby(found);
+        if (found && (SKIP_DISTANCE_CHECK || found.distance <= allowedMeters(position.coords.accuracy))) setNearby(found);
       } catch {}
     })();
   }, []);
@@ -119,7 +107,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>{nearby.gym.name}에 있네요</Text>
             <Text style={styles.bannerHint}>
-              {visitedToday(dex, nearby.gym.id) ? '오늘 이미 등록했어요 · 사진 바꾸기' : '도감에 등록하고 사진 찍기'}
+              {visitedToday(dex, nearby.gym.id) ? '오늘 방문 등록 완료 · 암장 페이지 열기' : '도감에 등록하고 사진 찍기'}
             </Text>
           </View>
           <Text style={styles.bannerArrow}>›</Text>

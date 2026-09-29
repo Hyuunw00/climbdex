@@ -9,7 +9,7 @@ import DexScreen from './src/screens/DexScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
-import { type DexState, loadDex, saveDex, storePhoto } from './src/store/dex';
+import { type DexState, loadDex, saveDex, storePhoto, visitedToday } from './src/store/dex';
 import type { PickedVideo } from './src/types';
 
 const store = new File(Paths.document, 'videos.json');
@@ -116,6 +116,10 @@ export default function App() {
   };
 
   const checkIn = async (target: Gym) => {
+    if (visitedToday(dex, target.id)) {
+      setGym(target);
+      return;
+    }
     const choice = await choosePhoto();
     if (!choice) return;
     recordVisit(target, choice.uri);

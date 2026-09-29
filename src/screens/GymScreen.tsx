@@ -3,8 +3,8 @@ import * as Location from 'expo-location';
 import { useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { type Gym, distanceMeters, formatNo } from '../data/gyms';
-import { RED, Silhouette } from './DexScreen';
-import { type DexState, dayKey } from '../store/dex';
+import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters } from '../components/dex';
+import { type DexState, dayKey, visitedToday } from '../store/dex';
 import type { PickedVideo } from '../types';
 
 type Props = {
@@ -26,7 +26,7 @@ function formatDate(iso: string) {
 export async function takePhoto(): Promise<string | null> {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) return null;
-  const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8 });
+  const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true, aspect: [1, 1] });
   if (result.canceled) return null;
   return result.assets[0].uri;
 }
@@ -34,19 +34,20 @@ export async function takePhoto(): Promise<string | null> {
 export async function pickPhoto(): Promise<string | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) return null;
-  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true, aspect: [1, 1] });
   if (result.canceled) return null;
   return result.assets[0].uri;
 }
 
-export const CHECKIN_METERS = 200;
-
-export async function distanceTo(gym: Gym): Promise<number | null> {
+export async function distanceTo(gym: Gym): Promise<{ distance: number; allowed: number } | null> {
   const permission = await Location.requestForegroundPermissionsAsync();
   if (!permission.granted) return null;
   try {
-    const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-    return distanceMeters(position.coords.latitude, position.coords.longitude, gym.lat, gym.lng);
+    const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+    return {
+      distance: distanceMeters(position.coords.latitude, position.coords.longitude, gym.lat, gym.lng),
+      allowed: allowedMeters(position.coords.accuracy),
+    };
   } catch {
     return null;
   }
@@ -90,17 +91,18 @@ export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveV
   };
 
   const [checking, setChecking] = useState(false);
+  const doneToday = visitedToday(dex, gym.id);
 
   const register = async () => {
     setChecking(true);
-    const distance = await distanceTo(gym);
+    const result = await distanceTo(gym);
     setChecking(false);
-    if (distance === null) {
+    if (result === null) {
       Alert.alert('위치를 확인할 수 없어요', '설정에서 위치 권한을 허용해 주세요');
       return;
     }
-    if (distance > CHECKIN_METERS) {
-      Alert.alert('암장에서 등록할 수 있어요', `${gym.name}까지 ${formatDistance(distance)}`);
+    if (result.distance > result.allowed && !SKIP_DISTANCE_CHECK) {
+      Alert.alert('암장에서 등록할 수 있어요', `${gym.name}까지 ${formatDistance(result.distance)}`);
       return;
     }
     const choice = await choosePhoto();
@@ -146,10 +148,12 @@ export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveV
         </Pressable>
       </View>
 
-      <Pressable style={[styles.primary, checking && styles.disabled]} onPress={register} disabled={checking}>
-        <Text style={styles.primaryText}>{checking ? '위치 확인 중…' : visits.length > 0 ? '오늘 방문 등록' : '도감에 등록'}</Text>
+      <Pressable style={[styles.primary, (checking || doneToday) && styles.disabled, doneToday && styles.done]} onPress={register} disabled={checking || doneToday}>
+        <Text style={styles.primaryText}>
+          {doneToday ? '오늘 방문 등록 완료 ✓' : checking ? '위치 확인 중…' : visits.length > 0 ? '오늘 방문 등록' : '도감에 등록'}
+        </Text>
       </Pressable>
-      <Text style={styles.hint}>암장 {CHECKIN_METERS}m 안에서만 등록돼요 · 사진은 선택</Text>
+      <Text style={styles.hint}>{doneToday ? '방문은 하루 한 번 기록돼요' : `암장 ${CHECKIN_METERS}m 안에서만 등록돼요 · 사진은 선택`}</Text>
 
       <Text style={styles.sectionTitle}>방문 {visits.length}회</Text>
       {visits.length === 0 ? (
@@ -190,7 +194,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveV
 const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 40, gap: 8 },
   back: { fontSize: 16, paddingVertical: 8 },
-  hero: { height: 260, borderRadius: 18, overflow: 'hidden', backgroundColor: '#eceef2', borderWidth: 3, borderColor: 'transparent' },
+  hero: { aspectRatio: 1, maxHeight: 360, alignSelf: 'center', width: '100%', borderRadius: 18, overflow: 'hidden', backgroundColor: '#eceef2', borderWidth: 3, borderColor: 'transparent' },
   heroVisited: { borderColor: RED, backgroundColor: '#fff3d6' },
   heroImage: { width: '100%', height: '100%' },
   heroEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
@@ -213,6 +217,7 @@ const styles = StyleSheet.create({
   visitRemove: { fontSize: 18, color: '#bbb', paddingHorizontal: 6 },
   hint: { fontSize: 12, color: '#999', textAlign: 'center' },
   disabled: { opacity: 0.6 },
+  done: { backgroundColor: '#3a3a44', opacity: 1 },
   clips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   clip: { width: 90, height: 120, borderRadius: 8, backgroundColor: '#ddd', overflow: 'hidden' },
   clipImage: { width: '100%', height: '100%' },

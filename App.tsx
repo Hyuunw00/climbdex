@@ -31,13 +31,18 @@ export default function App() {
     for (const video of targets) {
       const startedAt = Date.now();
       let segments: PickedVideo['segments'] = [];
+      let handheld = false;
+      let info = '';
       try {
-        segments = await ClimbVideo.detect(video.uri);
+        const result = await ClimbVideo.detect(video.uri);
+        segments = result.segments;
+        handheld = result.handheld;
+        info = result.info;
       } catch (e) {
         console.log('detect error', video.fileName, String(e));
       }
-      console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', JSON.stringify(segments));
-      setVideos((prev) => prev.map((v) => (v.uri === video.uri ? { ...v, segments } : v)));
+      console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', info, JSON.stringify(segments));
+      setVideos((prev) => prev.map((v) => (v.uri === video.uri ? { ...v, segments, handheld } : v)));
     }
   };
 

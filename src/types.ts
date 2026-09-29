@@ -8,4 +8,5 @@ export type PickedVideo = {
   height: number;
   fileName: string | null;
   segments?: DetectedSegment[];
+  handheld?: boolean;
 };

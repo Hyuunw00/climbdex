@@ -2,7 +2,7 @@ import Slider from '@react-native-community/slider';
 import * as MediaLibrary from 'expo-media-library';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ClimbVideo, type DetectedSegment } from '../../modules/climb-video';
 import type { PickedVideo } from '../types';
 
@@ -11,8 +11,8 @@ type Props = {
   onBack: () => void;
 };
 
-const PAD_BEFORE = 1.5;
-const PAD_AFTER = 1.5;
+const PAD_BEFORE = 3;
+const PAD_AFTER = 2;
 
 function formatSeconds(seconds: number) {
   return seconds.toFixed(1) + 's';
@@ -80,7 +80,7 @@ export default function TrimScreen({ video, onBack }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Pressable onPress={onBack}>
         <Text style={styles.back}>← 목록</Text>
       </Pressable>
@@ -91,7 +91,7 @@ export default function TrimScreen({ video, onBack }: Props) {
             ? '시도 구간 찾는 중…'
             : segments.length === 0
               ? '시도 구간을 못 찾았어요'
-              : `시도 구간 ${segments.length}개`}
+              : `시도 구간 ${segments.length}개${video.handheld ? ' (들고 찍은 영상: 사람이 보이는 구간)' : ''}`}
         </Text>
         {segments !== undefined && segments.length > 1 && (
           <View style={styles.chips}>
@@ -135,12 +135,12 @@ export default function TrimScreen({ video, onBack }: Props) {
           </Pressable>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 12 },
+  container: { padding: 16, paddingBottom: 40, gap: 12 },
   back: { fontSize: 16, paddingVertical: 8 },
   video: { width: '100%', aspectRatio: 9 / 16, maxHeight: 420, backgroundColor: '#000', borderRadius: 8 },
   controls: { gap: 4 },

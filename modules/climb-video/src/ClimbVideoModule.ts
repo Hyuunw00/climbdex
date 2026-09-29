@@ -5,6 +5,7 @@ export type DetectResult = { handheld: boolean; info: string; segments: Detected
 
 declare class ClimbVideoModule extends NativeModule {
   trim(uri: string, start: number, end: number): Promise<string>;
+  thumbnails(uri: string, times: number[], width: number): Promise<string[]>;
   detect(uri: string): Promise<DetectResult>;
 }
 

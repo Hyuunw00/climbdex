@@ -1,6 +1,7 @@
 import ExpoModulesCore
 import AVFoundation
 import Vision
+import UIKit
 
 public class ClimbVideoModule: Module {
   public func definition() -> ModuleDefinition {
@@ -27,6 +28,32 @@ public class ClimbVideoModule: Module {
         throw Exception(name: "ExportFailed", description: error.localizedDescription)
       }
       return output.absoluteString
+    }
+
+    AsyncFunction("thumbnails") { (uri: String, times: [Double], width: Double) throws -> [String] in
+      guard let url = URL(string: uri) else {
+        throw Exception(name: "InvalidUri", description: uri)
+      }
+      let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
+      generator.appliesPreferredTrackTransform = true
+      generator.maximumSize = CGSize(width: width, height: width)
+      generator.requestedTimeToleranceBefore = CMTime(seconds: 0.3, preferredTimescale: 600)
+      generator.requestedTimeToleranceAfter = CMTime(seconds: 0.3, preferredTimescale: 600)
+      let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("thumbs", isDirectory: true)
+      try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+      let name = url.deletingPathExtension().lastPathComponent
+      var out: [String] = []
+      for t in times {
+        let file = dir.appendingPathComponent("\(name)-\(Int(t * 1000))-\(Int(width)).jpg")
+        if !FileManager.default.fileExists(atPath: file.path) {
+          let image = try generator.copyCGImage(at: CMTime(seconds: t, preferredTimescale: 600), actualTime: nil)
+          guard let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.7) else { continue }
+          try data.write(to: file)
+        }
+        out.append(file.absoluteString)
+      }
+      return out
     }
 
     AsyncFunction("detect") { (uri: String) throws -> [String: Any] in

@@ -6,8 +6,10 @@ type Props = {
   duration: number;
   start: number;
   end: number;
+  position: number;
   onChange: (start: number, end: number) => void;
   onSeek: (time: number) => void;
+  onScrub: (time: number) => void;
   onRelease?: () => void;
 };
 
@@ -15,13 +17,13 @@ const MIN_GAP = 0.5;
 const HANDLE = 20;
 const HEIGHT = 64;
 
-export default function Timeline({ thumbnails, duration, start, end, onChange, onSeek, onRelease }: Props) {
+export default function Timeline({ thumbnails, duration, start, end, position, onChange, onSeek, onScrub, onRelease }: Props) {
   const [width, setWidth] = useState(0);
   const widthRef = useRef(0);
   const range = useRef({ start, end });
   range.current = { start, end };
-  const callbacks = useRef({ onChange, onSeek, onRelease, duration });
-  callbacks.current = { onChange, onSeek, onRelease, duration };
+  const callbacks = useRef({ onChange, onSeek, onScrub, onRelease, duration });
+  callbacks.current = { onChange, onSeek, onScrub, onRelease, duration };
   const origin = useRef(0);
 
   const toTime = (x: number) => {
@@ -58,6 +60,20 @@ export default function Timeline({ thumbnails, duration, start, end, onChange, o
 
   const startResponder = useRef(makeResponder('start')).current;
   const endResponder = useRef(makeResponder('end')).current;
+  const scrubResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: (e) => scrubTo(e.nativeEvent.locationX),
+      onPanResponderMove: (e) => scrubTo(e.nativeEvent.locationX),
+    }),
+  ).current;
+
+  function scrubTo(x: number) {
+    const { start: s, end: e } = range.current;
+    callbacks.current.onScrub(Math.min(e, Math.max(s, toTime(x))));
+  }
 
   return (
     <View
@@ -67,16 +83,17 @@ export default function Timeline({ thumbnails, duration, start, end, onChange, o
         setWidth(e.nativeEvent.layout.width);
       }}
     >
-      <View style={styles.strip}>
+      <View style={styles.strip} {...scrubResponder.panHandlers}>
         {thumbnails.map((uri, i) => (
           <Image key={i} source={{ uri }} style={styles.thumb} />
         ))}
       </View>
       {width > 0 && (
         <>
-          <View style={[styles.dim, { left: 0, width: toX(start) }]} />
-          <View style={[styles.dim, { left: toX(end), right: 0 }]} />
-          <View style={[styles.window, { left: toX(start), width: Math.max(0, toX(end) - toX(start)) }]} />
+          <View pointerEvents="none" style={[styles.dim, { left: 0, width: toX(start) }]} />
+          <View pointerEvents="none" style={[styles.dim, { left: toX(end), right: 0 }]} />
+          <View pointerEvents="none" style={[styles.window, { left: toX(start), width: Math.max(0, toX(end) - toX(start)) }]} />
+          <View pointerEvents="none" style={[styles.playhead, { left: toX(Math.min(end, Math.max(start, position))) - 1 }]} />
           <View {...startResponder.panHandlers} style={[styles.handle, { left: toX(start) - HANDLE / 2 }]} hitSlop={12}>
             <View style={styles.grip} />
           </View>
@@ -95,6 +112,7 @@ const styles = StyleSheet.create({
   thumb: { flex: 1, height: HEIGHT },
   dim: { position: 'absolute', top: 0, height: HEIGHT, backgroundColor: 'rgba(255,255,255,0.65)' },
   window: { position: 'absolute', top: 0, height: HEIGHT, borderWidth: 2, borderColor: '#111', borderRadius: 4 },
+  playhead: { position: 'absolute', top: -4, width: 2, height: HEIGHT + 8, backgroundColor: '#e5322d', borderRadius: 1 },
   handle: {
     position: 'absolute',
     top: -6,

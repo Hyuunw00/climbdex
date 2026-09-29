@@ -37,6 +37,7 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
   const [current, setCurrent] = useState(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
+  const [position, setPosition] = useState(0);
   const [follow, setFollow] = useState(false);
   const [plan, setPlan] = useState<FollowPlan | null>(null);
   const [planning, setPlanning] = useState(false);
@@ -52,6 +53,7 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
 
   useEffect(() => {
     const sub = player.addListener('timeUpdate', ({ currentTime }) => {
+      setPosition(currentTime);
       if (currentTime >= clip.end) player.pause();
     });
     return () => sub.remove();
@@ -98,6 +100,7 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
   const seek = (time: number) => {
     player.pause();
     player.currentTime = time;
+    setPosition(time);
   };
 
   const updateClip = (start: number, end: number) => {
@@ -115,7 +118,9 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
   };
 
   const playRange = () => {
-    player.currentTime = clip.start;
+    const from = position > clip.start && position < clip.end - 0.2 ? position : clip.start;
+    player.currentTime = from;
+    setPosition(from);
     player.play();
   };
 
@@ -187,15 +192,17 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
         duration={video.duration}
         start={clip.start}
         end={clip.end}
+        position={position}
         onChange={updateClip}
         onSeek={seek}
+        onScrub={seek}
         onRelease={() => {
           if (follow) loadPlan();
         }}
       />
       <View style={styles.labels}>
         <Text style={styles.label}>시작 {formatSeconds(clip.start)}</Text>
-        <Text style={styles.label}>길이 {formatSeconds(clip.end - clip.start)}</Text>
+        <Text style={styles.label}>현재 {formatSeconds(position)} · 길이 {formatSeconds(clip.end - clip.start)}</Text>
         <Text style={styles.label}>끝 {formatSeconds(clip.end)}</Text>
       </View>
       <View style={styles.followRow}>

@@ -4,6 +4,8 @@ import Vision
 import CoreImage
 import UIKit
 
+private let detectQueue = DispatchQueue(label: "climbdex.detect", qos: .userInitiated)
+
 public class ClimbVideoModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ClimbVideo")
@@ -103,7 +105,7 @@ public class ClimbVideoModule: Module {
         "handheld": handheld,
         "segments": merged.map { ["start": $0.start, "end": $0.end] },
       ]
-    }
+    }.runOnQueue(detectQueue)
   }
 }
 

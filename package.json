@@ -18,10 +18,11 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "ios:device": "expo run:ios --device 00008110-0011056C1428401E"
   },
   "private": true
 }

@@ -22,5 +22,7 @@
 
 ## 환경
 - Expo SDK 54 고정. 올리려면 Xcode 26 필요
-- 빌드: `npx expo run:ios --device <UDID>`. pod는 homebrew `pod` 사용
+- Metro: `npx expo start --dev-client` (Swift 모듈이 있어 Expo Go 불가, 직접 빌드한 앱만 붙음)
+- 빌드: `npx expo run:ios --device <UDID>`. 실기기는 클래식 UDID(`00008110-…`), 시뮬레이터는 simctl UUID. pod는 homebrew `pod` 사용
+- 검출 로직을 바꾼 뒤엔 앱에서 "전체 비우기" 후 다시 골라야 함. 검출 결과가 영상 목록과 함께 저장돼 옛 결과가 남음
 - 시뮬레이터 테스트 영상 넣기: ASCII 경로로 복사 후 `xcrun simctl addmedia <UDID> <file>`

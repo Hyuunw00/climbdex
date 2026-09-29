@@ -26,3 +26,5 @@
 - 빌드: `npx expo run:ios --device <UDID>`. 실기기는 클래식 UDID(`00008110-…`), 시뮬레이터는 simctl UUID. pod는 homebrew `pod` 사용
 - 검출 로직을 바꾼 뒤엔 앱에서 "전체 비우기" 후 다시 골라야 함. 검출 결과가 영상 목록과 함께 저장돼 옛 결과가 남음
 - 시뮬레이터 테스트 영상 넣기: ASCII 경로로 복사 후 `xcrun simctl addmedia <UDID> <file>`
+- 안드로이드: `npx expo run:android` (에뮬레이터 Pixel_7 먼저 띄움). 에뮬레이터에 영상 넣기: `adb push <file> /sdcard/Movies/` 후 `MEDIA_SCANNER_SCAN_FILE` 브로드캐스트. Metro는 `adb reverse tcp:8081 tcp:8081`
+- 네이티브 로직은 `scripts/detect.swift`가 원본. iOS 모듈은 그 본문을 복사해 만들고, Android는 `Segmenter.kt`에 같은 규칙을 손으로 옮김. 규칙을 바꾸면 세 군데 같이

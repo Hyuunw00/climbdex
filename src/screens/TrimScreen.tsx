@@ -117,6 +117,23 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
     onUpdate({ clips: next });
   };
 
+  const reset = () => {
+    Alert.alert('처음 찾은 구간으로 되돌릴까요?', '편집한 구간은 사라져요', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '되돌리기',
+        style: 'destructive',
+        onPress: () => {
+          const next = initialClips({ ...video, clips: undefined });
+          setClips(next);
+          setCurrent(0);
+          seek(next[0].start);
+          onUpdate({ clips: undefined });
+        },
+      },
+    ]);
+  };
+
   const playRange = () => {
     const from = position > clip.start && position < clip.end - 0.2 ? position : clip.start;
     player.currentTime = from;
@@ -172,7 +189,14 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
           <Text style={styles.followHint}>따라가기 경로 계산 중…</Text>
         </View>
       )}
-      <Text style={styles.status}>{status}</Text>
+      <View style={styles.statusRow}>
+        <Text style={styles.status}>{status}</Text>
+        {video.clips && (
+          <Pressable onPress={reset} hitSlop={8}>
+            <Text style={styles.reset}>처음으로</Text>
+          </Pressable>
+        )}
+      </View>
       {clips.length > 1 && (
         <View style={styles.chips}>
           {clips.map((c, i) => (
@@ -234,7 +258,9 @@ const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 40, gap: 10 },
   back: { fontSize: 16, paddingVertical: 8 },
   video: { width: '100%', aspectRatio: 9 / 16, maxHeight: 380, backgroundColor: '#000', borderRadius: 8 },
-  status: { fontSize: 14, color: '#666' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  status: { fontSize: 14, color: '#666', flex: 1 },
+  reset: { fontSize: 14, color: '#0a58ca' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     flexDirection: 'row',

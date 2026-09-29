@@ -1,8 +1,9 @@
 import * as MediaLibrary from 'expo-media-library';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ClimbVideo } from '../../modules/climb-video';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
+import { ClimbVideo, type FollowPlan } from '../../modules/climb-video';
+import FollowPreview from '../components/FollowPreview';
 import Timeline from '../components/Timeline';
 import type { Clip, PickedVideo } from '../types';
 
@@ -36,6 +37,12 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
   const [current, setCurrent] = useState(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [saving, setSaving] = useState<string | null>(null);
+  const [follow, setFollow] = useState(false);
+  const [plan, setPlan] = useState<FollowPlan | null>(null);
+  const [planning, setPlanning] = useState(false);
+  const { width: screenWidth } = useWindowDimensions();
+  const previewHeight = Math.min(380, (screenWidth - 32) * (16 / 9));
+  const previewWidth = previewHeight * (9 / 16);
 
   const clip = clips[current] ?? clips[0];
 
@@ -70,6 +77,24 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
     seek(clip.start);
   }, [current]);
 
+  const loadPlan = async () => {
+    setPlanning(true);
+    try {
+      setPlan(await ClimbVideo.followPath(video.uri, clip.start, clip.end));
+    } catch (e) {
+      setPlan(null);
+      Alert.alert('따라가기 경로를 못 만들었어요', String(e));
+      setFollow(false);
+    } finally {
+      setPlanning(false);
+    }
+  };
+
+  useEffect(() => {
+    if (follow) loadPlan();
+    else setPlan(null);
+  }, [follow, current]);
+
   const seek = (time: number) => {
     player.pause();
     player.currentTime = time;
@@ -103,8 +128,10 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
     let done = 0;
     try {
       for (const target of targets) {
-        setSaving(`저장 중 ${done + 1}/${targets.length}`);
-        const outUri = await ClimbVideo.trim(video.uri, target.start, target.end);
+        setSaving(`${follow ? '따라가기 ' : ''}저장 중 ${done + 1}/${targets.length}`);
+        const outUri = follow
+          ? await ClimbVideo.exportFollow(video.uri, target.start, target.end)
+          : await ClimbVideo.trim(video.uri, target.start, target.end);
         await MediaLibrary.saveToLibraryAsync(outUri);
         done += 1;
       }
@@ -129,7 +156,17 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
       <Pressable onPress={onBack}>
         <Text style={styles.back}>← 목록</Text>
       </Pressable>
-      <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
+      {follow && plan ? (
+        <FollowPreview player={player} plan={plan} width={previewWidth} height={previewHeight} />
+      ) : (
+        <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
+      )}
+      {follow && planning && (
+        <View style={styles.planning}>
+          <ActivityIndicator size="small" color="#666" />
+          <Text style={styles.followHint}>따라가기 경로 계산 중…</Text>
+        </View>
+      )}
       <Text style={styles.status}>{status}</Text>
       {clips.length > 1 && (
         <View style={styles.chips}>
@@ -152,11 +189,21 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
         end={clip.end}
         onChange={updateClip}
         onSeek={seek}
+        onRelease={() => {
+          if (follow) loadPlan();
+        }}
       />
       <View style={styles.labels}>
         <Text style={styles.label}>시작 {formatSeconds(clip.start)}</Text>
         <Text style={styles.label}>길이 {formatSeconds(clip.end - clip.start)}</Text>
         <Text style={styles.label}>끝 {formatSeconds(clip.end)}</Text>
+      </View>
+      <View style={styles.followRow}>
+        <View style={styles.followText}>
+          <Text style={styles.label}>클라이머 따라가기</Text>
+          <Text style={styles.followHint}>세로 9:16으로 잘라 클라이머를 따라갑니다. 저장이 오래 걸려요</Text>
+        </View>
+        <Switch value={follow} onValueChange={setFollow} trackColor={{ true: '#111' }} />
       </View>
       <View style={styles.buttons}>
         <Pressable style={styles.secondary} onPress={playRange}>
@@ -196,6 +243,10 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#fff' },
   chipRemove: { fontSize: 16, color: '#999' },
   labels: { flexDirection: 'row', justifyContent: 'space-between' },
+  followRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
+  planning: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' },
+  followText: { flex: 1, gap: 2 },
+  followHint: { fontSize: 12, color: '#888' },
   label: { fontSize: 14, color: '#333' },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 4 },
   secondary: { flex: 1, paddingVertical: 14, borderRadius: 10, borderWidth: 1, borderColor: '#111', alignItems: 'center' },

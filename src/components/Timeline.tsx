@@ -8,19 +8,20 @@ type Props = {
   end: number;
   onChange: (start: number, end: number) => void;
   onSeek: (time: number) => void;
+  onRelease?: () => void;
 };
 
 const MIN_GAP = 0.5;
 const HANDLE = 20;
 const HEIGHT = 64;
 
-export default function Timeline({ thumbnails, duration, start, end, onChange, onSeek }: Props) {
+export default function Timeline({ thumbnails, duration, start, end, onChange, onSeek, onRelease }: Props) {
   const [width, setWidth] = useState(0);
   const widthRef = useRef(0);
   const range = useRef({ start, end });
   range.current = { start, end };
-  const callbacks = useRef({ onChange, onSeek, duration });
-  callbacks.current = { onChange, onSeek, duration };
+  const callbacks = useRef({ onChange, onSeek, onRelease, duration });
+  callbacks.current = { onChange, onSeek, onRelease, duration };
   const origin = useRef(0);
 
   const toTime = (x: number) => {
@@ -51,6 +52,8 @@ export default function Timeline({ thumbnails, duration, start, end, onChange, o
           seekTo(next);
         }
       },
+      onPanResponderRelease: () => callbacks.current.onRelease?.(),
+      onPanResponderTerminate: () => callbacks.current.onRelease?.(),
     });
 
   const startResponder = useRef(makeResponder('start')).current;

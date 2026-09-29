@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Alert, SafeAreaView, StyleSheet } from 'react-native';
+import { Alert, Platform, SafeAreaView, StatusBar as NativeStatusBar, StyleSheet } from 'react-native';
 import { ClimbVideo } from './modules/climb-video';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
@@ -44,16 +44,14 @@ export default function App() {
       const startedAt = Date.now();
       let segments: PickedVideo['segments'] = [];
       let handheld = false;
-      let info = '';
       try {
         const result = await ClimbVideo.detect(video.uri);
         segments = result.segments;
         handheld = result.handheld;
-        info = result.info;
       } catch (e) {
         console.log('detect error', video.fileName, String(e));
       }
-      console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', info, JSON.stringify(segments));
+      console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
       patch(video.uri, { segments, handheld });
     }
   };
@@ -95,5 +93,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', paddingTop: Platform.OS === 'android' ? NativeStatusBar.currentHeight : 0 },
 });

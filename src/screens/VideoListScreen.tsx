@@ -49,15 +49,16 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.addButton} onPress={pick}>
-        <Text style={styles.addButtonText}>영상 고르기</Text>
-      </Pressable>
-      {videos.length > 0 && (
-        <Pressable onPress={onClear}>
-          <Text style={styles.clear}>전체 비우기</Text>
-        </Pressable>
-      )}
+      <View style={styles.header}>
+        <Text style={styles.title}>내 영상</Text>
+        {videos.length > 0 && (
+          <Pressable onPress={onClear} hitSlop={8}>
+            <Text style={styles.clear}>전체 비우기</Text>
+          </Pressable>
+        )}
+      </View>
       <FlatList
+        style={styles.list}
         data={videos}
         keyExtractor={(item, index) => `${item.uri}-${index}`}
         ListEmptyComponent={<Text style={styles.empty}>고른 영상이 없어요</Text>}
@@ -82,17 +83,24 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
           </Pressable>
         )}
       />
+      <Pressable style={styles.addButton} onPress={pick}>
+        <Text style={styles.addButtonText}>영상 고르기</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 12 },
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
+  title: { fontSize: 20, fontWeight: '700' },
+  list: { flex: 1 },
   addButton: {
     backgroundColor: '#111',
-    paddingVertical: 14,
-    borderRadius: 10,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    marginTop: 8,
   },
   addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   empty: { textAlign: 'center', color: '#888', marginTop: 40 },
@@ -111,5 +119,5 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rowMeta: { color: '#666', fontSize: 13 },
   remove: { color: '#c00', fontSize: 14 },
-  clear: { color: '#c00', textAlign: 'right', fontSize: 14, paddingVertical: 4 },
+  clear: { color: '#c00', fontSize: 14 },
 });

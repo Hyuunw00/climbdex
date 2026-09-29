@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { Alert, SafeAreaView, StyleSheet } from 'react-native';
 import { ClimbVideo } from './modules/climb-video';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
@@ -27,8 +27,20 @@ export default function App() {
     store.write(JSON.stringify(videos));
   }, [videos]);
 
+  const patch = (uri: string, changes: Partial<PickedVideo>) => {
+    setVideos((prev) => prev.map((v) => (v.uri === uri ? { ...v, ...changes } : v)));
+  };
+
   const detect = async (targets: PickedVideo[]) => {
     for (const video of targets) {
+      if (!video.thumbnail) {
+        try {
+          const [thumbnail] = await ClimbVideo.thumbnails(video.uri, [Math.min(1, video.duration / 2)], 240);
+          patch(video.uri, { thumbnail });
+        } catch (e) {
+          console.log('thumbnail error', video.fileName, String(e));
+        }
+      }
       const startedAt = Date.now();
       let segments: PickedVideo['segments'] = [];
       let handheld = false;
@@ -42,7 +54,7 @@ export default function App() {
         console.log('detect error', video.fileName, String(e));
       }
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', info, JSON.stringify(segments));
-      setVideos((prev) => prev.map((v) => (v.uri === video.uri ? { ...v, segments, handheld } : v)));
+      patch(video.uri, { segments, handheld });
     }
   };
 
@@ -53,6 +65,8 @@ export default function App() {
   const add = (picked: PickedVideo[]) => {
     const known = new Set(videos.map((v) => v.assetId).filter(Boolean));
     const added = picked.filter((v) => !v.assetId || !known.has(v.assetId));
+    const skipped = picked.length - added.length;
+    if (skipped > 0) Alert.alert(`이미 있는 영상 ${skipped}개는 건너뛰었어요`);
     if (added.length === 0) return;
     setVideos((prev) => [...prev, ...added]);
     detect(added);
@@ -70,7 +84,11 @@ export default function App() {
           onOpen={setEditing}
         />
       ) : (
-        <TrimScreen video={videos[editing]} onBack={() => setEditing(null)} />
+        <TrimScreen
+          video={videos[editing]}
+          onBack={() => setEditing(null)}
+          onUpdate={(changes) => patch(videos[editing].uri, changes)}
+        />
       )}
     </SafeAreaView>
   );

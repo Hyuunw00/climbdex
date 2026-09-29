@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PickedVideo } from '../types';
 
 type Props = {
@@ -14,6 +14,15 @@ function formatSeconds(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function statusOf(video: PickedVideo) {
+  if (video.segments === undefined) return '시도 구간 찾는 중';
+  const count = video.clips?.length ?? video.segments.length;
+  const parts = [count === 0 ? '구간 못 찾음' : `구간 ${count}개`];
+  if (video.handheld) parts.push('들고 찍음');
+  if (video.saved) parts.push(`저장 ${video.saved}개`);
+  return parts.join(' · ');
 }
 
 export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOpen }: Props) {
@@ -54,13 +63,19 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
         ListEmptyComponent={<Text style={styles.empty}>고른 영상이 없어요</Text>}
         renderItem={({ item, index }) => (
           <Pressable style={styles.row} onPress={() => onOpen(index)}>
-            <Text style={styles.rowTitle} numberOfLines={1}>
-              {item.fileName ?? `영상 ${index + 1}`}
-            </Text>
-            <Text style={styles.rowMeta}>
-              {item.segments === undefined ? '찾는 중' : `구간 ${item.segments.length}개`}
-            </Text>
-            <Text style={styles.rowMeta}>{formatSeconds(item.duration)}</Text>
+            <View style={styles.thumb}>
+              {item.thumbnail ? <Image source={{ uri: item.thumbnail }} style={styles.thumbImage} /> : null}
+            </View>
+            <View style={styles.body}>
+              <Text style={styles.rowTitle} numberOfLines={1}>
+                {item.fileName ?? `영상 ${index + 1}`}
+              </Text>
+              <View style={styles.statusRow}>
+                {item.segments === undefined && <ActivityIndicator size="small" color="#666" />}
+                <Text style={styles.rowMeta}>{statusOf(item)}</Text>
+              </View>
+              <Text style={styles.rowMeta}>{formatSeconds(item.duration)}</Text>
+            </View>
             <Pressable hitSlop={8} onPress={() => onRemove(index)}>
               <Text style={styles.remove}>삭제</Text>
             </Pressable>
@@ -83,13 +98,18 @@ const styles = StyleSheet.create({
   empty: { textAlign: 'center', color: '#888', marginTop: 40 },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#ccc',
   },
-  rowTitle: { flex: 1, fontSize: 15 },
-  rowMeta: { color: '#666', marginLeft: 12 },
-  remove: { color: '#c00', marginLeft: 16, fontSize: 14 },
+  thumb: { width: 54, height: 72, borderRadius: 6, backgroundColor: '#ddd', overflow: 'hidden' },
+  thumbImage: { width: '100%', height: '100%' },
+  body: { flex: 1, gap: 2 },
+  rowTitle: { fontSize: 15 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowMeta: { color: '#666', fontSize: 13 },
+  remove: { color: '#c00', fontSize: 14 },
   clear: { color: '#c00', textAlign: 'right', fontSize: 14, paddingVertical: 4 },
 });

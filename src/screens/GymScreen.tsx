@@ -2,8 +2,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { type Gym, distanceMeters, formatNo } from '../data/gyms';
-import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters } from '../components/dex';
+import { type Candidate, type Gym, distanceMeters, formatNo, nearbyGyms } from '../data/gyms';
+import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters, formatDate, formatDistance } from '../components/dex';
 import { type DexState, dayKey, visitedToday } from '../store/dex';
 import type { PickedVideo } from '../types';
 
@@ -12,16 +12,11 @@ type Props = {
   dex: DexState;
   videos: PickedVideo[];
   onBack: () => void;
-  onVisit: (gym: Gym, photoUri: string | null) => void;
+  onCheckIn: (candidates: Candidate[]) => void;
   onRemoveVisit: (at: string) => void;
   onPhoto: (gym: Gym, photoUri: string) => void;
   onOpenVideo: (index: number) => void;
 };
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-}
 
 export async function takePhoto(): Promise<string | null> {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -39,15 +34,16 @@ export async function pickPhoto(): Promise<string | null> {
   return result.assets[0].uri;
 }
 
-export async function distanceTo(gym: Gym): Promise<{ distance: number; allowed: number } | null> {
+export async function locate(gym: Gym): Promise<{ distance: number; allowed: number; candidates: Candidate[] } | null> {
   const permission = await Location.requestForegroundPermissionsAsync();
   if (!permission.granted) return null;
   try {
     const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-    return {
-      distance: distanceMeters(position.coords.latitude, position.coords.longitude, gym.lat, gym.lng),
-      allowed: allowedMeters(position.coords.accuracy),
-    };
+    const { latitude, longitude, accuracy } = position.coords;
+    const distance = distanceMeters(latitude, longitude, gym.lat, gym.lng);
+    const allowed = allowedMeters(accuracy);
+    const others = nearbyGyms(latitude, longitude, allowed).filter((c) => c.gym.id !== gym.id);
+    return { distance, allowed, candidates: [{ gym, distance }, ...others].slice(0, 5) };
   } catch {
     return null;
   }
@@ -66,17 +62,13 @@ export function choosePhoto(): Promise<PhotoChoice> {
   });
 }
 
-function formatDistance(meters: number) {
-  return meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters)}m`;
-}
-
-export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveVisit, onPhoto, onOpenVideo }: Props) {
+export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo }: Props) {
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
   const photo = dex.photos[gym.id];
   const visitDays = new Set(visits.map((v) => dayKey(v.at)));
   const clips = videos
     .map((video, index) => ({ video, index }))
-    .filter(({ video }) => video.createdAt && visitDays.has(dayKey(new Date(video.createdAt).toISOString())));
+    .filter(({ video }) => video.createdAt && visitDays.has(dayKey(video.createdAt)));
 
   const changePhoto = () => {
     Alert.alert('도감 사진', undefined, [
@@ -95,7 +87,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveV
 
   const register = async () => {
     setChecking(true);
-    const result = await distanceTo(gym);
+    const result = await locate(gym);
     setChecking(false);
     if (result === null) {
       Alert.alert('위치를 확인할 수 없어요', '설정에서 위치 권한을 허용해 주세요');
@@ -105,9 +97,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveV
       Alert.alert('암장에서 등록할 수 있어요', `${gym.name}까지 ${formatDistance(result.distance)}`);
       return;
     }
-    const choice = await choosePhoto();
-    if (!choice) return;
-    onVisit(gym, choice.uri);
+    onCheckIn(result.candidates);
   };
 
   return (
@@ -115,12 +105,12 @@ export default function GymScreen({ gym, dex, videos, onBack, onVisit, onRemoveV
       <Pressable onPress={onBack}>
         <Text style={styles.back}>← 도감</Text>
       </Pressable>
-      <Pressable style={[styles.hero, visits.length > 0 && styles.heroVisited]} onPress={changePhoto}>
+      <Pressable style={[styles.hero, visits.length > 0 && styles.heroVisited]} onPress={visits.length > 0 ? changePhoto : undefined}>
         {photo ? (
           <Image source={{ uri: photo }} style={styles.heroImage} />
         ) : (
           <View style={styles.heroEmpty}>
-            <Silhouette size={140} visited={visits.length > 0} />
+            <Silhouette size={140} visited={visits.length > 0} seed={gym.id} region={gym.region1} />
             <Text style={styles.heroEmptyText}>{visits.length > 0 ? '눌러서 도감 사진 넣기' : '아직 가 보지 않은 암장'}</Text>
           </View>
         )}

@@ -4,12 +4,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, SafeAreaView, StatusBar as NativeStatusBar, StyleSheet, Text, View } from 'react-native';
 import { ClimbVideo } from './modules/climb-video';
-import type { Gym } from './src/data/gyms';
+import type { Candidate, Gym } from './src/data/gyms';
+import { formatDistance } from './src/components/dex';
+import Celebration from './src/components/Celebration';
 import DexScreen from './src/screens/DexScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
-import { type DexState, loadDex, saveDex, storePhoto, visitedToday } from './src/store/dex';
+import { loadDex, removeVisit, replacePhoto, saveDex, storePhoto, type DexState, visitedToday } from './src/store/dex';
 import type { PickedVideo } from './src/types';
 
 const store = new File(Paths.document, 'videos.json');
@@ -32,6 +34,9 @@ export default function App() {
   const [editing, setEditing] = useState<number | null>(null);
   const [dex, setDex] = useState<DexState>(loadDex);
   const [gym, setGym] = useState<Gym | null>(null);
+  const [region, setRegion] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number } | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     store.write(JSON.stringify(videos));
@@ -90,32 +95,49 @@ export default function App() {
     detect(added);
   };
 
-  const recordVisit = (target: Gym, photoUri: string | null) => {
+  const recordVisit = async (target: Gym, photoUri: string | null) => {
     const at = new Date().toISOString();
     let photo: string | undefined;
     if (photoUri) {
       try {
-        photo = storePhoto(photoUri, target.id);
+        photo = await storePhoto(photoUri, target.id);
       } catch (e) {
         Alert.alert('사진 저장 실패', String(e));
       }
     }
-    setDex((prev) => ({
-      visits: [...prev.visits, { gymId: target.id, at, photo }],
-      photos: photo ? { ...prev.photos, [target.id]: photo } : prev.photos,
-    }));
+    setDex((prev) => {
+      const next = { ...prev, visits: [...prev.visits, { gymId: target.id, at, photo }] };
+      return photo ? replacePhoto(next, target.id, photo) : next;
+    });
+    setCelebration({ gym: target, photo, count: dex.visits.filter((v) => v.gymId === target.id).length + 1 });
   };
 
-  const setGymPhoto = (target: Gym, photoUri: string) => {
+  const setGymPhoto = async (target: Gym, photoUri: string) => {
     try {
-      const photo = storePhoto(photoUri, target.id);
-      setDex((prev) => ({ ...prev, photos: { ...prev.photos, [target.id]: photo } }));
+      const photo = await storePhoto(photoUri, target.id);
+      setDex((prev) => replacePhoto(prev, target.id, photo));
     } catch (e) {
       Alert.alert('사진 저장 실패', String(e));
     }
   };
 
-  const checkIn = async (target: Gym) => {
+  const pickGym = (candidates: Candidate[]) =>
+    new Promise<Gym | null>((resolve) => {
+      if (candidates.length <= 1) return resolve(candidates[0]?.gym ?? null);
+      Alert.alert(
+        '어느 암장에 있어요?',
+        `근처에 암장이 ${candidates.length}곳 있어요`,
+        [
+          ...candidates.map(({ gym, distance }) => ({ text: `${gym.name} · ${formatDistance(distance)}`, onPress: () => resolve(gym) })),
+          { text: '취소', style: 'cancel' as const, onPress: () => resolve(null) },
+        ],
+        { cancelable: true, onDismiss: () => resolve(null) },
+      );
+    });
+
+  const checkIn = async (candidates: Candidate[]) => {
+    const target = await pickGym(candidates);
+    if (!target) return;
     if (visitedToday(dex, target.id)) {
       setGym(target);
       return;
@@ -157,21 +179,22 @@ export default function App() {
         dex={dex}
         videos={videos}
         onBack={() => setGym(null)}
-        onVisit={recordVisit}
-        onRemoveVisit={(at) => setDex((prev) => ({ ...prev, visits: prev.visits.filter((v) => v.at !== at) }))}
+        onCheckIn={checkIn}
+        onRemoveVisit={(at) => setDex((prev) => removeVisit(prev, at))}
         onPhoto={setGymPhoto}
         onOpenVideo={openVideo}
       />
     ) : (
-      <DexScreen dex={dex} onOpenGym={setGym} onCheckIn={checkIn} />
+      <DexScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onCheckIn={checkIn} />
     );
   }
 
   const showTabs = editing === null && gym === null;
 
   return (
+    <>
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style={celebration ? 'light' : 'dark'} />
       <View style={styles.screen}>{screen}</View>
       {showTabs && (
         <View style={styles.tabs}>
@@ -186,6 +209,8 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} onDone={() => setCelebration(null)} />}
+    </>
   );
 }
 

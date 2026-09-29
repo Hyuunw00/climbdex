@@ -40,11 +40,11 @@ export function distanceMeters(aLat: number, aLng: number, bLat: number, bLng: n
   return 2 * r * Math.asin(Math.sqrt(s));
 }
 
-export function nearestGym(lat: number, lng: number): { gym: Gym; distance: number } | null {
-  let best: { gym: Gym; distance: number } | null = null;
-  for (const gym of gyms) {
-    const distance = distanceMeters(lat, lng, gym.lat, gym.lng);
-    if (!best || distance < best.distance) best = { gym, distance };
-  }
-  return best;
+export type Candidate = { gym: Gym; distance: number };
+
+export function nearbyGyms(lat: number, lng: number, radius: number): Candidate[] {
+  return gyms
+    .map((gym) => ({ gym, distance: distanceMeters(lat, lng, gym.lat, gym.lng) }))
+    .filter((entry) => entry.distance <= radius)
+    .sort((a, b) => a.distance - b.distance);
 }

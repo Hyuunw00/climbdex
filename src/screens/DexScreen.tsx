@@ -1,14 +1,18 @@
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, SectionList, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { type Gym, formatNo, gyms, nearestGym, regions } from '../data/gyms';
+import { type Candidate, type Gym, formatNo, gyms, nearbyGyms, regions } from '../data/gyms';
 import { type DexState, visitedToday } from '../store/dex';
-import { RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters } from '../components/dex';
+import { RED, Silhouette, allowedMeters } from '../components/dex';
 
 type Props = {
   dex: DexState;
   onOpenGym: (gym: Gym) => void;
-  onCheckIn: (gym: Gym) => void;
+  onCheckIn: (candidates: Candidate[]) => void;
+  region: string | null;
+  onRegion: (region: string | null) => void;
+  query: string;
+  onQuery: (query: string) => void;
 };
 
 const COLUMNS = 3;
@@ -21,11 +25,9 @@ function Progress({ value, total, color = RED, track = '#eee' }: { value: number
   );
 }
 
-export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
+export default function DexScreen({ dex, region, onRegion, query, onQuery, onOpenGym, onCheckIn }: Props) {
   const { width } = useWindowDimensions();
-  const [region, setRegion] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [nearby, setNearby] = useState<{ gym: Gym; distance: number } | null>(null);
+  const [nearby, setNearby] = useState<Candidate[]>([]);
 
   const visitedIds = useMemo(() => new Set(dex.visits.map((v) => v.gymId)), [dex.visits]);
   const visitCount = useMemo(() => {
@@ -40,8 +42,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
       if (!permission.granted) return;
       try {
         const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-        const found = nearestGym(position.coords.latitude, position.coords.longitude);
-        if (found && (SKIP_DISTANCE_CHECK || found.distance <= allowedMeters(position.coords.accuracy))) setNearby(found);
+        setNearby(nearbyGyms(position.coords.latitude, position.coords.longitude, allowedMeters(position.coords.accuracy)).slice(0, 5));
       } catch {}
     })();
   }, []);
@@ -87,7 +88,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
         <View>
           <Text style={styles.eyebrow}>CLIMBDEX · 대한민국</Text>
           {region ? (
-            <Pressable onPress={() => setRegion(null)} hitSlop={8} style={styles.backRow}>
+            <Pressable onPress={() => onRegion(null)} hitSlop={8} style={styles.backRow}>
               <Text style={styles.backArrow}>‹</Text>
               <Text style={styles.title}>{region}</Text>
             </Pressable>
@@ -101,13 +102,13 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
         </View>
       </View>
       <Progress value={current ? current.visited : visitedIds.size} total={current ? current.total : gyms.length} color="#fff" track="rgba(255,255,255,0.25)" />
-      {nearby && !region && (
-        <Pressable style={styles.banner} onPress={() => onCheckIn(nearby.gym)}>
+      {nearby.length > 0 && !region && (
+        <Pressable style={styles.banner} onPress={() => onCheckIn(nearby)}>
           <View style={styles.bannerDot} />
           <View style={styles.bannerText}>
-            <Text style={styles.bannerTitle}>{nearby.gym.name}에 있네요</Text>
+            <Text style={styles.bannerTitle}>{nearby[0].gym.name}에 있네요</Text>
             <Text style={styles.bannerHint}>
-              {visitedToday(dex, nearby.gym.id) ? '오늘 방문 등록 완료 · 암장 페이지 열기' : '도감에 등록하고 사진 찍기'}
+              {visitedToday(dex, nearby[0].gym.id) ? '오늘 방문 등록 완료 · 암장 페이지 열기' : '도감에 등록하고 사진 찍기'}
             </Text>
           </View>
           <Text style={styles.bannerArrow}>›</Text>
@@ -123,7 +124,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
     return (
       <Pressable key={gym.id} style={[styles.cell, { width: cell }]} onPress={() => onOpenGym(gym)}>
         <View style={[styles.card, { height: cell * 1.1 }, visited && styles.cardVisited]}>
-          {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <Silhouette size={cell * 0.8} visited={visited} />}
+          {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <Silhouette size={cell * 0.8} visited={visited} seed={gym.id} region={gym.region1} />}
           <Text style={[styles.no, visited && styles.noVisited]}>{formatNo(gym.no)}</Text>
           {visited && (
             <View style={styles.stamp}>
@@ -174,12 +175,12 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
           placeholder="암장 이름이나 동네로 찾기"
           placeholderTextColor="#999"
           value={query}
-          onChangeText={setQuery}
+          onChangeText={onQuery}
           autoCorrect={false}
           clearButtonMode="while-editing"
         />
         {query.length > 0 && (
-          <Pressable onPress={() => setQuery('')} hitSlop={8}>
+          <Pressable onPress={() => onQuery('')} hitSlop={8}>
             <Text style={styles.searchClear}>×</Text>
           </Pressable>
         )}
@@ -199,7 +200,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
             return (
               <Pressable style={styles.result} onPress={() => onOpenGym(gym)}>
                 <View style={[styles.resultThumb, visited && styles.resultThumbVisited]}>
-                  {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <Silhouette size={40} visited={visited} />}
+                  {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <Silhouette size={40} visited={visited} seed={gym.id} region={gym.region1} />}
                 </View>
                 <View style={styles.resultBody}>
                   <Text style={styles.resultName} numberOfLines={1}>
@@ -230,7 +231,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn }: Props) {
           renderItem={({ item: r }) => {
             const complete = r.total > 0 && r.visited === r.total;
             return (
-              <Pressable style={[styles.regionCard, { width: regionCard }, complete && styles.regionCardComplete]} onPress={() => setRegion(r.name)}>
+              <Pressable style={[styles.regionCard, { width: regionCard }, complete && styles.regionCardComplete]} onPress={() => onRegion(r.name)}>
                 <View style={styles.regionCardRow}>
                   <Text style={styles.regionName}>{r.name}</Text>
                   <Text style={styles.regionCount}>

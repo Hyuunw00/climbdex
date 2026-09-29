@@ -1,10 +1,13 @@
 import AVFoundation
 import Vision
+import CoreImage
 
 struct Sample {
   let t: Double
   let ankleY: Double
   let torso: Double?
+  var x: Double = 0
+  var y: Double = 0
 }
 
 struct Segment { let start: Double; let end: Double }
@@ -63,10 +66,13 @@ final class Track {
   init(_ c: Candidate, t: Double) { x = c.x; y = c.y; torso = c.torso; lastT = t }
 }
 
-func sample(url: URL, fps: Double, minConfidence: Float) throws -> ([[Sample]], Double, Double) {
+func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil) throws -> ([[Sample]], Double, Double) {
   let asset = AVURLAsset(url: url)
   guard let track = asset.tracks(withMediaType: .video).first else { throw NSError(domain: "detect", code: 1) }
   let reader = try AVAssetReader(asset: asset)
+  if let from = from, let to = to {
+    reader.timeRange = CMTimeRange(start: CMTime(seconds: from, preferredTimescale: 600), end: CMTime(seconds: to, preferredTimescale: 600))
+  }
   let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
     kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
   ])
@@ -83,8 +89,8 @@ func sample(url: URL, fps: Double, minConfidence: Float) throws -> ([[Sample]], 
   let torsoBand = 0.6...1.7
   let trackTimeout = 10.0
 
-  var nextT = 0.0
-  var nextMotionT = 0.0
+  var nextT = from ?? 0.0
+  var nextMotionT = from ?? 0.0
   var last = 0.0
   var previous: CVPixelBuffer? = nil
   var shifts: [Double] = []
@@ -128,7 +134,7 @@ func sample(url: URL, fps: Double, minConfidence: Float) throws -> ([[Sample]], 
           taken.insert(tracks.count - 1)
         }
         tr.x = c.x; tr.y = c.y; tr.torso = c.torso; tr.lastT = t
-        tr.samples.append(Sample(t: t, ankleY: c.ankleY, torso: c.torso))
+        tr.samples.append(Sample(t: t, ankleY: c.ankleY, torso: c.torso, x: c.x, y: c.y))
       }
     }
     batch.removeAll()
@@ -247,10 +253,197 @@ func segments(_ d: [Sample], _ p: Params) -> [Segment] {
   return result
 }
 
+
+struct FollowPath {
+  let points: [(t: Double, x: Double, y: Double)]
+
+  init(_ samples: [Sample], window: Double) {
+    points = samples.map { s in
+      let near = samples.filter { abs($0.t - s.t) <= window }
+      return (s.t, near.map { $0.x }.reduce(0, +) / Double(near.count), near.map { $0.y }.reduce(0, +) / Double(near.count))
+    }
+  }
+
+  func position(at t: Double) -> (x: Double, y: Double) {
+    guard let first = points.first, let last = points.last else { return (0.5, 0.5) }
+    if t <= first.t { return (first.x, first.y) }
+    if t >= last.t { return (last.x, last.y) }
+    var i = 0
+    while i + 1 < points.count, points[i + 1].t < t { i += 1 }
+    let a = points[i], b = points[i + 1]
+    let f = (t - a.t) / max(1e-6, b.t - a.t)
+    return (a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f)
+  }
+}
+
+func followCropSize(frame: CGSize, torso: Double) -> CGSize {
+  let fraction = min(1.0, max(0.45, torso * 5.5 / 0.55))
+  var h = frame.height * fraction
+  var w = h * 9 / 16
+  if w > frame.width {
+    w = frame.width
+    h = w * 16 / 9
+    if h > frame.height {
+      h = frame.height
+      w = h * 9 / 16
+    }
+  }
+  return CGSize(width: w, height: h)
+}
+
+func followRect(frame: CGSize, crop: CGSize, center: (x: Double, y: Double)) -> CGRect {
+  let cx = center.x * frame.width
+  let cy = (1 - center.y) * frame.height
+  var x = cx - crop.width / 2
+  var y = cy - crop.height * 0.55
+  x = min(max(0, x), frame.width - crop.width)
+  y = min(max(0, y), frame.height - crop.height)
+  return CGRect(x: x, y: y, width: crop.width, height: crop.height)
+}
+
+struct FollowPlan {
+  let frame: CGSize
+  let crop: CGSize
+  let path: FollowPath
+  let keyframes: [(t: Double, rect: CGRect)]
+}
+
+func planFollow(url: URL, start: Double, end: Double, minConfidence: Float) throws -> FollowPlan {
+  let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
+  guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
+    throw NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "no person"])
+  }
+  let path = FollowPath(person, window: 0.75)
+  let torso = median(person.compactMap { $0.torso })
+  let asset = AVURLAsset(url: url)
+  guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw NSError(domain: "detect", code: 1) }
+  let oriented = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
+  let frame = CGSize(width: abs(oriented.width), height: abs(oriented.height))
+  let crop = followCropSize(frame: frame, torso: torso)
+  let keyframes = path.points.map { ($0.t, followRect(frame: frame, crop: crop, center: ($0.x, $0.y))) }
+  return FollowPlan(frame: frame, crop: crop, path: path, keyframes: keyframes)
+}
+
+func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float) throws {
+  let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
+  guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
+    throw NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "no person"])
+  }
+  let path = FollowPath(person, window: 0.75)
+  let torso = median(person.compactMap { $0.torso })
+
+  let asset = AVURLAsset(url: url)
+  guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw NSError(domain: "detect", code: 1) }
+  let orient = orientation(for: videoTrack.preferredTransform)
+  let oriented = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
+  let frame = CGSize(width: abs(oriented.width), height: abs(oriented.height))
+  let crop = followCropSize(frame: frame, torso: torso)
+  let outSize = CGSize(width: 1080, height: 1920)
+  let range = CMTimeRange(start: CMTime(seconds: start, preferredTimescale: 600), end: CMTime(seconds: end, preferredTimescale: 600))
+
+  let reader = try AVAssetReader(asset: asset)
+  reader.timeRange = range
+  let videoOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings: [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA])
+  videoOutput.alwaysCopiesSampleData = false
+  reader.add(videoOutput)
+  let audioTrack = asset.tracks(withMediaType: .audio).first
+  var audioOutput: AVAssetReaderTrackOutput? = nil
+  if let audioTrack = audioTrack {
+    let out = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM])
+    reader.add(out)
+    audioOutput = out
+  }
+
+  try? FileManager.default.removeItem(at: output)
+  let writer = try AVAssetWriter(outputURL: output, fileType: .mov)
+  let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: [
+    AVVideoCodecKey: AVVideoCodecType.h264,
+    AVVideoWidthKey: Int(outSize.width),
+    AVVideoHeightKey: Int(outSize.height),
+    AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 12_000_000],
+  ])
+  videoInput.expectsMediaDataInRealTime = false
+  let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: videoInput, sourcePixelBufferAttributes: [
+    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+    kCVPixelBufferWidthKey as String: Int(outSize.width),
+    kCVPixelBufferHeightKey as String: Int(outSize.height),
+  ])
+  writer.add(videoInput)
+  var audioInput: AVAssetWriterInput? = nil
+  if audioOutput != nil {
+    let input = AVAssetWriterInput(mediaType: .audio, outputSettings: [
+      AVFormatIDKey: kAudioFormatMPEG4AAC,
+      AVSampleRateKey: 44100,
+      AVNumberOfChannelsKey: 2,
+      AVEncoderBitRateKey: 128_000,
+    ])
+    input.expectsMediaDataInRealTime = false
+    writer.add(input)
+    audioInput = input
+  }
+
+  guard reader.startReading(), writer.startWriting() else {
+    throw writer.error ?? reader.error ?? NSError(domain: "detect", code: 3)
+  }
+  writer.startSession(atSourceTime: range.start)
+
+  let context = CIContext(options: [.cacheIntermediates: false])
+  let group = DispatchGroup()
+  let videoQueue = DispatchQueue(label: "climbdex.follow.video")
+  group.enter()
+  videoInput.requestMediaDataWhenReady(on: videoQueue) {
+    while videoInput.isReadyForMoreMediaData {
+      guard let buffer = videoOutput.copyNextSampleBuffer(), let pixel = CMSampleBufferGetImageBuffer(buffer) else {
+        videoInput.markAsFinished()
+        group.leave()
+        return
+      }
+      let time = CMSampleBufferGetPresentationTimeStamp(buffer)
+      let rect = followRect(frame: frame, crop: crop, center: path.position(at: time.seconds))
+      let ciRect = CGRect(x: rect.minX, y: frame.height - rect.maxY, width: rect.width, height: rect.height)
+      let image = CIImage(cvPixelBuffer: pixel).oriented(orient)
+        .cropped(to: ciRect)
+        .transformed(by: CGAffineTransform(translationX: -ciRect.minX, y: -ciRect.minY))
+        .transformed(by: CGAffineTransform(scaleX: outSize.width / rect.width, y: outSize.height / rect.height))
+      guard let pool = adaptor.pixelBufferPool else { continue }
+      var target: CVPixelBuffer? = nil
+      CVPixelBufferPoolCreatePixelBuffer(nil, pool, &target)
+      guard let target = target else { continue }
+      context.render(image, to: target)
+      adaptor.append(target, withPresentationTime: time)
+    }
+  }
+  if let audioInput = audioInput, let audioOutput = audioOutput {
+    let audioQueue = DispatchQueue(label: "climbdex.follow.audio")
+    group.enter()
+    audioInput.requestMediaDataWhenReady(on: audioQueue) {
+      while audioInput.isReadyForMoreMediaData {
+        guard let buffer = audioOutput.copyNextSampleBuffer() else {
+          audioInput.markAsFinished()
+          group.leave()
+          return
+        }
+        audioInput.append(buffer)
+      }
+    }
+  }
+  group.wait()
+  let done = DispatchSemaphore(value: 0)
+  writer.finishWriting { done.signal() }
+  done.wait()
+  if let error = writer.error { throw error }
+}
+
 let args = CommandLine.arguments
 guard args.count >= 2 else {
-  print("usage: detect <video> [csv-out]")
+  print("usage: detect <video> [csv-out] | detect export <video> <start> <end> <out.mov>")
   exit(1)
+}
+if args[1] == "export" {
+  let started = Date()
+  try exportFollow(url: URL(fileURLWithPath: args[2]), start: Double(args[3])!, end: Double(args[4])!, output: URL(fileURLWithPath: args[5]), minConfidence: 0.3)
+  print("exported \(args[5]) in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
+  exit(0)
 }
 let (people, duration, shift) = try sample(url: URL(fileURLWithPath: args[1]), fps: 5, minConfidence: 0.3)
 let params = Params()

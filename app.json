@@ -16,13 +16,20 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "자를 등반 영상을 고르기 위해 사진 앱 접근이 필요해요."
+          "photosPermission": "자를 등반 영상을 고르기 위해 사진 앱 접근이 필요해요.",
+          "cameraPermission": "암장 도감 사진을 찍기 위해 카메라가 필요해요."
         }
       ],
       [
         "expo-media-library",
         {
           "savePhotosPermission": "자른 클립을 사진 앱에 저장하기 위해 필요해요."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "근처 암장을 찾아 도감에 등록하기 위해 위치가 필요해요."
         }
       ]
     ],

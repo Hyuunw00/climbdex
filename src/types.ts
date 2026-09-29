@@ -9,6 +9,7 @@ export type PickedVideo = {
   width: number;
   height: number;
   fileName: string | null;
+  createdAt?: number;
   thumbnail?: string;
   segments?: DetectedSegment[];
   handheld?: boolean;

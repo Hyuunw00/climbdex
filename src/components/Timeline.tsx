@@ -19,9 +19,14 @@ export default function Timeline({ thumbnails, duration, start, end, onChange, o
   const widthRef = useRef(0);
   const range = useRef({ start, end });
   range.current = { start, end };
+  const callbacks = useRef({ onChange, onSeek, duration });
+  callbacks.current = { onChange, onSeek, duration };
   const origin = useRef(0);
 
-  const toTime = (x: number) => Math.min(duration, Math.max(0, (x / widthRef.current) * duration));
+  const toTime = (x: number) => {
+    const d = callbacks.current.duration;
+    return Math.min(d, Math.max(0, (x / widthRef.current) * d));
+  };
   const toX = (t: number) => (duration > 0 ? (t / duration) * width : 0);
 
   const makeResponder = (side: 'start' | 'end') =>
@@ -33,16 +38,17 @@ export default function Timeline({ thumbnails, duration, start, end, onChange, o
         origin.current = range.current[side];
       },
       onPanResponderMove: (_, g) => {
-        const t = toTime((origin.current / duration) * widthRef.current + g.dx);
+        const { onChange: change, onSeek: seekTo, duration: d } = callbacks.current;
+        const t = toTime((origin.current / d) * widthRef.current + g.dx);
         const { start: s, end: e } = range.current;
         if (side === 'start') {
           const next = Math.min(t, e - MIN_GAP);
-          onChange(next, e);
-          onSeek(next);
+          change(next, e);
+          seekTo(next);
         } else {
           const next = Math.max(t, s + MIN_GAP);
-          onChange(s, next);
-          onSeek(next);
+          change(s, next);
+          seekTo(next);
         }
       },
     });

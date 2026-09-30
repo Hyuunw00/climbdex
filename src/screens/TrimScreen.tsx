@@ -11,6 +11,7 @@ type Props = {
   video: PickedVideo;
   onBack: () => void;
   onUpdate: (patch: Partial<PickedVideo>) => void;
+  onAnalyze: (clip: Clip) => void;
 };
 
 const PAD_BEFORE = 3;
@@ -32,7 +33,7 @@ function initialClips(video: PickedVideo): Clip[] {
   return [{ start: 0, end: video.duration }];
 }
 
-export default function TrimScreen({ video, onBack, onUpdate }: Props) {
+export default function TrimScreen({ video, onBack, onUpdate, onAnalyze }: Props) {
   const [clips, setClips] = useState<Clip[]>(() => initialClips(video));
   const [current, setCurrent] = useState(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
@@ -229,6 +230,13 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
         <Text style={styles.label}>현재 {formatSeconds(position)} · 길이 {formatSeconds(clip.end - clip.start)}</Text>
         <Text style={styles.label}>끝 {formatSeconds(clip.end)}</Text>
       </View>
+      <Pressable style={styles.analyzeRow} onPress={() => onAnalyze(clip)}>
+        <View style={styles.followText}>
+          <Text style={styles.label}>이 시도 분석</Text>
+          <Text style={styles.followHint}>무브 순서와 떨어진 지점을 관절로 짚어 봅니다</Text>
+        </View>
+        <Text style={styles.analyzeArrow}>›</Text>
+      </Pressable>
       <View style={styles.followRow}>
         <View style={styles.followText}>
           <Text style={styles.label}>클라이머 따라가기</Text>
@@ -277,6 +285,8 @@ const styles = StyleSheet.create({
   chipRemove: { fontSize: 16, color: '#999' },
   labels: { flexDirection: 'row', justifyContent: 'space-between' },
   followRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
+  analyzeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, padding: 12, borderRadius: 10, backgroundColor: '#f6f6f8' },
+  analyzeArrow: { fontSize: 24, color: '#111' },
   planning: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' },
   followText: { flex: 1, gap: 2 },
   followHint: { fontSize: 12, color: '#888' },

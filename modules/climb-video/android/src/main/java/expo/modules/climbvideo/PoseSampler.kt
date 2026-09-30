@@ -135,6 +135,75 @@ class PoseSampler(private val context: Context) {
     return tracks.map { it.samples }.filter { !isStatic(it) }
   }
 
+  private val jointTypes = listOf(
+    "nose" to PoseLandmark.NOSE, "neck" to -1, "root" to -2,
+    "lShoulder" to PoseLandmark.LEFT_SHOULDER, "rShoulder" to PoseLandmark.RIGHT_SHOULDER,
+    "lElbow" to PoseLandmark.LEFT_ELBOW, "rElbow" to PoseLandmark.RIGHT_ELBOW,
+    "lWrist" to PoseLandmark.LEFT_WRIST, "rWrist" to PoseLandmark.RIGHT_WRIST,
+    "lHip" to PoseLandmark.LEFT_HIP, "rHip" to PoseLandmark.RIGHT_HIP,
+    "lKnee" to PoseLandmark.LEFT_KNEE, "rKnee" to PoseLandmark.RIGHT_KNEE,
+    "lAnkle" to PoseLandmark.LEFT_ANKLE, "rAnkle" to PoseLandmark.RIGHT_ANKLE,
+  )
+
+  private fun jointRow(bitmap: Bitmap, tile: DoubleArray?): Pair<DoubleArray, DoubleArray>? {
+    val region = if (tile == null) bitmap else {
+      val left = (tile[0] * bitmap.width).toInt()
+      val top = ((1 - tile[1] - tile[3]) * bitmap.height).toInt()
+      Bitmap.createBitmap(bitmap, left, top, (tile[2] * bitmap.width).toInt(), (tile[3] * bitmap.height).toInt())
+    }
+    val pose: Pose = Tasks.await(detector.process(InputImage.fromBitmap(region, 0)))
+    if (pose.allPoseLandmarks.isEmpty()) return null
+    val rw = region.width.toDouble()
+    val rh = region.height.toDouble()
+    val boxX = tile?.get(0) ?: 0.0
+    val boxY = tile?.get(1) ?: 0.0
+    val boxW = tile?.get(2) ?: 1.0
+    val boxH = tile?.get(3) ?: 1.0
+    fun xyc(lm: PoseLandmark?): DoubleArray =
+      if (lm == null) doubleArrayOf(0.0, 0.0, 0.0)
+      else doubleArrayOf(boxX + lm.position.x / rw * boxW, boxY + (1 - lm.position.y / rh) * boxH, lm.inFrameLikelihood.toDouble())
+    fun mid(a: Int, b: Int): DoubleArray {
+      val p = xyc(pose.getPoseLandmark(a))
+      val q = xyc(pose.getPoseLandmark(b))
+      return doubleArrayOf((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, min(p[2], q[2]))
+    }
+    val out = mutableListOf<Double>()
+    var root = doubleArrayOf(0.0, 0.0, 0.0)
+    for ((_, type) in jointTypes) {
+      val v = when (type) {
+        -1 -> mid(PoseLandmark.LEFT_SHOULDER, PoseLandmark.RIGHT_SHOULDER)
+        -2 -> mid(PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP).also { root = it }
+        else -> xyc(pose.getPoseLandmark(type))
+      }
+      out.addAll(v.toList())
+    }
+    if (root[2] < minConfidence) return null
+    return Pair(root, out.toDoubleArray())
+  }
+
+  fun joints(uri: Uri, from: Double, to: Double, fps: Double): Map<String, Any> {
+    val info = videoInfo(context, uri)
+    val aspect = info.displayWidth.toDouble() / info.displayHeight.toDouble()
+    val frames = mutableListOf<Map<String, Any>>()
+    var lastRoot: DoubleArray? = null
+    val source = FrameSource(context, uri)
+    try {
+      source.frames(from, min(info.durationSec, to), fps, frameLongSide) { t, bitmap ->
+        var rows = listOfNotNull(jointRow(bitmap, null))
+        if (rows.isEmpty()) rows = tiles.mapNotNull { jointRow(bitmap, it) }
+        if (rows.isNotEmpty()) {
+          val last = lastRoot
+          val chosen = if (last == null) rows.first() else rows.minByOrNull { (it.first[0] - last[0]) * (it.first[0] - last[0]) + (it.first[1] - last[1]) * (it.first[1] - last[1]) }!!
+          lastRoot = chosen.first
+          frames.add(mapOf("t" to t, "p" to chosen.second.toList()))
+        }
+      }
+    } finally {
+      source.release()
+    }
+    return mapOf("aspect" to aspect, "names" to jointTypes.map { it.first }, "frames" to frames)
+  }
+
   private fun isStatic(samples: List<Sample>): Boolean {
     if (samples.size < 2 || samples.last().t - samples.first().t < 8.0) return false
     fun spread(values: List<Double>) = (values.maxOrNull() ?: 0.0) - (values.minOrNull() ?: 0.0)

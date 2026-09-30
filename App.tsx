@@ -7,7 +7,9 @@ import { ClimbVideo } from './modules/climb-video';
 import type { Candidate, Gym } from './src/data/gyms';
 import { formatDistance } from './src/components/dex';
 import Celebration from './src/components/Celebration';
+import AllGymsScreen from './src/screens/AllGymsScreen';
 import DexScreen from './src/screens/DexScreen';
+import HistoryScreen from './src/screens/HistoryScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
@@ -27,6 +29,7 @@ function load(): PickedVideo[] {
 }
 
 type Tab = 'videos' | 'dex';
+type DexView = 'home' | 'all' | 'history';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('videos');
@@ -34,6 +37,7 @@ export default function App() {
   const [editing, setEditing] = useState<number | null>(null);
   const [dex, setDex] = useState<DexState>(loadDex);
   const [gym, setGym] = useState<Gym | null>(null);
+  const [dexView, setDexView] = useState<DexView>('home');
   const [region, setRegion] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number } | null>(null);
   const [query, setQuery] = useState('');
@@ -184,8 +188,12 @@ export default function App() {
         onPhoto={setGymPhoto}
         onOpenVideo={openVideo}
       />
+    ) : dexView === 'all' ? (
+      <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} />
+    ) : dexView === 'history' ? (
+      <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} />
     ) : (
-      <DexScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onCheckIn={checkIn} />
+      <DexScreen dex={dex} onOpenGym={setGym} onCheckIn={checkIn} onOpenAll={() => setDexView('all')} onOpenHistory={() => setDexView('history')} />
     );
   }
 
@@ -202,7 +210,13 @@ export default function App() {
             <Text style={[styles.tabIcon, tab === 'videos' && styles.tabIconActive]}>▶</Text>
             <Text style={[styles.tabText, tab === 'videos' && styles.tabTextActive]}>영상</Text>
           </Pressable>
-          <Pressable style={styles.tab} onPress={() => setTab('dex')}>
+          <Pressable
+            style={styles.tab}
+            onPress={() => {
+              if (tab === 'dex') setDexView('home');
+              setTab('dex');
+            }}
+          >
             <Text style={[styles.tabIcon, tab === 'dex' && styles.tabIconActive]}>◈</Text>
             <Text style={[styles.tabText, tab === 'dex' && styles.tabTextActive]}>도감</Text>
           </Pressable>

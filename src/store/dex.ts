@@ -73,3 +73,12 @@ export function visitedToday(state: DexState, gymId: string) {
   const today = dayKey(new Date());
   return state.visits.some((v) => v.gymId === gymId && dayKey(v.at) === today);
 }
+
+export function lastVisits(state: DexState) {
+  const last = new Map<string, string>();
+  for (const v of state.visits) {
+    const current = last.get(v.gymId);
+    if (!current || v.at > current) last.set(v.gymId, v.at);
+  }
+  return last;
+}

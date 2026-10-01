@@ -8,14 +8,13 @@ import type { Candidate, Gym } from './src/data/gyms';
 import { formatDistance } from './src/components/dex';
 import Celebration from './src/components/Celebration';
 import AllGymsScreen from './src/screens/AllGymsScreen';
-import AnalysisScreen from './src/screens/AnalysisScreen';
 import DexScreen from './src/screens/DexScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
 import { loadDex, removeVisit, replacePhoto, saveDex, storePhoto, type DexState, visitedToday } from './src/store/dex';
-import type { Clip, PickedVideo } from './src/types';
+import type { PickedVideo } from './src/types';
 
 const store = new File(Paths.document, 'videos.json');
 
@@ -36,7 +35,6 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('videos');
   const [videos, setVideos] = useState<PickedVideo[]>(load);
   const [editing, setEditing] = useState<number | null>(null);
-  const [analyzing, setAnalyzing] = useState<Clip | null>(null);
   const [dex, setDex] = useState<DexState>(loadDex);
   const [gym, setGym] = useState<Gym | null>(null);
   const [dexView, setDexView] = useState<DexView>('home');
@@ -171,19 +169,11 @@ export default function App() {
           onClear={() => setVideos([])}
           onOpen={setEditing}
         />
-      ) : analyzing ? (
-        <AnalysisScreen
-          video={videos[editing]}
-          clip={analyzing}
-          onBack={() => setAnalyzing(null)}
-          onUpdate={(changes) => patch(videos[editing].uri, changes)}
-        />
       ) : (
         <TrimScreen
           video={videos[editing]}
           onBack={() => setEditing(null)}
           onUpdate={(changes) => patch(videos[editing].uri, changes)}
-          onAnalyze={setAnalyzing}
         />
       );
   } else {

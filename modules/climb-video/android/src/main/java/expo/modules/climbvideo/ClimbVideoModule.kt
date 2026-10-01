@@ -75,17 +75,6 @@ class ClimbVideoModule : Module() {
       }
     }
 
-    AsyncFunction("joints") Coroutine { uri: String, start: Double, end: Double, fps: Double ->
-      withContext(Dispatchers.IO) {
-        val sampler = PoseSampler(context)
-        try {
-          sampler.joints(Uri.parse(uri), start, end, fps)
-        } finally {
-          sampler.close()
-        }
-      }
-    }
-
     AsyncFunction("followPath") Coroutine { uri: String, start: Double, end: Double ->
       val source = Uri.parse(uri)
       withContext(Dispatchers.IO) {

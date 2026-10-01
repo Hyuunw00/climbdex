@@ -8,15 +8,12 @@ export type FollowPlan = {
   points: { t: number; x: number; y: number }[];
 };
 
-export type JointsResult = { aspect: number; names: string[]; frames: { t: number; p: number[] }[] };
-
 declare class ClimbVideoModule extends NativeModule {
   trim(uri: string, start: number, end: number): Promise<string>;
   followPath(uri: string, start: number, end: number): Promise<FollowPlan>;
   exportFollow(uri: string, start: number, end: number): Promise<string>;
   thumbnails(uri: string, times: number[], width: number): Promise<string[]>;
   detect(uri: string): Promise<DetectResult>;
-  joints(uri: string, start: number, end: number, fps: number): Promise<JointsResult>;
 }
 
 export default requireNativeModule<ClimbVideoModule>('ClimbVideo');

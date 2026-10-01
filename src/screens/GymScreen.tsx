@@ -13,9 +13,10 @@ type Props = {
   videos: PickedVideo[];
   onBack: () => void;
   onCheckIn: (candidates: Candidate[]) => void;
-  onRemoveVisit: (at: string) => void;
+  onRemoveVisit: (id: string) => void;
   onPhoto: (gym: Gym, photoUri: string) => void;
   onOpenVideo: (index: number) => void;
+  onShowCard: (gym: Gym) => void;
 };
 
 export async function takePhoto(): Promise<string | null> {
@@ -62,7 +63,7 @@ export function choosePhoto(): Promise<PhotoChoice> {
   });
 }
 
-export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo }: Props) {
+export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo, onShowCard }: Props) {
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
   const photo = dex.photos[gym.id];
   const visitDays = new Set(visits.map((v) => dayKey(v.at)));
@@ -136,6 +137,11 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         <Pressable onPress={() => Linking.openURL(gym.placeUrl)}>
           <Text style={styles.link}>카카오맵에서 보기</Text>
         </Pressable>
+        {visits.length > 0 && (
+          <Pressable onPress={() => onShowCard(gym)}>
+            <Text style={styles.link}>도감 카드 보기</Text>
+          </Pressable>
+        )}
       </View>
 
       <Pressable style={[styles.primary, (checking || doneToday) && styles.disabled, doneToday && styles.done]} onPress={register} disabled={checking || doneToday}>
@@ -150,13 +156,13 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         <Text style={styles.empty}>방문 기록이 없어요</Text>
       ) : (
         visits.map((v) => (
-          <View key={v.at} style={styles.visitRow}>
+          <View key={v.id} style={styles.visitRow}>
             <Text style={styles.visit}>{formatDate(v.at)}</Text>
             <Pressable
               hitSlop={8}
               onPress={() => Alert.alert('방문 기록 삭제', formatDate(v.at), [
                 { text: '취소', style: 'cancel' },
-                { text: '삭제', style: 'destructive', onPress: () => onRemoveVisit(v.at) },
+                { text: '삭제', style: 'destructive', onPress: () => onRemoveVisit(v.id) },
               ])}
             >
               <Text style={styles.visitRemove}>×</Text>

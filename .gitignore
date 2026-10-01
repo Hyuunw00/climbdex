@@ -48,3 +48,4 @@ samples/
 modules/climb-video/android/build/
 # 카카오 원본 응답 (재배포 제한)
 data/gyms-raw.json
+.playwright-mcp/

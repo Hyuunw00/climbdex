@@ -11,13 +11,15 @@ type Props = {
   onCheckIn: (candidates: Candidate[]) => void;
   onOpenAll: () => void;
   onOpenHistory: () => void;
+  onAccount: () => void;
+  account: { name: string; email: string };
 };
 
 const COLUMNS = 3;
 const NEAR = 5;
 const STALE_DAYS = 7;
 
-export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpenHistory }: Props) {
+export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpenHistory, onAccount, account }: Props) {
   const { width } = useWindowDimensions();
   const [nearby, setNearby] = useState<Candidate[]>([]);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -76,9 +78,20 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
 
   const header = (
     <View style={styles.header}>
+      <View style={styles.topRow}>
+        <Text style={styles.eyebrow}>CLIMBDEX · 대한민국</Text>
+        <Pressable style={styles.profileChip} onPress={onAccount} hitSlop={6}>
+          <View style={styles.chipAvatar}>
+            <Text style={styles.chipInitial}>{(account.name || account.email || '?').slice(0, 1).toUpperCase()}</Text>
+          </View>
+          <Text style={styles.chipName} numberOfLines={1}>
+            {account.name || account.email.split('@')[0]}
+          </Text>
+          <Text style={styles.chipArrow}>›</Text>
+        </Pressable>
+      </View>
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.eyebrow}>CLIMBDEX · 대한민국</Text>
           <Text style={styles.title}>암장 도감</Text>
         </View>
         <View style={styles.counter}>
@@ -169,6 +182,12 @@ const styles = StyleSheet.create({
   link: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, height: 38, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.18)' },
   linkText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   linkArrow: { color: 'rgba(255,255,255,0.8)', fontSize: 20 },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  profileChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 4, paddingRight: 8, height: 32, borderRadius: 16, backgroundColor: '#fff', maxWidth: 180 },
+  chipAvatar: { width: 24, height: 24, borderRadius: 12, backgroundColor: RED, alignItems: 'center', justifyContent: 'center' },
+  chipInitial: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  chipName: { color: '#111', fontSize: 13, fontWeight: '700', flexShrink: 1 },
+  chipArrow: { color: '#999', fontSize: 18, marginTop: -2 },
   banner: { marginTop: 4, padding: 12, borderRadius: 12, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 10 },
   bannerDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: RED },
   bannerText: { flex: 1, gap: 2 },

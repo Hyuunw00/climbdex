@@ -1,29 +1,64 @@
+import { randomUUID } from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
-export type Visit = { gymId: string; at: string; photo?: string };
+export type Visit = { id: string; gymId: string; at: string; photo?: string; photoPath?: string };
 
 export type DexState = {
   visits: Visit[];
   photos: Record<string, string>;
+  photoPaths: Record<string, string>;
+  pending: string[];
 };
 
-const store = new File(Paths.document, 'dex.json');
-const photoDir = new Directory(Paths.document, 'gym-photos');
+export const EMPTY_DEX: DexState = { visits: [], photos: {}, photoPaths: {}, pending: [] };
+
+const legacyStore = new File(Paths.document, 'dex.json');
+export const photoDir = new Directory(Paths.document, 'gym-photos');
 const PHOTO_WIDTH = 720;
 
-export function loadDex(): DexState {
+function parse(text: string): DexState {
+  const saved = JSON.parse(text) as Partial<DexState>;
+  return {
+    visits: (saved.visits ?? []).map((v) => ({ ...v, id: v.id ?? randomUUID() })),
+    photos: saved.photos ?? {},
+    photoPaths: saved.photoPaths ?? {},
+    pending: saved.pending ?? [],
+  };
+}
+
+function cacheFile(userId: string) {
+  return new File(Paths.document, `dex-${userId}.json`);
+}
+
+export function loadCache(userId: string): DexState {
   try {
-    if (!store.exists) return { visits: [], photos: {} };
-    const saved = JSON.parse(store.textSync()) as DexState;
-    return { visits: saved.visits ?? [], photos: saved.photos ?? {} };
+    const file = cacheFile(userId);
+    if (!file.exists) return EMPTY_DEX;
+    return parse(file.textSync());
   } catch {
-    return { visits: [], photos: {} };
+    return EMPTY_DEX;
   }
 }
 
-export function saveDex(state: DexState) {
-  store.write(JSON.stringify(state));
+export function saveCache(userId: string, state: DexState) {
+  cacheFile(userId).write(JSON.stringify(state));
+}
+
+export function loadLegacy(): DexState | null {
+  try {
+    if (!legacyStore.exists) return null;
+    const state = parse(legacyStore.textSync());
+    return state.visits.length > 0 ? state : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearLegacy() {
+  try {
+    if (legacyStore.exists) legacyStore.delete();
+  } catch {}
 }
 
 export async function storePhoto(sourceUri: string, gymId: string): Promise<string> {
@@ -37,31 +72,37 @@ export async function storePhoto(sourceUri: string, gymId: string): Promise<stri
   return target.uri;
 }
 
-function deletePhoto(uri: string) {
+export function deletePhotoFile(uri: string) {
   try {
     const file = new File(uri);
     if (file.exists) file.delete();
   } catch {}
 }
 
-export function removeVisit(state: DexState, at: string): DexState {
-  const target = state.visits.find((v) => v.at === at);
+export function removeVisit(state: DexState, id: string): DexState {
+  const target = state.visits.find((v) => v.id === id);
   if (!target) return state;
-  const visits = state.visits.filter((v) => v.at !== at);
+  const visits = state.visits.filter((v) => v.id !== id);
   const photos = { ...state.photos };
+  const photoPaths = { ...state.photoPaths };
   const current = photos[target.gymId];
-  if (target.photo && target.photo !== current) deletePhoto(target.photo);
+  if (target.photo && target.photo !== current) deletePhotoFile(target.photo);
   if (current && !visits.some((v) => v.gymId === target.gymId)) {
-    deletePhoto(current);
+    deletePhotoFile(current);
     delete photos[target.gymId];
+    delete photoPaths[target.gymId];
   }
-  return { visits, photos };
+  return { ...state, visits, photos, photoPaths, pending: state.pending.filter((p) => p !== id) };
 }
 
-export function replacePhoto(state: DexState, gymId: string, photo: string): DexState {
+export function replacePhoto(state: DexState, gymId: string, photo: string, photoPath?: string): DexState {
   const previous = state.photos[gymId];
-  if (previous && previous !== photo && !state.visits.some((v) => v.photo === previous)) deletePhoto(previous);
-  return { ...state, photos: { ...state.photos, [gymId]: photo } };
+  if (previous && previous !== photo && !state.visits.some((v) => v.photo === previous)) deletePhotoFile(previous);
+  return {
+    ...state,
+    photos: { ...state.photos, [gymId]: photo },
+    photoPaths: photoPath ? { ...state.photoPaths, [gymId]: photoPath } : state.photoPaths,
+  };
 }
 
 export function dayKey(value: string | number | Date) {

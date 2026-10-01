@@ -13,7 +13,13 @@ import HistoryScreen from './src/screens/HistoryScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import TrimScreen from './src/screens/TrimScreen';
 import VideoListScreen from './src/screens/VideoListScreen';
-import { loadDex, removeVisit, replacePhoto, saveDex, storePhoto, type DexState, visitedToday } from './src/store/dex';
+import type { Session } from '@supabase/supabase-js';
+import { randomUUID } from 'expo-crypto';
+import { signOut } from './src/auth/auth';
+import { supabase } from './src/lib/supabase';
+import AuthScreen from './src/screens/AuthScreen';
+import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, visitedToday } from './src/store/dex';
+import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
 
 const store = new File(Paths.document, 'videos.json');
@@ -35,20 +41,102 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('videos');
   const [videos, setVideos] = useState<PickedVideo[]>(load);
   const [editing, setEditing] = useState<number | null>(null);
-  const [dex, setDex] = useState<DexState>(loadDex);
+  const [session, setSession] = useState<Session | null>(null);
+  const [dex, setDex] = useState<DexState>(EMPTY_DEX);
+  const [dexReady, setDexReady] = useState(false);
   const [gym, setGym] = useState<Gym | null>(null);
   const [dexView, setDexView] = useState<DexView>('home');
   const [region, setRegion] = useState<string | null>(null);
-  const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number } | null>(null);
+  const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number; rank: number; date?: Date; replay?: boolean } | null>(null);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     store.write(JSON.stringify(videos));
   }, [videos]);
 
+  const userId = session?.user.id ?? null;
+
   useEffect(() => {
-    saveDex(dex);
-  }, [dex]);
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      setDex(EMPTY_DEX);
+      setDexReady(false);
+      return;
+    }
+    let cancelled = false;
+    const cached = loadCache(userId);
+    setDex(cached);
+    setDexReady(true);
+    (async () => {
+      try {
+        const remote = await fetchDex(userId, cached);
+        if (cancelled) return;
+        setDex(remote);
+        for (const id of remote.pending) {
+          const visit = remote.visits.find((v) => v.id === id);
+          if (visit) await syncVisit(userId, visit);
+        }
+        const legacy = loadLegacy();
+        if (legacy && remote.visits.length === 0) {
+          Alert.alert('이전 기록을 올릴까요?', `로그인 전에 남긴 방문 ${legacy.visits.length}개가 이 폰에 있어요`, [
+            { text: '버리기', style: 'destructive', onPress: clearLegacy },
+            {
+              text: '올리기',
+              onPress: async () => {
+                setDex((prev) => ({ ...prev, visits: [...prev.visits, ...legacy.visits], photos: { ...legacy.photos, ...prev.photos } }));
+                for (const visit of legacy.visits) await syncVisit(userId, visit);
+                for (const [gymId, uri] of Object.entries(legacy.photos)) {
+                  try {
+                    const path = await pushGymPhoto(userId, gymId, uri);
+                    setDex((prev) => replacePhoto(prev, gymId, uri, path));
+                  } catch (e) {
+                    console.log('legacy photo error', String(e));
+                  }
+                }
+                clearLegacy();
+              },
+            },
+          ]);
+        }
+      } catch (e) {
+        console.log('fetchDex error', String(e));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId && dexReady) saveCache(userId, dex);
+  }, [dex, userId, dexReady]);
+
+  const syncVisit = async (uid: string, visit: Visit) => {
+    try {
+      const saved = await pushVisit(uid, visit);
+      setDex((prev) => ({
+        ...prev,
+        visits: prev.visits.map((v) => (v.id === saved.id ? saved : v)),
+        pending: prev.pending.filter((id) => id !== saved.id),
+        photoPaths: saved.photoPath && prev.photos[saved.gymId] === saved.photo ? { ...prev.photoPaths, [saved.gymId]: saved.photoPath } : prev.photoPaths,
+      }));
+      if (saved.photoPath && saved.photo) {
+        try {
+          await pushGymPhoto(uid, saved.gymId, saved.photo, saved.photoPath);
+        } catch (e) {
+          console.log('gym photo sync error', String(e));
+        }
+      }
+    } catch (e) {
+      console.log('pushVisit error', String(e));
+      setDex((prev) => (prev.pending.includes(visit.id) ? prev : { ...prev, pending: [...prev.pending, visit.id] }));
+    }
+  };
 
   const patch = (uri: string, changes: Partial<PickedVideo>) => {
     setVideos((prev) => prev.map((v) => (v.uri === uri ? { ...v, ...changes } : v)));
@@ -100,6 +188,7 @@ export default function App() {
   };
 
   const recordVisit = async (target: Gym, photoUri: string | null) => {
+    if (!userId) return;
     const at = new Date().toISOString();
     let photo: string | undefined;
     if (photoUri) {
@@ -109,20 +198,69 @@ export default function App() {
         Alert.alert('사진 저장 실패', String(e));
       }
     }
+    const visit: Visit = { id: randomUUID(), gymId: target.id, at, photo };
     setDex((prev) => {
-      const next = { ...prev, visits: [...prev.visits, { gymId: target.id, at, photo }] };
+      const next = { ...prev, visits: [...prev.visits, visit], pending: [...prev.pending, visit.id] };
       return photo ? replacePhoto(next, target.id, photo) : next;
     });
-    setCelebration({ gym: target, photo, count: dex.visits.filter((v) => v.gymId === target.id).length + 1 });
+    const visitedGyms = new Set(dex.visits.map((v) => v.gymId));
+    const rank = visitedGyms.has(target.id) ? visitedGyms.size : visitedGyms.size + 1;
+    setCelebration({ gym: target, photo, count: dex.visits.filter((v) => v.gymId === target.id).length + 1, rank });
+    syncVisit(userId, visit);
   };
 
   const setGymPhoto = async (target: Gym, photoUri: string) => {
+    if (!userId) return;
     try {
       const photo = await storePhoto(photoUri, target.id);
       setDex((prev) => replacePhoto(prev, target.id, photo));
+      const path = await pushGymPhoto(userId, target.id, photo);
+      setDex((prev) => replacePhoto(prev, target.id, photo, path));
     } catch (e) {
       Alert.alert('사진 저장 실패', String(e));
     }
+  };
+
+  const removeVisitEverywhere = async (id: string) => {
+    if (!userId) return;
+    const visit = dex.visits.find((v) => v.id === id);
+    if (!visit) return;
+    const others = dex.visits.filter((v) => v.gymId === visit.gymId && v.id !== id);
+    setDex((prev) => removeVisit(prev, id));
+    try {
+      const keepPhoto = Boolean(visit.photoPath && dex.photoPaths[visit.gymId] === visit.photoPath && others.length > 0);
+      await deleteVisitRemote(id, visit.photoPath, keepPhoto);
+      if (others.length === 0) await deleteGymPhotoRemote(userId, visit.gymId);
+    } catch (e) {
+      console.log('deleteVisit error', String(e));
+    }
+  };
+
+  const accountMenu = () => {
+    Alert.alert(String(session?.user.user_metadata?.full_name ?? session?.user.email ?? '계정'), session?.user.email ?? undefined, [
+      { text: '로그아웃', onPress: () => signOut() },
+      {
+        text: '회원 탈퇴',
+        style: 'destructive',
+        onPress: () =>
+          Alert.alert('정말 탈퇴할까요?', '도감 기록과 사진이 모두 지워지고 되돌릴 수 없어요', [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '탈퇴',
+              style: 'destructive',
+              onPress: async () => {
+                if (!userId) return;
+                try {
+                  await deleteAccount(userId);
+                } catch (e) {
+                  Alert.alert('탈퇴 실패', String(e));
+                }
+              },
+            },
+          ]),
+      },
+      { text: '취소', style: 'cancel' },
+    ]);
   };
 
   const pickGym = (candidates: Candidate[]) =>
@@ -152,6 +290,13 @@ export default function App() {
     setGym(target);
   };
 
+  const showCard = (target: Gym) => {
+    const visits = dex.visits.filter((v) => v.gymId === target.id).sort((a, b) => a.at.localeCompare(b.at));
+    if (visits.length === 0) return;
+    const earlier = new Set(dex.visits.filter((v) => v.at < visits[0].at).map((v) => v.gymId));
+    setCelebration({ gym: target, photo: dex.photos[target.id], count: visits.length, rank: earlier.size + 1, date: new Date(visits[0].at), replay: true });
+  };
+
   const openVideo = (index: number) => {
     setGym(null);
     setTab('videos');
@@ -176,6 +321,8 @@ export default function App() {
           onUpdate={(changes) => patch(videos[editing].uri, changes)}
         />
       );
+  } else if (!session) {
+    screen = <AuthScreen />;
   } else {
     screen = gym ? (
       <GymScreen
@@ -184,16 +331,17 @@ export default function App() {
         videos={videos}
         onBack={() => setGym(null)}
         onCheckIn={checkIn}
-        onRemoveVisit={(at) => setDex((prev) => removeVisit(prev, at))}
+        onRemoveVisit={removeVisitEverywhere}
         onPhoto={setGymPhoto}
         onOpenVideo={openVideo}
+        onShowCard={showCard}
       />
     ) : dexView === 'all' ? (
       <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} />
     ) : dexView === 'history' ? (
       <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} />
     ) : (
-      <DexScreen dex={dex} onOpenGym={setGym} onCheckIn={checkIn} onOpenAll={() => setDexView('all')} onOpenHistory={() => setDexView('history')} />
+      <DexScreen dex={dex} onOpenGym={setGym} onCheckIn={checkIn} onOpenAll={() => setDexView('all')} onOpenHistory={() => setDexView('history')} onAccount={accountMenu} account={{ name: String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? ''), email: session.user.email ?? '' }} />
     );
   }
 
@@ -223,7 +371,7 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
-    {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} onDone={() => setCelebration(null)} />}
+    {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} rank={celebration.rank} date={celebration.date} replay={celebration.replay} onDone={() => setCelebration(null)} />}
     </>
   );
 }

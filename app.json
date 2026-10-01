@@ -31,10 +31,13 @@
         {
           "locationWhenInUsePermission": "근처 암장을 찾아 도감에 등록하기 위해 위치가 필요해요."
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "android": {
       "package": "com.climbdex.app"
-    }
+    },
+    "scheme": "climbdex"
   }
 }

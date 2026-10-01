@@ -5,7 +5,9 @@
 - **도감 탭을 셋으로 분리**(JS만, 재빌드 불필요). 홈 `DexScreen`: 체크인 배너 + 내 암장 격자(방문한 곳만, 최근 방문순) + 아래 "오늘 어디 갈까요?" 묶음("오랜만에 가 볼까요?" = 가 본 암장 중 7일 이상 안 간 곳 오래된 순 전부, "근처 새 암장 가 볼까요?" = 안 가 본 곳 거리순 5곳, 위치 권한 있을 때만). 모은 게 없으면 격자는 빈 채로. `AllGymsScreen`: 예전 홈이던 지역 카드→구별 격자·검색을 그대로 옮김. `HistoryScreen`: 월 캘린더(방문일에 지역색 점, 날짜 누르면 그날 암장)만. 추천을 기록 화면에 뒀다가 홈으로 되돌림(결정 순간에 여는 화면이 홈, 캘린더는 날짜 축이라 안 맞음, 빈 홈에 누를 곳이 생김). App에 `dexView` 상태, 도감 탭을 다시 누르면 홈으로
 - 진행 바·암장 카드·암장 줄은 두 화면 이상에서 쓰여 `src/components/dex.tsx`로 뺌(`Progress`·`GymCard`·`GymRow`·`formatAgo`). `src/store/dex.ts`에 `lastVisits`
 - **새 기능 결정: 시도 분석(동작 코칭)**. 사용자가 원한 "사지별 힘 %·완등 확률 오르는 다음 홀드"는 영상에 없는 정보라 빼고, 측정→루트 인식→완등 시도 비교→코칭 문장 4층으로 재설계. 첫 버전은 기술 코칭까지, 학습 없음, 삼각대·정적부터. 설계·규칙 표·통과 기준은 `docs/exp-02-move-analysis.md`, 결정은 roadmap 4번. 실험 도구 `scripts/joints.swift`(관절 15개 CSV 덤프, 1.MOV 13~20초 70프레임 2초에 확인) 준비됨. **사용자가 완등·낙하 영상을 주면 1층 실험 시작**
-- **시도 분석 1층을 앱에 구현**(양쪽 재빌드 필요). 네이티브 `joints(uri, start, end, fps)`가 관절 15개를 프레임마다 돌려주고(iOS는 `scripts/joints.swift` 본문 복사, Android는 `PoseSampler.joints`로 ML Kit 랜드마크를 같은 순서로), 판단은 전부 JS `src/analysis/moves.ts`(무브 순서, 하강 검출, 완등/낙하 분류, 직전 무브, 골반 정체, 뻗기 전 발 무브 유무, 팔꿈치 굽힘 비율, 검출률, 관찰 문장). 규칙이 JS 한 곳에만 있어 세 군데 동기화 대상이 아님. 트림 화면 구간 칩 아래 "이 시도 분석 ›" 줄 → **별도 `AnalysisScreen`**(사용자 결정: 자르기와 돌아보기는 다른 화면). 영상 + 무브 마커 띠(손 빨강·발 파랑, 낙하 빨간 선, 띠 끌어 탐색) + 판정·관찰 문장 + 무브 순서(누르면 그 시점). 열 때 저장된 결과 없으면 자동 분석. 결과는 `PickedVideo.analyses[구간키]`에 저장. TS 포팅은 파이썬 스크립트와 세 영상에서 판정 일치 확인(`scratchpad` 검증 스크립트)
+- **시도 분석 기능 폐기**(2026-10-01, 사용자 결정). 하루 동안 관절 덤프 네이티브(iOS·Android), JS 무브·낙하 판정, 루트 홀드 색 검출(iOS 네이티브), 분석 탭·분석 화면(스켈레톤·유령 자세·지지 다각형·부하 %·등반 전체 띠·낙하 직전 제안 점선)까지 만들어 폰에서 봤으나 "유용하게 쓰진 못할 것 같다"로 결론. 근본 이유: 폰 2D 영상의 관절·색 정보로는 클라이머가 이미 눈으로 아는 것 이상을 못 주고, "다음엔 어떤 무브"는 같은 루트의 완등 데이터 없이는 규칙 추측에 그침. 앱 코드는 `d2f3041` 커밋을 되돌려 제거(working tree, 미커밋), 미커밋 후속 작업은 `git stash list`의 "analysis-wip"에 보관. 남긴 것: `docs/exp-02-move-analysis.md`(실험 기록·결론), `scripts/joints.swift`·`analyze-joints.py`·`frame.swift`·`holds-color.py`(맥 실험 도구). **네이티브가 바뀌어 양쪽 재빌드 필요**
+- **로그인 + 서버 도감 착수**(사용자 결정: 영상은 로그인 없이, 도감처럼 사용자별 분리가 필요한 기능은 로그인 필수). Supabase. `supabase/schema.sql`(visits·gym_photos 테이블, 본인 행만 RLS, storage 버킷 gym-photos를 `<user_id>/…` 경로로 본인만, `delete_my_account()` RPC). 앱: `src/lib/supabase.ts`(세션은 SecureStore), `src/auth/auth.ts`(Apple은 네이티브 → signInWithIdToken, Google은 Supabase OAuth URL을 WebBrowser로 열고 `climbdex://auth`로 돌아온 토큰을 setSession), `AuthScreen`(도감 탭 게이트), `src/store/dex.ts`는 사용자별 캐시(`dex-<uid>.json`)로, `src/store/remote.ts`가 서버 읽기·쓰기(사진은 720px JPEG 업로드, 내려받기는 서명 URL). 쓰기는 낙관적 반영 + `pending` 큐, 다음 실행 때 재시도. 첫 로그인 때 로그인 전 기록(`dex.json`)이 있으면 올릴지 묻고 이관. 도감 홈 헤더 "계정" → 로그아웃·회원 탈퇴. `Visit`에 `id`(uuid) 추가, 삭제는 id 기준. app.json에 `scheme: climbdex`, `usesAppleSignIn`, expo-apple-authentication·secure-store·web-browser 플러그인 → **prebuild --clean + 양쪽 재빌드 필요**
+- **서버 설정 완료(2026-10-01)**. Supabase 프로젝트 `kdymnbrxebukgerturql`(사용자가 대시보드에서 생성, 스키마 SQL Editor로 적용, RLS·버킷 `gym-photos`·탈퇴 RPC 확인). Google Cloud 프로젝트 `climbdex`(계정 khwland090@gmail.com, Playwright로 생성): OAuth 동의 화면 외부·테스트 중, 테스트 사용자 khwland090@gmail.com·hyunw00theo@gmail.com, 웹 OAuth 클라이언트 "climbdex supabase"(리디렉션 `https://kdymnbrxebukgerturql.supabase.co/auth/v1/callback`). Supabase Google 제공자 켜짐(`/auth/v1/settings`에서 확인), Redirect URLs에 `climbdex://auth`. 키는 `.env`(`EXPO_PUBLIC_SUPABASE_URL`·`EXPO_PUBLIC_SUPABASE_ANON_KEY`·`GOOGLE_OAUTH_CLIENT_ID/SECRET`). **동의 화면이 '테스트 중'이라 테스트 사용자 두 계정만 로그인 가능**, 출시 전 '앱 게시'(브랜딩 페이지 구성 완료 필요) 또는 테스트 사용자 추가. Google Cloud 무료 프로젝트 할당량이 이걸로 소진됨
 - 기능 논의 결과: 홀드 색 자동 인식(난이도는 홀드 색이 아니라 **테이프 색**이라 불가), 클립 띠 색·완등 태그 수집(쓸 데가 약함), 사진 앨범 스캔으로 도감 채우기(앱을 쓴 이유로만 채우기로)은 전부 기각. 남은 후보는 낙하 영상 동작 분석인데 힘·다음 홀드 추천은 2D 영상으로 불가하고, 관절 데이터로 사실만 보여주는 형태는 실험(exp-02) 뒤 판단. 사용자가 홈·기록 화면을 보고 다음 요청
 
 ## 마지막에 한 일 (2026-09-29, 개인 노트북)
@@ -36,9 +38,8 @@
 
 ## 다음에 할 일
 - 도감 홈·전체 도감·내 기록 세 화면을 실기기에서 확인(빈 홈, 추천 두 줄, 캘린더 점·날짜 선택)
-- 시도 분석: 폰에서 IMG_5110(낙하)·IMG_5634(완등)로 결과 카드 확인, 사용자 정답(낙하 시각·직전 무브·먼저 빠진 사지)과 대조. 안드로이드 에뮬레이터에서도 `joints` 동작 확인
-- 시도 분석 다음: 완등/낙하 판정을 사용자가 뒤집는 버튼, 관찰 문장 "아니에요" 라벨, 폰 처리 시간 측정(10fps 관절이라 검출보다 2배 프레임)
-- exp-02 1층 실험: 사용자 영상 받으면 `joints.swift`로 CSV → `analyze-joints.py`로 무브 순서표·골반 궤적·낙하 사지 → 사용자가 영상 보고 적은 정답과 대조. 통과 기준은 exp-02 문서
+- 로그인·서버 도감: Supabase 프로젝트 생성 → `schema.sql` 적용 → `.env` 키 → 폰에서 Apple 로그인 → 체크인이 `visits`에 들어가는지 → 앱 삭제 후 재설치해서 도감이 돌아오는지
+- 안드로이드: Google 로그인 경로 확인(Apple 버튼은 iOS만), 재빌드
 - 도감: 실기기에서 체크인 배너·카메라·사진 저장 확인. 공유 카드, 뱃지는 그다음
 - 도감: 실기기에서 등록 연출(뒤집기·햅틱)·홀드 실루엣 6종 눈으로 확인
 - 뱃지: 나중에 별도 화면(뱃지 도감)으로. 도감 화면에는 안 넣음
@@ -49,7 +50,15 @@
 - 검출 로그(`console.log`)와 detect 결과의 `info` 진단 필드 정리
 - 출시 준비: 앱 아이콘·이름, 첫 실행 안내, 권한 거부 안내
 
+## 기능 후보 (2026-10-01 논의)
+- **초반 유입용 둘로 좁힘**(사용자 결정, 친구 도감은 "남의 도감은 안 궁금하다"로 기각): (1) 체크인 순간 공유 이미지 — 구현함. `src/components/ShareCard.tsx`(9:16, 360×640을 1080×1920으로 캡처: 브랜드·#번호·사진/실루엣·암장명·지역·"내 N번째 암장"·날짜·N/529), `src/share.ts`(react-native-view-shot `captureRef` → expo-sharing 공유 시트). 등록 연출(`Celebration`)에 "스토리로 공유" 버튼, 암장 페이지 링크 줄에 "도감 카드 공유". N번째는 그 암장을 처음 간 시점 기준 distinct 암장 수. **네이티브 둘 추가라 양쪽 재빌드 필요**. (2) 로그인 전 둘러보기(전체 도감·근처 암장은 로그인 없이, 체크인·내 암장만 로그인) — 다음
+- 도감 다음 작업(사용자 결정): 홀드 실루엣을 실제 홀드 이미지로 교체(사용자가 이미지 생성 → `assets/holds/*.png`, `Silhouette`가 Image tintColor로 지역색 물들임), 같은 날 두 암장 체크인 시 클립 분배(촬영 시각과 가까운 체크인 쪽), 오프라인 체크인 동작 확인, 첫 실행·권한 거부·로그인 전 도감 설명. 공유 카드·뱃지·지도·친구 도감 등은 사용자 생긴 뒤
+- 영상: 완등·낙하 자동 분류(exp-02에서 세 영상 모두 맞음, 하강 직전 최고점 1.5초 정지 규칙)를 목록·트림에 붙여 "완등만 저장"·완등 수 표시. 분석 기능에서 유일하게 검증된 조각
+- 데이터 백업·복원(iCloud/Google Drive 또는 파일 내보내기). 도감이 폰에만 있어 앱 삭제 시 소실. 출시 전 필요
+- 출시 준비(아이콘·첫 실행 안내·권한 거부 안내·로그 정리)
+
 ## 막힌 것 / 함정
+- **Sign in with Apple은 무료 개인 팀에서 안 됨.** "Personal development teams do not support the Sign in with Apple capability"로 프로파일 생성 실패. 패키지가 설치돼 있기만 해도 prebuild가 플러그인을 자동 적용해 entitlement를 넣으므로 `expo-apple-authentication`을 **제거**하고 Apple 로그인 코드도 뺌(커밋 이력의 `signInWithApple`: expo-crypto로 nonce 만들어 `signInAsync` → `supabase.auth.signInWithIdToken({provider:'apple', token, nonce})`). 유료 가입 후: `npx expo install expo-apple-authentication`, app.json `ios.usesAppleSignIn: true`, AuthScreen에 Apple 버튼, prebuild --clean. 앱스토어 심사는 소셜 로그인이 있으면 Apple 로그인도 요구하므로 출시 전 필수
 - 다른 기기에서 당긴 뒤 `package.json`이 바뀌었으면 `npm install` → `pod install` → 양쪽 재빌드. 안 하면 Metro가 "Unable to resolve expo-haptics"로 멈추고, 안드로이드는 그 오류 화면을 누르면 dev launcher가 NPE로 죽음(Expo 버그)
 - 방문 등록을 암장 밖에서 테스트하려면 `src/components/dex.tsx`의 `SKIP_DISTANCE_CHECK`를 `true`로. 암장 페이지 "도감에 등록"의 거리 거절만 건너뛰고 후보 목록·배너 반경은 그대로. 커밋엔 `false`
 - 실기기(iPhone 13 Pro, iOS 26.6.2) 빌드는 **Xcode 16.2로 됨**(8/12 회사 앱을 같은 폰에 올린 기록 있음). Xcode 26·macOS 업데이트 불필요. 막힌 건 개발용 서명 인증서 하나: "Apple Development: 현우 김"이 2026-08-29 만료됨. `expo run:ios --device`가 "No code signing certificates are available"로 실패. Xcode → Settings → Accounts → 계정 선택 → Manage Certificates → + → Apple Development로 재발급 후, 개인 Apple ID 팀이면 `app.json`의 `ios.appleTeamId`에 팀 ID 넣기. 기기 UDID는 devicectl의 UUID가 아니라 `00008110-0011056C1428401E`

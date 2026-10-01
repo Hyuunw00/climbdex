@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
@@ -41,8 +42,9 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
   const [follow, setFollow] = useState(false);
   const [plan, setPlan] = useState<FollowPlan | null>(null);
   const [planning, setPlanning] = useState(false);
+  const [muted, setMuted] = useState(false);
   const { width: screenWidth } = useWindowDimensions();
-  const previewHeight = Math.min(380, (screenWidth - 32) * (16 / 9));
+  const previewHeight = Math.min(560, (screenWidth - 32) * (16 / 9));
   const previewWidth = previewHeight * (9 / 16);
 
   const clip = clips[current] ?? clips[0];
@@ -50,6 +52,10 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
   const player = useVideoPlayer(video.uri, (p) => {
     p.timeUpdateEventInterval = 0.1;
   });
+
+  useEffect(() => {
+    player.muted = muted;
+  }, [player, muted]);
 
   useEffect(() => {
     const sub = player.addListener('timeUpdate', ({ currentTime }) => {
@@ -178,11 +184,16 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
       <Pressable onPress={onBack}>
         <Text style={styles.back}>← 목록</Text>
       </Pressable>
-      {follow && plan ? (
-        <FollowPreview player={player} plan={plan} width={previewWidth} height={previewHeight} />
-      ) : (
-        <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
-      )}
+      <View style={styles.videoBox}>
+        {follow && plan ? (
+          <FollowPreview player={player} plan={plan} width={previewWidth} height={previewHeight} />
+        ) : (
+          <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
+        )}
+        <Pressable style={styles.mute} onPress={() => setMuted((m) => !m)} hitSlop={8}>
+          <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={18} color="#fff" />
+        </Pressable>
+      </View>
       {follow && planning && (
         <View style={styles.planning}>
           <ActivityIndicator size="small" color="#666" />
@@ -257,7 +268,9 @@ export default function TrimScreen({ video, onBack, onUpdate }: Props) {
 const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 40, gap: 10 },
   back: { fontSize: 16, paddingVertical: 8 },
-  video: { width: '100%', aspectRatio: 9 / 16, maxHeight: 380, backgroundColor: '#000', borderRadius: 8 },
+  videoBox: { alignItems: 'center' },
+  video: { width: '100%', aspectRatio: 9 / 16, maxHeight: 560, backgroundColor: '#000', borderRadius: 8 },
+  mute: { position: 'absolute', right: 12, bottom: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   status: { fontSize: 14, color: '#666', flex: 1 },
   reset: { fontSize: 14, color: '#0a58ca' },

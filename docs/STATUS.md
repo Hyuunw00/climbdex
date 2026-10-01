@@ -57,7 +57,13 @@
 - 데이터 백업·복원(iCloud/Google Drive 또는 파일 내보내기). 도감이 폰에만 있어 앱 삭제 시 소실. 출시 전 필요
 - 출시 준비(아이콘·첫 실행 안내·권한 거부 안내·로그 정리)
 
+## 테스터 배포 (2026-10-01)
+- 안드로이드 릴리스 APK: `cd android && ./gradlew assembleRelease` → `android/app/build/outputs/apk/release/app-release.apk`(145MB, ABI 4종 + dev-menu 포함). 처음엔 릴리스용 네이티브 아티팩트 ~100MB를 내려받아 16분, 이후는 빠름. JS와 `.env`의 EXPO_PUBLIC 값이 번들에 들어가 Metro 없이 동작. **디버그 키로 서명됨**(Expo 템플릿 기본). 같은 맥의 `~/.android/debug.keystore`로 계속 빌드해야 덮어쓰기 설치가 되고, 플레이스토어 전엔 릴리스 키를 만들어 바꿔야 함(그때 테스터는 재설치). 테스터에겐 파일을 카톡·드라이브로 전달
+- iOS 테스터 배포는 TestFlight뿐 → Apple Developer Program 가입 필요(Apple 로그인도 같이 풀림)
+- Google 로그인은 동의 화면이 '테스트 중'이라 테스트 사용자(현재 khwland090·hyunw00theo)만 가능. 테스터가 늘면 Google 콘솔에서 추가하거나 '앱 게시'
+
 ## 막힌 것 / 함정
+- **릴리스 APK가 켜자마자 죽음(2026-10-01)**: `NoSuchMethodError ReturnTypeKt.getDirectConverter` in `expo.modules.font.FontLoaderModule`. `@expo/vector-icons` 설치 때 중첩으로 딸려 온 `expo-font@57`이 autolinking에 잡혀 SDK 54의 expo-modules-core 3.0과 불일치. 해결: `npx expo install expo-font`로 14.0.12 고정 + node_modules 재설치. 새 패키지 넣은 뒤엔 `npx expo-doctor`를 한 번 돌릴 것. 릴리스 크래시는 에뮬레이터에 APK 설치 후 `adb logcat | grep -E "FATAL|AndroidRuntime"`로 확인
 - **Sign in with Apple은 무료 개인 팀에서 안 됨.** "Personal development teams do not support the Sign in with Apple capability"로 프로파일 생성 실패. 패키지가 설치돼 있기만 해도 prebuild가 플러그인을 자동 적용해 entitlement를 넣으므로 `expo-apple-authentication`을 **제거**하고 Apple 로그인 코드도 뺌(커밋 이력의 `signInWithApple`: expo-crypto로 nonce 만들어 `signInAsync` → `supabase.auth.signInWithIdToken({provider:'apple', token, nonce})`). 유료 가입 후: `npx expo install expo-apple-authentication`, app.json `ios.usesAppleSignIn: true`, AuthScreen에 Apple 버튼, prebuild --clean. 앱스토어 심사는 소셜 로그인이 있으면 Apple 로그인도 요구하므로 출시 전 필수
 - 다른 기기에서 당긴 뒤 `package.json`이 바뀌었으면 `npm install` → `pod install` → 양쪽 재빌드. 안 하면 Metro가 "Unable to resolve expo-haptics"로 멈추고, 안드로이드는 그 오류 화면을 누르면 dev launcher가 NPE로 죽음(Expo 버그)
 - 방문 등록을 암장 밖에서 테스트하려면 `src/components/dex.tsx`의 `SKIP_DISTANCE_CHECK`를 `true`로. 암장 페이지 "도감에 등록"의 거리 거절만 건너뛰고 후보 목록·배너 반경은 그대로. 커밋엔 `false`

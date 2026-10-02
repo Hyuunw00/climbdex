@@ -2,7 +2,8 @@ import { File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, SafeAreaView, StatusBar as NativeStatusBar, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ClimbVideo } from './modules/climb-video';
 import type { Candidate, Gym } from './src/data/gyms';
 import { formatDistance } from './src/components/dex';
@@ -348,7 +349,7 @@ export default function App() {
   const showTabs = editing === null && gym === null;
 
   return (
-    <>
+    <SafeAreaProvider>
     <SafeAreaView style={styles.container}>
       <StatusBar style={celebration ? 'light' : 'dark'} />
       <View style={styles.screen}>{screen}</View>
@@ -372,14 +373,14 @@ export default function App() {
       )}
     </SafeAreaView>
     {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} rank={celebration.rank} date={celebration.date} replay={celebration.replay} onDone={() => setCelebration(null)} />}
-    </>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingTop: Platform.OS === 'android' ? NativeStatusBar.currentHeight : 0 },
+  container: { flex: 1, backgroundColor: '#fff' },
   screen: { flex: 1 },
-  tabs: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd', paddingBottom: Platform.OS === 'android' ? 8 : 0, backgroundColor: '#fff' },
+  tabs: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd', backgroundColor: '#fff' },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 10, gap: 2 },
   tabIcon: { fontSize: 18, color: '#bbb' },
   tabIconActive: { color: '#d7263d' },

@@ -1,5 +1,32 @@
 # STATUS
 
+## 마지막에 한 일 (2026-10-02, 회사 맥)
+- iOS Release 빌드가 Metro 없이 폰에서 켜지는 것 확인(사용자). 안드로이드 테스터 APK 전달해 실기기 테스트 시작
+- Google 콘솔 테스트 사용자에 theo@supermembers.co.kr 추가(총 3명). 콘솔 '사용자 추가' 다이얼로그는 저장을 눌러도 안 닫힐 때가 있어 목록 카운트가 바뀌는지 보고 떠날 것
+- **안드로이드 하단 탭이 시스템 내비게이션 바와 겹치던 문제 수정**. SDK 54는 안드로이드 edge-to-edge가 기본인데 RN 기본 `SafeAreaView`는 iOS에서만 동작. `react-native-safe-area-context`(~5.6.0) 설치, App을 `SafeAreaProvider`+그쪽 `SafeAreaView`로 감싸고 안드로이드 전용 상태바 paddingTop·탭 paddingBottom 8 임시 처리 제거. 에뮬레이터 Medium_Phone(안드로이드 16)에서 제스처·3버튼 모두 확인. **네이티브 추가라 양쪽 재빌드 필요** — 아이폰 디버그 빌드, 에뮬레이터 디버그 빌드, 테스터 APK(바탕화면, 10-02 09:32) 전부 갱신됨. 미커밋
+- 안드로이드 실기기는 USB에서 안 잡힘(맥 USB 트리에 아예 없음, 폰에서 '파일 전송' 선택 불가 → 충전 전용 케이블). 당분간 안드로이드는 에뮬레이터, 실기기는 iOS로만
+
+## 다음에 할 일
+- 안전 영역 수정 커밋(App.tsx·package.json·package-lock.json)
+- 테스터 피드백 받기: 영상 검출 실패 영상은 `/Users/kimhyunwoo/Desktop/클라이밍/`에 모아 exp-01 표에 추가
+- 트림 화면 "처음부터" 버튼(시작을 0초로)
+- Apple Developer Program 가입 → Apple 로그인 복구, TestFlight
+- 같은 날 두 암장 체크인 시 클립 분배, 오프라인 체크인 확인, 첫 실행·권한 거부 안내
+- `npm dedupe`(expo-doctor expo-constants 중복 경고, 동작엔 영향 없음)
+- 뱃지는 나중에 별도 화면(뱃지 도감)으로. 도감 화면에는 안 넣음
+- 안드로이드 실기기 확보 시 검출 속도 측정(detect()에서 people을 cacheDir/detect.csv로 쓰고 `adb shell run-as com.climbdex.app cat cache/detect.csv`), 사진 선택기 중복 방지(파일 크기+길이)
+- 들고 찍은 영상 하나 확보해 카메라 이동량 기준값(현재 0.05) 확정
+- 검출 로그(`console.log`)와 detect 결과의 `info` 진단 필드 정리
+- 출시 준비: 앱 아이콘·이름, 첫 실행 안내, 권한 거부 안내
+
+## 막힌 것 / 함정 (2026-10-02)
+- **node_modules 재설치 뒤엔 Metro도 다시 띄울 것**. 전날 켜 둔 Metro가 재설치로 지워졌다 다시 생긴 `@expo/vector-icons` 폰트를 못 찾아 "Unable to resolve ./vendor/react-native-vector-icons/Fonts/AntDesign.ttf"로 번들 실패. 파일은 있고 Metro 파일 감시가 낡은 것. 재시작으로 해결
+- **`expo run:ios --device`가 "Connecting to: 혀누"에서 멈춤**(Release·Debug 모두, 폰 잠금 안 풀려 있어도). 컴파일은 끝난 상태라 `xcrun devicectl device install app --device 00008110-0011056C1428401E <DerivedData>/Build/Products/<Debug|Release>-iphoneos/climbdex.app` 후 `xcrun devicectl device process launch --device … com.climbdex.app`으로 직접 설치·실행
+- 폰이 Metro 서버 목록에서 맥을 못 찾으면 `--payload-url "exp+climbdex://expo-development-client/?url=http%3A%2F%2F192.168.50.64%3A8081"`로 주소를 직접 넘김. 이번엔 이걸로 바로 붙음
+- **에뮬레이터 스냅샷 복원 뒤 adb가 offline으로 영영 안 돌아옴**(Medium_Phone 12분 대기). `-no-snapshot-load`로 콜드 부팅하면 21초. 에뮬레이터는 `~/Library/Android/sdk/emulator/emulator -avd Medium_Phone_API_36.0 -no-snapshot-load`, adb는 `~/Library/Android/sdk/platform-tools/adb`(PATH에 없음)
+- 에뮬레이터 내비게이션 모드 바꾸기: `adb shell cmd overlay enable-exclusive --category com.android.internal.systemui.navbar.threebutton` 뒤 SystemUI 재시작(`adb shell am crash com.android.systemui`) 해야 적용. 재시작 없이는 버튼이 안 그려지고 인셋도 그대로
+- 에뮬레이터 둘: Pixel_7(안드로이드 14), Medium_Phone_API_36.0(안드로이드 16). edge-to-edge 확인은 16으로
+
 ## 마지막에 한 일 (2026-09-30, 회사 맥)
 - 노트북 커밋을 당긴 뒤 `npm install`·`pod install`·양쪽 재빌드. iPhone 13 Pro와 에뮬레이터 Pixel_7 둘 다 최신 코드로 올라감
 - **도감 탭을 셋으로 분리**(JS만, 재빌드 불필요). 홈 `DexScreen`: 체크인 배너 + 내 암장 격자(방문한 곳만, 최근 방문순) + 아래 "오늘 어디 갈까요?" 묶음("오랜만에 가 볼까요?" = 가 본 암장 중 7일 이상 안 간 곳 오래된 순 전부, "근처 새 암장 가 볼까요?" = 안 가 본 곳 거리순 5곳, 위치 권한 있을 때만). 모은 게 없으면 격자는 빈 채로. `AllGymsScreen`: 예전 홈이던 지역 카드→구별 격자·검색을 그대로 옮김. `HistoryScreen`: 월 캘린더(방문일에 지역색 점, 날짜 누르면 그날 암장)만. 추천을 기록 화면에 뒀다가 홈으로 되돌림(결정 순간에 여는 화면이 홈, 캘린더는 날짜 축이라 안 맞음, 빈 홈에 누를 곳이 생김). App에 `dexView` 상태, 도감 탭을 다시 누르면 홈으로
@@ -35,20 +62,6 @@
 - 목록 화면: "영상 고르기" 버튼을 아래로, 위에 제목·전체 비우기
 
 - **암장 도감 착수**. 카카오 로컬 API(캡시 앱 키, `.env`)로 전국 529곳 수집(`data/gyms.json`, 원본 `data/gyms-raw.json`, 스크립트 `--offline`으로 필터만 재실행 가능). 하단 탭(영상·도감), 도감 화면(지역 칩 → 구별 격자, 실루엣/사진, 방문 횟수), 암장 페이지(사진 바꾸기, 방문 등록, 그 암장 클립), 위치 체크인 배너(200m). expo-location 추가로 양쪽 재빌드 필요. 설계 결정은 roadmap.md 2번
-
-## 다음에 할 일
-- 도감 홈·전체 도감·내 기록 세 화면을 실기기에서 확인(빈 홈, 추천 두 줄, 캘린더 점·날짜 선택)
-- 로그인·서버 도감: Supabase 프로젝트 생성 → `schema.sql` 적용 → `.env` 키 → 폰에서 Apple 로그인 → 체크인이 `visits`에 들어가는지 → 앱 삭제 후 재설치해서 도감이 돌아오는지
-- 안드로이드: Google 로그인 경로 확인(Apple 버튼은 iOS만), 재빌드
-- 도감: 실기기에서 체크인 배너·카메라·사진 저장 확인. 공유 카드, 뱃지는 그다음
-- 도감: 실기기에서 등록 연출(뒤집기·햅틱)·홀드 실루엣 6종 눈으로 확인
-- 뱃지: 나중에 별도 화면(뱃지 도감)으로. 도감 화면에는 안 넣음
-- 안드로이드 실기기 확보해 검출 속도 측정. 디버그로 샘플을 보려면 detect()에서 people을 cacheDir/detect.csv로 쓰고 `adb shell run-as com.climbdex.app cat cache/detect.csv`
-- 안드로이드 사진 선택기 중복 방지: 파일 크기+길이로 보조 판별
-- 실기기에서 타임라인 드래그(스크롤 간섭 여부)·여러 구간 저장 → 사진 앱 확인
-- 들고 찍은 영상 하나 확보해 카메라 이동량 기준값(현재 0.05) 확정
-- 검출 로그(`console.log`)와 detect 결과의 `info` 진단 필드 정리
-- 출시 준비: 앱 아이콘·이름, 첫 실행 안내, 권한 거부 안내
 
 ## 기능 후보 (2026-10-01 논의)
 - **초반 유입용 둘로 좁힘**(사용자 결정, 친구 도감은 "남의 도감은 안 궁금하다"로 기각): (1) 체크인 순간 공유 이미지 — 구현함. `src/components/ShareCard.tsx`(9:16, 360×640을 1080×1920으로 캡처: 브랜드·#번호·사진/실루엣·암장명·지역·"내 N번째 암장"·날짜·N/529), `src/share.ts`(react-native-view-shot `captureRef` → expo-sharing 공유 시트). 등록 연출(`Celebration`)에 "스토리로 공유" 버튼, 암장 페이지 링크 줄에 "도감 카드 공유". N번째는 그 암장을 처음 간 시점 기준 distinct 암장 수. **네이티브 둘 추가라 양쪽 재빌드 필요**. (2) 로그인 전 둘러보기(전체 도감·근처 암장은 로그인 없이, 체크인·내 암장만 로그인) — 다음

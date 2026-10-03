@@ -62,12 +62,14 @@ class ClimbVideoModule : Module() {
         val params = Params()
         try {
           val people = sampler.sample(Uri.parse(uri), 5.0)
-          val all = people
-            .filter { it.size >= (params.minDuration * 5).toInt() }
-            .flatMap { segments(it, params) }
+          val all = people.withIndex()
+            .filter { it.value.size >= (params.minDuration * 5).toInt() }
+            .flatMap { (n, samples) -> segments(samples, params).map { Pair(it, n) } }
+          val merged = mergeOverlapping(all, people)
           mapOf(
             "handheld" to false,
-            "segments" to mergeOverlapping(all).map { mapOf("start" to it.start, "end" to it.end) },
+            "segments" to merged.map { mapOf("start" to it.start, "end" to it.end) },
+            "candidates" to candidateSpans(people, merged).map { mapOf("start" to it.start, "end" to it.end) },
           )
         } finally {
           sampler.close()
@@ -99,6 +101,33 @@ class ClimbVideoModule : Module() {
           },
         )
       }
+    }
+
+    AsyncFunction("cropPlan") Coroutine { uri: String ->
+      val source = Uri.parse(uri)
+      withContext(Dispatchers.IO) {
+        val info = videoInfo(context, source)
+        val frameW = info.displayWidth.toDouble()
+        val frameH = info.displayHeight.toDouble()
+        val crop = followCropSize(frameW, frameH, 1.0)
+        val rect = followRect(frameW, frameH, crop, Pair(0.5, 0.5))
+        mapOf(
+          "frame" to mapOf("width" to frameW, "height" to frameH),
+          "crop" to mapOf("width" to crop.width, "height" to crop.height),
+          "points" to listOf(mapOf("t" to 0.0, "x" to rect.x, "y" to rect.y)),
+        )
+      }
+    }
+
+    AsyncFunction("exportCrop") Coroutine { uri: String, start: Double, end: Double ->
+      val source = Uri.parse(uri)
+      val output = File(context.cacheDir, "climbdex-crop-${UUID.randomUUID()}.mp4")
+      withContext(Dispatchers.IO) {
+        val info = videoInfo(context, source)
+        val path = FollowPath(listOf(Sample(0.0, 0.0, 1.0, 0.5, 0.5)), 0.75)
+        Exporter.run(context, source, start, end, output, Exporter.followEffects(info, path, 1.0, start))
+      }
+      Uri.fromFile(output).toString()
     }
 
     AsyncFunction("exportFollow") Coroutine { uri: String, start: Double, end: Double ->

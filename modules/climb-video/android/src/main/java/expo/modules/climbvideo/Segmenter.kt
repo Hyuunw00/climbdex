@@ -1,6 +1,9 @@
 package expo.modules.climbvideo
 
+import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.max
+import kotlin.math.min
 
 data class Sample(val t: Double, val ankleY: Double, val torso: Double, val x: Double, val y: Double, val confidence: Double = 0.0)
 
@@ -98,15 +101,57 @@ fun segments(d: List<Sample>, p: Params): List<Segment> {
   return result
 }
 
-fun mergeOverlapping(all: List<Segment>): List<Segment> {
-  val merged = mutableListOf<Segment>()
-  for (seg in all.sortedBy { it.start }) {
+fun sameSpot(a: List<Sample>, b: List<Sample>, from: Double, to: Double): Boolean {
+  var j = 0
+  val dists = mutableListOf<Double>()
+  for (s in a) {
+    if (s.t < from || s.t > to) continue
+    while (j < b.size && b[j].t < s.t - 0.15) j++
+    if (j < b.size && abs(b[j].t - s.t) <= 0.15) dists.add(hypot(s.x - b[j].x, s.y - b[j].y))
+  }
+  if (dists.size < 5) return false
+  return dists.sorted()[dists.size / 2] < 0.15
+}
+
+fun mergeOverlapping(all: List<Pair<Segment, Int>>, people: List<List<Sample>>): List<Segment> {
+  val merged = mutableListOf<Pair<Segment, Int>>()
+  for (item in all.sortedBy { it.first.start }) {
     val last = merged.lastOrNull()
-    if (last != null && seg.start <= last.end) {
-      merged[merged.size - 1] = Segment(last.start, max(last.end, seg.end))
+    val overlaps = last != null && item.first.start <= last.first.end
+    val samePerson = last != null && (item.second == last.second ||
+      sameSpot(people[item.second], people[last.second], item.first.start, min(item.first.end, last.first.end)))
+    if (last != null && overlaps && samePerson) {
+      merged[merged.size - 1] = Pair(Segment(last.first.start, max(last.first.end, item.first.end)), last.second)
     } else {
-      merged.add(seg)
+      merged.add(item)
     }
   }
-  return merged
+  return merged.map { it.first }
+}
+
+private fun medianOf(xs: List<Double>): Double = if (xs.isEmpty()) 0.0 else xs.sorted()[xs.size / 2]
+
+fun candidateSpans(people: List<List<Sample>>, confident: List<Segment>, minSpan: Double = 8.0, maxGap: Double = 3.0): List<Segment> {
+  val reference = people.flatten()
+    .filter { s -> s.torso > 0 && confident.any { s.t >= it.start && s.t <= it.end } }
+    .map { it.torso }
+  val ref = medianOf(reference)
+  val result = mutableListOf<Segment>()
+  for (samples in people) {
+    var i = 0
+    while (i < samples.size) {
+      var j = i
+      while (j + 1 < samples.size && samples[j + 1].t - samples[j].t <= maxGap) j++
+      val start = samples[i].t
+      val end = samples[j].t
+      if (end - start >= minSpan) {
+        val covered = confident.sumOf { max(0.0, min(end, it.end) - max(start, it.start)) }
+        val torsos = samples.subList(i, j + 1).filter { it.torso > 0 }.map { it.torso }
+        val sizeOk = ref <= 0 || torsos.isEmpty() || (medianOf(torsos) / ref) in 0.6..1.7
+        if (covered < 0.5 * (end - start) && sizeOk) result.add(Segment(start, end))
+      }
+      i = j + 1
+    }
+  }
+  return result.sortedBy { it.start }
 }

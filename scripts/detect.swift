@@ -66,6 +66,8 @@ final class Track {
   init(_ c: Candidate, t: Double) { x = c.x; y = c.y; torso = c.torso; lastT = t }
 }
 
+var shiftLog: [(Double, Double)] = []
+
 func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil) throws -> ([[Sample]], Double, Double) {
   let asset = AVURLAsset(url: url)
   guard let track = asset.tracks(withMediaType: .video).first else { throw NSError(domain: "detect", code: 1) }
@@ -73,19 +75,30 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
   if let from = from, let to = to {
     reader.timeRange = CMTimeRange(start: CMTime(seconds: from, preferredTimescale: 600), end: CMTime(seconds: to, preferredTimescale: 600))
   }
+  let natural = track.naturalSize
+  let decodeMax = Double(ProcessInfo.processInfo.environment["DECODE_MAX"] ?? "") ?? 0
+  let scale = decodeMax > 0 ? min(1.0, decodeMax / Double(max(natural.width, natural.height))) : 1.0
+  let decodeWidth = Int((Double(natural.width) * scale / 2).rounded()) * 2
+  let decodeHeight = Int((Double(natural.height) * scale / 2).rounded()) * 2
+  let bgra = ProcessInfo.processInfo.environment["PIXEL_FORMAT"] != "420"
   let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
-    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+    kCVPixelBufferPixelFormatTypeKey as String: bgra ? kCVPixelFormatType_32BGRA : kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+    kCVPixelBufferWidthKey as String: decodeWidth,
+    kCVPixelBufferHeightKey as String: decodeHeight,
   ])
   output.alwaysCopiesSampleData = true
   reader.add(output)
   reader.startReading()
 
   let orient = orientation(for: track.preferredTransform)
-  let size = track.naturalSize.applying(track.preferredTransform)
+  let size = natural.applying(track.preferredTransform)
   let aspect = abs(size.width / size.height)
-  let width = Double(track.naturalSize.width)
+  let width = Double(decodeWidth)
+  let tileThrottle = ProcessInfo.processInfo.environment["TILE_THROTTLE"] == "1"
+  var emptyStreak = 0
   let batchSize = 8
   let followRadius = 0.25
+  let maxRadius = 0.4
   let torsoBand = 0.6...1.7
   let trackTimeout = 10.0
 
@@ -100,14 +113,16 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
   func flush() throws {
     guard !batch.isEmpty else { return }
     var found = [[Candidate]](repeating: [], count: batch.count)
+    let throttled = tileThrottle && emptyStreak >= 10
     let lock = NSLock()
     DispatchQueue.concurrentPerform(iterations: batch.count) { i in
       var list = (try? candidates(batch[i].pixel, orient, nil, aspect: aspect, minConfidence: minConfidence)) ?? []
-      if list.isEmpty {
+      if list.isEmpty, !throttled || i == 0 {
         list = tiles.flatMap { (try? candidates(batch[i].pixel, orient, $0, aspect: aspect, minConfidence: minConfidence)) ?? [] }
       }
       lock.lock(); found[i] = list; lock.unlock()
     }
+    emptyStreak = found.contains { !$0.isEmpty } ? 0 : emptyStreak + batch.count
     for i in batch.indices {
       let t = batch[i].t
       var taken = Set<Int>()
@@ -121,7 +136,7 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
         var bestScore = Double.infinity
         for (n, tr) in tracks.enumerated() where !taken.contains(n) && t - tr.lastT <= trackTimeout && torsoBand.contains(c.torso / tr.torso) {
           let dist = ((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y)).squareRoot()
-          let radius = followRadius + 0.1 * (t - tr.lastT)
+          let radius = min(maxRadius, followRadius + 0.1 * (t - tr.lastT))
           if dist <= radius, dist / radius < bestScore { best = n; bestScore = dist / radius }
         }
         let tr: Track
@@ -153,6 +168,9 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
         try? VNImageRequestHandler(cvPixelBuffer: previous, options: [:]).perform([registration])
         if let move = registration.results?.first?.alignmentTransform {
           shifts.append(Double(move.tx * move.tx + move.ty * move.ty).squareRoot() / width)
+          shiftLog.append((t, shifts.last!))
+        } else {
+          shiftLog.append((t, -1))
         }
       }
       previous = pixel
@@ -161,12 +179,64 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
     if batch.count >= batchSize { try flush() }
   }
   try flush()
+  if reader.status == .failed { throw reader.error ?? NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "reader failed"]) }
   return (tracks.map { $0.samples }, last, median(shifts))
 }
 
 func median(_ xs: [Double]) -> Double {
   let s = xs.sorted()
   return s.isEmpty ? 0 : s[s.count / 2]
+}
+
+func dropStatic(_ samples: [Sample], minSpan: Double = 8.0, tolerance: Double = 0.005) -> [Sample] {
+  var keep: [Sample] = []
+  var i = 0
+  while i < samples.count {
+    var j = i
+    while j + 1 < samples.count, abs(samples[j + 1].x - samples[i].x) <= tolerance, abs(samples[j + 1].y - samples[i].y) <= tolerance { j += 1 }
+    if samples[j].t - samples[i].t < minSpan { keep += samples[i...j] }
+    i = j + 1
+  }
+  return keep
+}
+
+func candidateSpans(_ people: [[Sample]], confident: [Segment], minSpan: Double = 8.0, maxGap: Double = 3.0) -> [Segment] {
+  var reference: [Double] = []
+  for samples in people {
+    for s in samples where confident.contains(where: { s.t >= $0.start && s.t <= $0.end }) {
+      if let torso = s.torso { reference.append(torso) }
+    }
+  }
+  let ref = median(reference)
+  var result: [Segment] = []
+  for samples in people {
+    var i = 0
+    while i < samples.count {
+      var j = i
+      while j + 1 < samples.count, samples[j + 1].t - samples[j].t <= maxGap { j += 1 }
+      let start = samples[i].t, end = samples[j].t
+      if end - start >= minSpan {
+        let covered = confident.reduce(0.0) { $0 + max(0, min(end, $1.end) - max(start, $1.start)) }
+        let torsos = samples[i...j].compactMap { $0.torso }
+        let sizeOk = ref <= 0 || torsos.isEmpty || (0.6...1.7).contains(median(torsos) / ref)
+        if covered < 0.5 * (end - start), sizeOk { result.append(Segment(start: start, end: end)) }
+      }
+      i = j + 1
+    }
+  }
+  return result.sorted { $0.start < $1.start }
+}
+
+func sameSpot(_ a: [Sample], _ b: [Sample], from: Double, to: Double) -> Bool {
+  var j = 0
+  var dists: [Double] = []
+  for s in a where s.t >= from && s.t <= to {
+    while j < b.count, b[j].t < s.t - 0.15 { j += 1 }
+    if j < b.count, abs(b[j].t - s.t) <= 0.15 {
+      dists.append(((s.x - b[j].x) * (s.x - b[j].x) + (s.y - b[j].y) * (s.y - b[j].y)).squareRoot())
+    }
+  }
+  return dists.count >= 5 && median(dists) < 0.15
 }
 
 struct Params {
@@ -439,23 +509,55 @@ guard args.count >= 2 else {
   print("usage: detect <video> [csv-out] | detect export <video> <start> <end> <out.mov>")
   exit(1)
 }
+if args[1] == "replay" {
+  var grouped: [Int: [Sample]] = [:]
+  for line in try String(contentsOfFile: args[2], encoding: .utf8).split(separator: "\n").dropFirst() {
+    let f = line.split(separator: ",").map { Double($0) ?? 0 }
+    guard f.count >= 6 else { continue }
+    grouped[Int(f[0]), default: []].append(Sample(t: f[1], ankleY: f[2], torso: f[3] > 0 ? f[3] : nil, x: f[4], y: f[5]))
+  }
+  let people = grouped.keys.sorted().map { dropStatic(grouped[$0]!) }
+  var params = Params()
+  if args.count > 3, let v = Double(args[3]) { params.minRise = v }
+  var all: [(Segment, Int)] = []
+  for (n, samples) in people.enumerated() where samples.count >= Int(params.minDuration * 5) {
+    for seg in segments(samples, params) { all.append((seg, n)) }
+  }
+  all.sort { $0.0.start < $1.0.start }
+  var merged: [(Segment, Int)] = []
+  for item in all {
+    if let lastItem = merged.last, item.0.start <= lastItem.0.end,
+       item.1 == lastItem.1 || sameSpot(people[item.1], people[lastItem.1], from: item.0.start, to: min(item.0.end, lastItem.0.end)) {
+      merged[merged.count - 1] = (Segment(start: lastItem.0.start, end: max(lastItem.0.end, item.0.end)), lastItem.1)
+    } else {
+      merged.append(item)
+    }
+  }
+  print(merged.map { String(format: "%.1f-%.1f", $0.0.start, $0.0.end) }.joined(separator: " | "))
+  print("candidates: " + candidateSpans(people, confident: merged.map { $0.0 }).map { String(format: "%.1f-%.1f", $0.start, $0.end) }.joined(separator: " | "))
+  exit(0)
+}
 if args[1] == "export" {
   let started = Date()
   try exportFollow(url: URL(fileURLWithPath: args[2]), start: Double(args[3])!, end: Double(args[4])!, output: URL(fileURLWithPath: args[5]), minConfidence: 0.3)
   print("exported \(args[5]) in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
   exit(0)
 }
-let (people, duration, shift) = try sample(url: URL(fileURLWithPath: args[1]), fps: 5, minConfidence: 0.3)
+let fps = Double(ProcessInfo.processInfo.environment["FPS"] ?? "") ?? 5
+let (rawPeople, duration, shift) = try sample(url: URL(fileURLWithPath: args[1]), fps: fps, minConfidence: 0.3)
+let people = rawPeople.map { dropStatic($0) }
 let params = Params()
 let handheld = shift > params.handheldShift
 var all: [(Segment, Int)] = []
-for (n, samples) in people.enumerated() where samples.count >= Int(params.minDuration * 5) {
+for (n, samples) in people.enumerated() where samples.count >= Int(params.minDuration * fps) {
   for seg in handheld ? presenceSegments(samples, params) : segments(samples, params) { all.append((seg, n)) }
 }
 all.sort { $0.0.start < $1.0.start }
+for (seg, n) in all { print("raw \(String(format: "%.1f", seg.start))s - \(String(format: "%.1f", seg.end))s  person \(n) (\(people[n].count) samples)") }
 var merged: [(Segment, Int)] = []
 for item in all {
-  if let lastItem = merged.last, item.0.start <= lastItem.0.end {
+  if let lastItem = merged.last, item.0.start <= lastItem.0.end,
+     item.1 == lastItem.1 || sameSpot(people[item.1], people[lastItem.1], from: item.0.start, to: min(item.0.end, lastItem.0.end)) {
     merged[merged.count - 1] = (Segment(start: lastItem.0.start, end: max(lastItem.0.end, item.0.end)), lastItem.1)
   } else {
     merged.append(item)
@@ -463,13 +565,19 @@ for item in all {
 }
 all = merged
 if args.count >= 3 {
-  var csv = "person,t,ankleY,torso\n"
+  var csv = "person,t,ankleY,torso,x,y\n"
   for (n, samples) in people.enumerated() {
-    for s in samples { csv += "\(n),\(String(format: "%.2f", s.t)),\(String(format: "%.4f", s.ankleY)),\(String(format: "%.4f", s.torso ?? 0))\n" }
+    for s in samples { csv += "\(n),\(String(format: "%.2f", s.t)),\(String(format: "%.4f", s.ankleY)),\(String(format: "%.4f", s.torso ?? 0)),\(String(format: "%.3f", s.x)),\(String(format: "%.3f", s.y))\n" }
   }
   try csv.write(toFile: args[2], atomically: true, encoding: .utf8)
+}
+if ProcessInfo.processInfo.environment["SHIFTS"] != nil {
+  for (t, v) in shiftLog where v < 0 || v > 0.01 { print("shift t=\(String(format: "%.0f", t)) v=\(String(format: "%.3f", v))") }
 }
 print("people \(people.count) (\(people.map { $0.count }.filter { $0 >= 15 }.count) with 3s+), duration \(String(format: "%.1f", duration))s, camera shift \(String(format: "%.4f", shift)) → \(handheld ? "handheld: presence span" : "fixed: ankle rise")")
 for (seg, n) in all {
   print("segment \(String(format: "%.1f", seg.start))s - \(String(format: "%.1f", seg.end))s  person \(n)")
+}
+for seg in candidateSpans(people, confident: all.map { $0.0 }) {
+  print("candidate \(String(format: "%.1f", seg.start))s - \(String(format: "%.1f", seg.end))s")
 }

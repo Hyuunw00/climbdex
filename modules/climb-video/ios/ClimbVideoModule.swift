@@ -81,29 +81,54 @@ public class ClimbVideoModule: Module {
       return output.absoluteString
     }
 
+    AsyncFunction("exportCrop") { (uri: String, start: Double, end: Double) throws -> String in
+      guard let url = URL(string: uri) else {
+        throw Exception(name: "InvalidUri", description: uri)
+      }
+      let output = FileManager.default.temporaryDirectory
+        .appendingPathComponent("climbdex-crop-\(UUID().uuidString).mov")
+      try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, fixed: true)
+      return output.absoluteString
+    }
+
+    AsyncFunction("cropPlan") { (uri: String) throws -> [String: Any] in
+      guard let url = URL(string: uri) else {
+        throw Exception(name: "InvalidUri", description: uri)
+      }
+      let plan = try planFixed(url: url)
+      return [
+        "frame": ["width": plan.frame.width, "height": plan.frame.height],
+        "crop": ["width": plan.crop.width, "height": plan.crop.height],
+        "points": plan.keyframes.map { ["t": $0.t, "x": $0.rect.minX, "y": $0.rect.minY] },
+      ]
+    }
+
     AsyncFunction("detect") { (uri: String) throws -> [String: Any] in
       guard let url = URL(string: uri) else {
         throw Exception(name: "InvalidUri", description: uri)
       }
       let params = Params()
-      let (people, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3)
+      let (rawPeople, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3)
+      let people = rawPeople.map { dropStatic($0) }
       let handheld = shift > params.handheldShift
-      var all: [Segment] = []
-      for samples in people where samples.count >= Int(params.minDuration * 5) {
-        all += handheld ? presenceSegments(samples, params) : segments(samples, params)
+      var all: [(Segment, Int)] = []
+      for (n, samples) in people.enumerated() where samples.count >= Int(params.minDuration * 5) {
+        for seg in handheld ? presenceSegments(samples, params) : segments(samples, params) { all.append((seg, n)) }
       }
-      all.sort { $0.start < $1.start }
-      var merged: [Segment] = []
-      for seg in all {
-        if let last = merged.last, seg.start <= last.end {
-          merged[merged.count - 1] = Segment(start: last.start, end: max(last.end, seg.end))
+      all.sort { $0.0.start < $1.0.start }
+      var merged: [(Segment, Int)] = []
+      for item in all {
+        if let last = merged.last, item.0.start <= last.0.end,
+           item.1 == last.1 || sameSpot(people[item.1], people[last.1], from: item.0.start, to: min(item.0.end, last.0.end)) {
+          merged[merged.count - 1] = (Segment(start: last.0.start, end: max(last.0.end, item.0.end)), last.1)
         } else {
-          merged.append(seg)
+          merged.append(item)
         }
       }
       return [
         "handheld": handheld,
-        "segments": merged.map { ["start": $0.start, "end": $0.end] },
+        "segments": merged.map { ["start": $0.0.start, "end": $0.0.end] },
+        "candidates": candidateSpans(people, confident: merged.map { $0.0 }).map { ["start": $0.start, "end": $0.end] },
       ]
     }.runOnQueue(detectQueue)
   }
@@ -193,6 +218,7 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
   let width = Double(track.naturalSize.width)
   let batchSize = 8
   let followRadius = 0.25
+  let maxRadius = 0.4
   let torsoBand = 0.6...1.7
   let trackTimeout = 10.0
 
@@ -228,7 +254,7 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
         var bestScore = Double.infinity
         for (n, tr) in tracks.enumerated() where !taken.contains(n) && t - tr.lastT <= trackTimeout && torsoBand.contains(c.torso / tr.torso) {
           let dist = ((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y)).squareRoot()
-          let radius = followRadius + 0.1 * (t - tr.lastT)
+          let radius = min(maxRadius, followRadius + 0.1 * (t - tr.lastT))
           if dist <= radius, dist / radius < bestScore { best = n; bestScore = dist / radius }
         }
         let tr: Track
@@ -268,12 +294,64 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
     if batch.count >= batchSize { try flush() }
   }
   try flush()
+  if reader.status == .failed { throw reader.error ?? NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "reader failed"]) }
   return (tracks.map { $0.samples }, last, median(shifts))
 }
 
 func median(_ xs: [Double]) -> Double {
   let s = xs.sorted()
   return s.isEmpty ? 0 : s[s.count / 2]
+}
+
+func dropStatic(_ samples: [Sample], minSpan: Double = 8.0, tolerance: Double = 0.005) -> [Sample] {
+  var keep: [Sample] = []
+  var i = 0
+  while i < samples.count {
+    var j = i
+    while j + 1 < samples.count, abs(samples[j + 1].x - samples[i].x) <= tolerance, abs(samples[j + 1].y - samples[i].y) <= tolerance { j += 1 }
+    if samples[j].t - samples[i].t < minSpan { keep += samples[i...j] }
+    i = j + 1
+  }
+  return keep
+}
+
+func candidateSpans(_ people: [[Sample]], confident: [Segment], minSpan: Double = 8.0, maxGap: Double = 3.0) -> [Segment] {
+  var reference: [Double] = []
+  for samples in people {
+    for s in samples where confident.contains(where: { s.t >= $0.start && s.t <= $0.end }) {
+      if let torso = s.torso { reference.append(torso) }
+    }
+  }
+  let ref = median(reference)
+  var result: [Segment] = []
+  for samples in people {
+    var i = 0
+    while i < samples.count {
+      var j = i
+      while j + 1 < samples.count, samples[j + 1].t - samples[j].t <= maxGap { j += 1 }
+      let start = samples[i].t, end = samples[j].t
+      if end - start >= minSpan {
+        let covered = confident.reduce(0.0) { $0 + max(0, min(end, $1.end) - max(start, $1.start)) }
+        let torsos = samples[i...j].compactMap { $0.torso }
+        let sizeOk = ref <= 0 || torsos.isEmpty || (0.6...1.7).contains(median(torsos) / ref)
+        if covered < 0.5 * (end - start), sizeOk { result.append(Segment(start: start, end: end)) }
+      }
+      i = j + 1
+    }
+  }
+  return result.sorted { $0.start < $1.start }
+}
+
+func sameSpot(_ a: [Sample], _ b: [Sample], from: Double, to: Double) -> Bool {
+  var j = 0
+  var dists: [Double] = []
+  for s in a where s.t >= from && s.t <= to {
+    while j < b.count, b[j].t < s.t - 0.15 { j += 1 }
+    if j < b.count, abs(b[j].t - s.t) <= 0.15 {
+      dists.append(((s.x - b[j].x) * (s.x - b[j].x) + (s.y - b[j].y) * (s.y - b[j].y)).squareRoot())
+    }
+  }
+  return dists.count >= 5 && median(dists) < 0.15
 }
 
 struct Params {
@@ -424,27 +502,57 @@ func planFollow(url: URL, start: Double, end: Double, minConfidence: Float) thro
   let torso = median(person.compactMap { $0.torso })
   let asset = AVURLAsset(url: url)
   guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
-  let oriented = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-  let frame = CGSize(width: abs(oriented.width), height: abs(oriented.height))
+  let frame = orientedFrame(videoTrack)
   let crop = followCropSize(frame: frame, torso: torso)
   let keyframes = path.points.map { ($0.t, followRect(frame: frame, crop: crop, center: ($0.x, $0.y))) }
   return FollowPlan(frame: frame, crop: crop, path: path, keyframes: keyframes)
 }
 
-func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float) throws {
-  let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
-  guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
-    throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
-  }
-  let path = FollowPath(person, window: 0.75)
-  let torso = median(person.compactMap { $0.torso })
+extension FollowPath {
+  init(center x: Double, _ y: Double) { points = [(0, x, y)] }
+}
 
+func fixedCropSize(frame: CGSize) -> CGSize {
+  var h = frame.height
+  var w = h * 9 / 16
+  if w > frame.width {
+    w = frame.width
+    h = w * 16 / 9
+  }
+  return CGSize(width: w, height: h)
+}
+
+func orientedFrame(_ track: AVAssetTrack) -> CGSize {
+  let oriented = track.naturalSize.applying(track.preferredTransform)
+  return CGSize(width: abs(oriented.width), height: abs(oriented.height))
+}
+
+func planFixed(url: URL) throws -> FollowPlan {
+  let asset = AVURLAsset(url: url)
+  guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
+  let frame = orientedFrame(videoTrack)
+  let crop = fixedCropSize(frame: frame)
+  return FollowPlan(frame: frame, crop: crop, path: FollowPath(center: 0.5, 0.5), keyframes: [(0, followRect(frame: frame, crop: crop, center: (0.5, 0.5)))])
+}
+
+func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float, fixed: Bool = false) throws {
   let asset = AVURLAsset(url: url)
   guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
   let orient = orientation(for: videoTrack.preferredTransform)
-  let oriented = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-  let frame = CGSize(width: abs(oriented.width), height: abs(oriented.height))
-  let crop = followCropSize(frame: frame, torso: torso)
+  let frame = orientedFrame(videoTrack)
+  let path: FollowPath
+  let crop: CGSize
+  if fixed {
+    path = FollowPath(center: 0.5, 0.5)
+    crop = fixedCropSize(frame: frame)
+  } else {
+    let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
+    guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
+      throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
+    }
+    path = FollowPath(person, window: 0.75)
+    crop = followCropSize(frame: frame, torso: median(person.compactMap { $0.torso }))
+  }
   let outSize = CGSize(width: 1080, height: 1920)
   let range = CMTimeRange(start: CMTime(seconds: start, preferredTimescale: 600), end: CMTime(seconds: end, preferredTimescale: 600))
 

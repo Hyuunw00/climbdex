@@ -120,7 +120,7 @@ class PoseSampler(private val context: Context) {
             tracks.forEachIndexed { n, tr ->
               if (n in taken || t - tr.lastT > trackTimeout || c.torso / tr.torso !in torsoBand) return@forEachIndexed
               val dist = sqrt((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y))
-              val radius = followRadius + 0.1 * (t - tr.lastT)
+              val radius = min(0.4, followRadius + 0.1 * (t - tr.lastT))
               if (dist <= radius && dist / radius < bestScore) { best = n; bestScore = dist / radius }
             }
             val tr = if (best != null) tracks[best!!].also { taken.add(best!!) } else Track(c, t).also { tracks.add(it); taken.add(tracks.size - 1) }

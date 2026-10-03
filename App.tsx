@@ -1,9 +1,10 @@
 import { File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, SafeAreaView, StatusBar as NativeStatusBar, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, AppState, Platform, Pressable, SafeAreaView, StatusBar as NativeStatusBar, StyleSheet, Text, View } from 'react-native';
 import { ClimbVideo } from './modules/climb-video';
+import { DetectQueue, type DetectProgress, keepAwake, notifyDone, prepareNotifications } from './src/detectProgress';
 import type { Candidate, Gym } from './src/data/gyms';
 import { formatDistance } from './src/components/dex';
 import Celebration from './src/components/Celebration';
@@ -11,7 +12,9 @@ import AllGymsScreen from './src/screens/AllGymsScreen';
 import DexScreen from './src/screens/DexScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import TrimScreen from './src/screens/TrimScreen';
+import { loadSettings, saveSettings, type Settings } from './src/settings';
 import VideoListScreen from './src/screens/VideoListScreen';
 import type { Session } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
@@ -35,12 +38,35 @@ function load(): PickedVideo[] {
 }
 
 type Tab = 'videos' | 'dex';
+
+let lastBackgroundAt = 0;
+AppState.addEventListener('change', (state) => {
+  if (state !== 'active') lastBackgroundAt = Date.now();
+});
+
+function waitForActive() {
+  return new Promise<void>((resolve) => {
+    if (AppState.currentState === 'active') return resolve();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        sub.remove();
+        resolve();
+      }
+    });
+  });
+}
 type DexView = 'home' | 'all' | 'history';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('videos');
   const [videos, setVideos] = useState<PickedVideo[]>(load);
   const [editing, setEditing] = useState<number | null>(null);
+  const [settings, setSettings] = useState<Settings>(loadSettings);
+  const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
   const [session, setSession] = useState<Session | null>(null);
   const [dex, setDex] = useState<DexState>(EMPTY_DEX);
   const [dexReady, setDexReady] = useState(false);
@@ -49,6 +75,12 @@ export default function App() {
   const [region, setRegion] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number; rank: number; date?: Date; replay?: boolean } | null>(null);
   const [query, setQuery] = useState('');
+  const queue = useRef(new DetectQueue()).current;
+  const [progress, setProgress] = useState<DetectProgress | null>(null);
+
+  useEffect(() => {
+    keepAwake(progress !== null);
+  }, [progress !== null]);
 
   useEffect(() => {
     store.write(JSON.stringify(videos));
@@ -143,6 +175,9 @@ export default function App() {
   };
 
   const detect = async (targets: PickedVideo[]) => {
+    if (targets.length === 0) return;
+    queue.start(targets.map((v) => v.duration));
+    setProgress(queue.progress);
     for (const video of targets) {
       if (!video.thumbnail) {
         try {
@@ -158,18 +193,38 @@ export default function App() {
           patch(video.uri, { createdAt: info.creationTime });
         } catch {}
       }
-      const startedAt = Date.now();
       let segments: PickedVideo['segments'] = [];
+      let candidates: PickedVideo['candidates'] = [];
       let handheld = false;
-      try {
-        const result = await ClimbVideo.detect(video.uri);
-        segments = result.segments;
-        handheld = result.handheld;
-      } catch (e) {
-        console.log('detect error', video.fileName, String(e));
+      let startedAt = Date.now();
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        await waitForActive();
+        startedAt = Date.now();
+        let failed = false;
+        try {
+          const result = await ClimbVideo.detect(video.uri);
+          segments = result.segments;
+          candidates = result.candidates ?? [];
+          handheld = result.handheld;
+        } catch (e) {
+          failed = true;
+          console.log('detect error', video.fileName, String(e));
+        }
+        const interrupted = lastBackgroundAt > startedAt;
+        if (!interrupted && !failed) break;
+        if (!interrupted && failed) break;
+        console.log('detect interrupted by background, retrying', video.fileName, attempt);
+        segments = [];
+        candidates = [];
       }
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
-      patch(video.uri, { segments, handheld });
+      patch(video.uri, { segments, handheld, candidates });
+      queue.finishOne(video.duration, Date.now() - startedAt, segments.length + candidates.length);
+      setProgress(queue.progress);
+    }
+    if (queue.progress === null && queue.total > 0) {
+      notifyDone(queue.total, queue.clips);
+      queue.reset();
     }
   };
 
@@ -184,6 +239,7 @@ export default function App() {
     if (skipped > 0) Alert.alert(`이미 있는 영상 ${skipped}개는 건너뛰었어요`);
     if (added.length === 0) return;
     setVideos((prev) => [...prev, ...added]);
+    prepareNotifications();
     detect(added);
   };
 
@@ -306,19 +362,27 @@ export default function App() {
   let screen;
   if (tab === 'videos') {
     screen =
-      editing === null ? (
+      editing !== null && videos[editing] ? (
+        <TrimScreen
+          key={videos[editing].uri}
+          video={videos[editing]}
+          settings={settings}
+          index={editing}
+          total={videos.length}
+          onBack={() => setEditing(null)}
+          onNavigate={(delta) => setEditing(Math.max(0, Math.min(videos.length - 1, editing + delta)))}
+          onUpdate={(changes) => patch(videos[editing].uri, changes)}
+        />
+      ) : (
         <VideoListScreen
           videos={videos}
+          progress={progress}
+          settings={settings}
+          onOpenSettings={() => setShowSettings(true)}
           onAdd={add}
           onRemove={(index) => setVideos((prev) => prev.filter((_, i) => i !== index))}
           onClear={() => setVideos([])}
           onOpen={setEditing}
-        />
-      ) : (
-        <TrimScreen
-          video={videos[editing]}
-          onBack={() => setEditing(null)}
-          onUpdate={(changes) => patch(videos[editing].uri, changes)}
         />
       );
   } else if (!session) {
@@ -371,6 +435,7 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    {showSettings && <SettingsScreen settings={settings} onChange={setSettings} onClose={() => setShowSettings(false)} />}
     {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} rank={celebration.rank} date={celebration.date} replay={celebration.replay} onDone={() => setCelebration(null)} />}
     </>
   );

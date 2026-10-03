@@ -1,9 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PickedVideo } from '../types';
+import { type DetectProgress, formatRemaining } from '../detectProgress';
+import type { Settings } from '../settings';
 
 type Props = {
   videos: PickedVideo[];
+  progress: DetectProgress | null;
+  settings: Settings;
+  onOpenSettings: () => void;
   onAdd: (videos: PickedVideo[]) => void;
   onRemove: (index: number) => void;
   onClear: () => void;
@@ -16,16 +22,16 @@ function formatSeconds(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function statusOf(video: PickedVideo) {
+function statusOf(video: PickedVideo, settings: Settings) {
   if (video.segments === undefined) return '시도 구간 찾는 중';
-  const count = video.clips?.length ?? video.segments.length;
+  const count = video.clips?.length ?? video.segments.length + (settings.includeLow ? (video.candidates?.length ?? 0) : 0);
   const parts = [count === 0 ? '구간 못 찾음' : `구간 ${count}개`];
   if (video.handheld) parts.push('들고 찍음');
   if (video.saved) parts.push(`저장 ${video.saved}개`);
   return parts.join(' · ');
 }
 
-export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOpen }: Props) {
+export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen }: Props) {
   const pick = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
@@ -50,12 +56,24 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>내 영상</Text>
-        {videos.length > 0 && (
-          <Pressable onPress={onClear} hitSlop={8}>
-            <Text style={styles.clear}>전체 비우기</Text>
+        <View>
+          <Text style={styles.title}>내 영상</Text>
+          {progress && (
+            <Text style={styles.progress}>
+              {progress.done}/{progress.total} 찾는 중 · {formatRemaining(progress.remainingSec)} · 화면을 켜 두세요
+            </Text>
+          )}
+        </View>
+        <View style={styles.headerRight}>
+          {videos.length > 0 && (
+            <Pressable onPress={onClear} hitSlop={8}>
+              <Text style={styles.clear}>전체 비우기</Text>
+            </Pressable>
+          )}
+          <Pressable onPress={onOpenSettings} hitSlop={8}>
+            <Ionicons name="settings-outline" size={22} color="#333" />
           </Pressable>
-        )}
+        </View>
       </View>
       <FlatList
         style={styles.list}
@@ -73,7 +91,7 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
               </Text>
               <View style={styles.statusRow}>
                 {item.segments === undefined && <ActivityIndicator size="small" color="#666" />}
-                <Text style={styles.rowMeta}>{statusOf(item)}</Text>
+                <Text style={styles.rowMeta}>{statusOf(item, settings)}</Text>
               </View>
               <Text style={styles.rowMeta}>{formatSeconds(item.duration)}</Text>
             </View>
@@ -93,7 +111,9 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   title: { fontSize: 20, fontWeight: '700' },
+  progress: { fontSize: 12, color: '#666', marginTop: 2 },
   list: { flex: 1 },
   addButton: {
     backgroundColor: '#111',

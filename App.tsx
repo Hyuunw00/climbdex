@@ -98,6 +98,7 @@ export default function App() {
 
   useEffect(() => {
     cleanupPickerCopies(videos.map((v) => v.uri));
+    ClimbVideo.cleanupOriginals?.(videos.map((v) => v.uri).filter((u) => u.startsWith('ph://')));
   }, []);
 
   const userId = session?.user.id ?? null;
@@ -224,6 +225,7 @@ export default function App() {
       let segments: PickedVideo['segments'] = [];
       let candidates: PickedVideo['candidates'] = [];
       let handheld = false;
+      let tracks: PickedVideo['tracks'];
       let startedAt = Date.now();
       let workMs = 0;
       for (let attempt = 1; attempt <= 20; attempt++) {
@@ -235,6 +237,7 @@ export default function App() {
           segments = result.segments;
           candidates = result.candidates ?? [];
           handheld = result.handheld;
+          tracks = result.tracks;
         } catch (e) {
           const message = String(e);
           interrupted = !removed.has(video.uri) && !message.includes('Cancelled') && (message.includes('Interrupted') || lastBackgroundAt > startedAt);
@@ -254,7 +257,7 @@ export default function App() {
       startedAt = Date.now() - workMs;
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
       if (candidates.length > 0) console.log('detect low', video.fileName, JSON.stringify(candidates));
-      patch(video.uri, { segments, handheld, candidates });
+      patch(video.uri, { segments, handheld, candidates, tracks });
       queue.finishOne(video.duration, Date.now() - startedAt, segments.length + candidates.length);
       syncProgress();
       ClimbVideo.updateBackgroundRun?.(queue.totalSec - queue.pendingSec, `${queue.done}/${queue.total}`);

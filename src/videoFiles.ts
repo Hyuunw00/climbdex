@@ -1,4 +1,5 @@
 import { Directory, File, Paths } from 'expo-file-system';
+import { ClimbVideo } from '../modules/climb-video';
 
 const pickerDir = () => new Directory(Paths.cache, 'ImagePicker');
 
@@ -7,6 +8,10 @@ function nameOf(uri: string) {
 }
 
 export function deleteFile(uri: string | undefined | null) {
+  if (uri?.startsWith('ph://')) {
+    ClimbVideo.releaseVideo?.(uri);
+    return;
+  }
   if (!uri || !uri.startsWith('file:')) return;
   try {
     const file = new File(uri);

@@ -13,6 +13,7 @@ export type PickedVideo = {
   thumbnail?: string;
   segments?: DetectedSegment[];
   candidates?: DetectedSegment[];
+  tracks?: number[][][];
   handheld?: boolean;
   clips?: Clip[];
   saved?: number;

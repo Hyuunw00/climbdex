@@ -147,7 +147,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const loadPlan = async () => {
     setPlanning(true);
     try {
-      setPlan(await ClimbVideo.followPath(video.uri, clip.start, clip.end));
+      setPlan(await ClimbVideo.followPath(video.uri, clip.start, clip.end, video.tracks));
     } catch (e) {
       setPlan(null);
       Alert.alert('따라가기 경로를 못 만들었어요', String(e));
@@ -219,7 +219,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       for (const target of targets) {
         setSaving(`${follow ? '따라가기 ' : ''}저장 중 ${done + 1}/${targets.length}`);
         const outUri = follow
-          ? await ClimbVideo.exportFollow(video.uri, target.start, target.end)
+          ? await ClimbVideo.exportFollow(video.uri, target.start, target.end, video.tracks)
           : await ClimbVideo.trim(video.uri, target.start, target.end);
         await MediaLibrary.saveToLibraryAsync(outUri);
         deleteFile(outUri);

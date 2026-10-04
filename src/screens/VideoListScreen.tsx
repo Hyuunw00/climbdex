@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PickedVideo } from '../types';
 import { type DetectProgress, formatRemaining } from '../detectProgress';
+import { ClimbVideo } from '../../modules/climb-video';
 import type { Settings } from '../settings';
 
 type Props = {
@@ -32,14 +34,34 @@ function statusOf(video: PickedVideo, settings: Settings) {
 }
 
 export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const pick = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
-      allowsMultipleSelection: true,
-      selectionLimit: 0,
-    });
+    if (ClimbVideo.pickVideos) {
+      try {
+        const assets = await ClimbVideo.pickVideos();
+        if (assets.length > 0) onAdd(assets.map((a) => ({ ...a, fileName: a.fileName ?? null })));
+      } catch (e) {
+        Alert.alert('영상을 고르지 못했어요', String((e as Error)?.message ?? e));
+      }
+      return;
+    }
+    setLoading(true);
+    let result: ImagePicker.ImagePickerResult;
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['videos'],
+        allowsMultipleSelection: true,
+        selectionLimit: 0,
+      });
+    } catch (e) {
+      Alert.alert('영상을 불러오지 못했어요', `iPhone 저장 공간이 충분한지 확인해 주세요.\n${String((e as Error)?.message ?? e)}`);
+      return;
+    } finally {
+      setLoading(false);
+    }
     if (result.canceled) return;
     onAdd(
       result.assets.map((a) => ({
@@ -102,8 +124,15 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
           </Pressable>
         )}
       />
-      <Pressable style={styles.addButton} onPress={pick}>
-        <Text style={styles.addButtonText}>영상 고르기</Text>
+      <Pressable style={[styles.addButton, loading && styles.addButtonBusy]} onPress={pick} disabled={loading}>
+        {loading ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator color="#fff" />
+            <Text style={styles.addButtonText}>영상 불러오는 중…</Text>
+          </View>
+        ) : (
+          <Text style={styles.addButtonText}>영상 고르기</Text>
+        )}
       </Pressable>
     </View>
   );
@@ -125,6 +154,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginHorizontal: 16,
   },
+  addButtonBusy: { opacity: 0.7 },
+  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   empty: { textAlign: 'center', color: '#888', marginTop: 40 },
   row: {

@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Modal, Platform, Pressable, SafeAreaView, StatusBar as NativeStatusBar, StyleSheet, Text, View } from 'react-native';
 import { ClimbVideo } from './modules/climb-video';
+import { cleanupPickerCopies, deleteFile } from './src/videoFiles';
 import { DetectQueue, type DetectProgress, keepAwake, notifyDone, prepareNotifications } from './src/detectProgress';
 import type { Candidate, Gym } from './src/data/gyms';
 import { formatDistance } from './src/components/dex';
@@ -31,7 +32,7 @@ function load(): PickedVideo[] {
   try {
     if (!store.exists) return [];
     const saved: PickedVideo[] = JSON.parse(store.textSync());
-    return saved.filter((v) => new File(v.uri).exists);
+    return saved.filter((v) => !v.uri.startsWith('file:') || new File(v.uri).exists);
   } catch {
     return [];
   }
@@ -77,6 +78,8 @@ export default function App() {
   const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number; rank: number; date?: Date; replay?: boolean } | null>(null);
   const [query, setQuery] = useState('');
   const queue = useRef(new DetectQueue()).current;
+  const removed = useRef(new Set<string>()).current;
+  const detecting = useRef<string | null>(null);
   const [progress, setProgress] = useState<DetectProgress | null>(null);
 
   const awake = progress !== null && !progress.background;
@@ -92,6 +95,10 @@ export default function App() {
   useEffect(() => {
     store.write(JSON.stringify(videos));
   }, [videos]);
+
+  useEffect(() => {
+    cleanupPickerCopies(videos.map((v) => v.uri));
+  }, []);
 
   const userId = session?.user.id ?? null;
 
@@ -194,6 +201,12 @@ export default function App() {
     }
     syncProgress();
     for (const video of targets) {
+      if (removed.has(video.uri)) {
+        queue.drop(video.duration);
+        syncProgress();
+        continue;
+      }
+      detecting.current = video.uri;
       if (!video.thumbnail) {
         try {
           const [thumbnail] = await ClimbVideo.thumbnails(video.uri, [Math.min(1, video.duration / 2)], 240);
@@ -224,24 +237,37 @@ export default function App() {
           handheld = result.handheld;
         } catch (e) {
           const message = String(e);
-          interrupted = message.includes('Interrupted') || lastBackgroundAt > startedAt;
+          interrupted = !removed.has(video.uri) && !message.includes('Cancelled') && (message.includes('Interrupted') || lastBackgroundAt > startedAt);
           if (!interrupted) console.log('detect error', video.fileName, message);
         }
         workMs += Date.now() - startedAt;
         if (!interrupted) break;
         console.log('detect paused by background, resuming', video.fileName, attempt);
       }
+      detecting.current = null;
+      if (removed.has(video.uri)) {
+        console.log('detect cancelled', video.fileName);
+        queue.drop(video.duration);
+        syncProgress();
+        continue;
+      }
       startedAt = Date.now() - workMs;
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
+      if (candidates.length > 0) console.log('detect low', video.fileName, JSON.stringify(candidates));
       patch(video.uri, { segments, handheld, candidates });
       queue.finishOne(video.duration, Date.now() - startedAt, segments.length + candidates.length);
       syncProgress();
       ClimbVideo.updateBackgroundRun?.(queue.totalSec - queue.pendingSec, `${queue.done}/${queue.total}`);
     }
-    if (queue.progress === null && queue.total > 0) {
-      ClimbVideo.finishBackgroundRun?.(true);
-      notifyDone(queue.total, queue.clips);
+    if (queue.progress === null) {
+      if (queue.done > 0) {
+        ClimbVideo.finishBackgroundRun?.(true);
+        notifyDone(queue.done, queue.clips);
+      } else {
+        ClimbVideo.finishBackgroundRun?.(false);
+      }
       queue.reset();
+      syncProgress();
     }
   };
 
@@ -249,12 +275,19 @@ export default function App() {
     detect(videos.filter((v) => v.segments === undefined));
   }, []);
 
+  const forget = (uri: string) => {
+    removed.add(uri);
+    if (detecting.current === uri) ClimbVideo.cancelDetect?.(uri);
+    deleteFile(uri);
+  };
+
   const add = (picked: PickedVideo[]) => {
     const known = new Set(videos.map((v) => v.assetId).filter(Boolean));
     const added = picked.filter((v) => !v.assetId || !known.has(v.assetId));
     const skipped = picked.length - added.length;
     if (skipped > 0) Alert.alert(`이미 있는 영상 ${skipped}개는 건너뛰었어요`);
     if (added.length === 0) return;
+    for (const v of added) removed.delete(v.uri);
     setVideos((prev) => [...prev, ...added]);
     prepareNotifications();
     detect(added, true);
@@ -397,8 +430,15 @@ export default function App() {
           settings={settings}
           onOpenSettings={() => setShowSettings(true)}
           onAdd={add}
-          onRemove={(index) => setVideos((prev) => prev.filter((_, i) => i !== index))}
-          onClear={() => setVideos([])}
+          onRemove={(index) => {
+            const target = videos[index];
+            if (target) forget(target.uri);
+            setVideos((prev) => prev.filter((_, i) => i !== index));
+          }}
+          onClear={() => {
+            for (const v of videos) forget(v.uri);
+            setVideos([]);
+          }}
           onOpen={setEditing}
         />
       );

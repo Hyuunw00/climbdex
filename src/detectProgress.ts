@@ -68,6 +68,12 @@ export class DetectQueue {
     this.videoSec += duration;
   }
 
+  drop(duration: number) {
+    this.total = Math.max(0, this.total - 1);
+    this.pendingSec = Math.max(0, this.pendingSec - duration);
+    this.totalSec = Math.max(0, this.totalSec - duration);
+  }
+
   get rate() {
     return this.videoSec > 0 ? this.workMs / 1000 / this.videoSec : DEFAULT_RATE;
   }

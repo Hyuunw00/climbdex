@@ -8,6 +8,7 @@ import FollowPreview from '../components/FollowPreview';
 import Timeline from '../components/Timeline';
 import type { Clip, PickedVideo } from '../types';
 import { clipsOf } from '../clips';
+import { deleteFile } from '../videoFiles';
 import type { Settings } from '../settings';
 
 type Props = {
@@ -45,7 +46,6 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const [position, setPosition] = useState(() => initialClips(video)[0].start);
   const [follow, setFollow] = useState(false);
   const [plan, setPlan] = useState<FollowPlan | null>(null);
-  const [fixedPlan, setFixedPlan] = useState<FollowPlan | null>(null);
   const [planning, setPlanning] = useState(false);
   const [muted, setMuted] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -56,9 +56,25 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const clip = clips[current] ?? clips[0];
   const freePlay = useRef(false);
 
-  const player = useVideoPlayer(video.uri, (p) => {
+  const player = useVideoPlayer(video.uri.startsWith('ph://') ? null : video.uri, (p) => {
     p.timeUpdateEventInterval = 0.1;
   });
+
+  useEffect(() => {
+    if (!video.uri.startsWith('ph://')) return;
+    let cancelled = false;
+    ClimbVideo.resolveUri?.(video.uri)
+      .then(async (uri) => {
+        if (cancelled) return;
+        await player.replaceAsync(uri);
+        player.currentTime = clipsOf(video, settings)[0]?.start ?? 0;
+        player.play();
+      })
+      .catch((e) => Alert.alert('영상을 열지 못했어요', String((e as Error)?.message ?? e)));
+    return () => {
+      cancelled = true;
+    };
+  }, [video.uri]);
 
   useEffect(() => {
     player.muted = muted;
@@ -81,12 +97,6 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     });
     return () => sub.remove();
   }, [player, clip.end]);
-
-  useEffect(() => {
-    ClimbVideo.cropPlan(video.uri)
-      .then(setFixedPlan)
-      .catch((e) => console.log('cropPlan error', String(e)));
-  }, [video.uri]);
 
   useEffect(() => {
     const from = view?.start ?? 0;
@@ -210,8 +220,9 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         setSaving(`${follow ? '따라가기 ' : ''}저장 중 ${done + 1}/${targets.length}`);
         const outUri = follow
           ? await ClimbVideo.exportFollow(video.uri, target.start, target.end)
-          : await ClimbVideo.exportCrop(video.uri, target.start, target.end);
+          : await ClimbVideo.trim(video.uri, target.start, target.end);
         await MediaLibrary.saveToLibraryAsync(outUri);
+        deleteFile(outUri);
         done += 1;
       }
       const marked = clips.map((c) => (targets.includes(c) ? { ...c, saved: true } : c));
@@ -232,7 +243,8 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         ? '시도 구간을 못 찾았어요. 직접 잡아 주세요'
         : `시도 구간 ${clips.length}개${video.handheld ? ' (들고 찍은 영상: 사람이 보이는 구간)' : ''}`;
 
-  const shownPlan = follow ? plan : fixedPlan;
+  const shownPlan = follow ? plan : null;
+  const boxWidth = shownPlan ? previewWidth : screenWidth - 32;
 
   return (
     <View style={styles.root}>
@@ -253,7 +265,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       </View>
     </View>
     <ScrollView contentContainerStyle={styles.container}>
-      <Pressable style={[styles.videoBox, { width: previewWidth, height: previewHeight }]} onPress={togglePlay}>
+      <Pressable style={[styles.videoBox, { width: boxWidth, height: previewHeight }]} onPress={togglePlay}>
         {shownPlan ? (
           <FollowPreview player={player} plan={shownPlan} width={previewWidth} height={previewHeight} />
         ) : (
@@ -323,7 +335,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       <View style={styles.followRow}>
         <View style={styles.followText}>
           <Text style={styles.label}>클라이머 따라가기</Text>
-          <Text style={styles.followHint}>끄면 가운데 고정 9:16, 켜면 클라이머를 따라가는 9:16. 켜면 저장이 오래 걸려요</Text>
+          <Text style={styles.followHint}>켜면 클라이머를 따라가는 세로 9:16 영상으로 저장해요. 저장이 오래 걸려요</Text>
         </View>
         <Switch value={follow} onValueChange={setFollow} trackColor={{ true: '#111' }} />
       </View>

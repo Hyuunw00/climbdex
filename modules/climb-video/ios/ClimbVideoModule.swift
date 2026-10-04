@@ -9,6 +9,7 @@ import Photos
 import PhotosUI
 
 private let detectQueue = DispatchQueue(label: "climbdex.detect", qos: .userInitiated)
+private let mediaQueue = DispatchQueue(label: "climbdex.media", qos: .userInitiated, attributes: .concurrent)
 
 public class ClimbVideoModule: Module {
   public func definition() -> ModuleDefinition {
@@ -40,6 +41,8 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("thumbnails") { (uri: String, times: [Double], width: Double) throws -> [String] in
+      let thumbStart = Date()
+      defer { NativeLog.shared.add("thumbnails \(shortId(uri)) x\(times.count) \(ms(since: thumbStart))") }
       let url = try resolveURL(uri)
       let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
       generator.appliesPreferredTrackTransform = true
@@ -61,7 +64,7 @@ public class ClimbVideoModule: Module {
         out.append(file.absoluteString)
       }
       return out
-    }
+    }.runOnQueue(mediaQueue)
 
     AsyncFunction("followPath") { (uri: String, start: Double, end: Double, tracks: [[[Double]]]?) throws -> [String: Any] in
       let url = try resolveURL(uri)
@@ -71,7 +74,7 @@ public class ClimbVideoModule: Module {
         "crop": ["width": plan.crop.width, "height": plan.crop.height],
         "points": plan.keyframes.map { ["t": $0.t, "x": $0.rect.minX, "y": $0.rect.minY] },
       ]
-    }
+    }.runOnQueue(mediaQueue)
 
     AsyncFunction("exportFollow") { (uri: String, start: Double, end: Double, tracks: [[[Double]]]?) throws -> String in
       let url = try resolveURL(uri)
@@ -79,7 +82,7 @@ public class ClimbVideoModule: Module {
         .appendingPathComponent("climbdex-follow-\(UUID().uuidString).mov")
       try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, tracks: tracks)
       return output.absoluteString
-    }
+    }.runOnQueue(mediaQueue)
 
     AsyncFunction("exportCrop") { (uri: String, start: Double, end: Double) throws -> String in
       let url = try resolveURL(uri)
@@ -87,7 +90,7 @@ public class ClimbVideoModule: Module {
         .appendingPathComponent("climbdex-crop-\(UUID().uuidString).mov")
       try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, fixed: true)
       return output.absoluteString
-    }
+    }.runOnQueue(mediaQueue)
 
     AsyncFunction("cropPlan") { (uri: String) throws -> [String: Any] in
       let url = try resolveURL(uri)
@@ -97,7 +100,7 @@ public class ClimbVideoModule: Module {
         "crop": ["width": plan.crop.width, "height": plan.crop.height],
         "points": plan.keyframes.map { ["t": $0.t, "x": $0.rect.minX, "y": $0.rect.minY] },
       ]
-    }
+    }.runOnQueue(mediaQueue)
 
     AsyncFunction("pickVideos") { (promise: Promise) in
       var config = PHPickerConfiguration(photoLibrary: .shared())
@@ -116,7 +119,14 @@ public class ClimbVideoModule: Module {
     }.runOnQueue(.main)
 
     AsyncFunction("resolveUri") { (uri: String) throws -> String in
-      try resolveURL(uri).absoluteString
+      let start = Date()
+      let value = try resolveURL(uri).absoluteString
+      NativeLog.shared.add("resolveUri \(shortId(uri)) \(ms(since: start))")
+      return value
+    }.runOnQueue(mediaQueue)
+
+    Function("drainLogs") { () -> [String] in
+      NativeLog.shared.drain()
     }
 
     Function("releaseVideo") { (uri: String) in
@@ -304,6 +314,8 @@ final class ResolvedURLs {
   static let shared = ResolvedURLs()
   private let lock = NSLock()
   private var cache: [String: URL] = [:]
+  private var gates: [String: NSLock] = [:]
+  func gate(_ key: String) -> NSLock { lock.lock(); defer { lock.unlock() }; if let g = gates[key] { return g }; let g = NSLock(); gates[key] = g; return g }
   func get(_ key: String) -> URL? { lock.lock(); defer { lock.unlock() }; return cache[key] }
   func set(_ key: String, _ url: URL) { lock.lock(); cache[key] = url; lock.unlock() }
 }
@@ -336,15 +348,35 @@ func originalCopyURL(for uri: String) -> URL {
   return originalsDir.appendingPathComponent("\(hash.prefix(32)).mov")
 }
 
+final class NativeLog {
+  static let shared = NativeLog()
+  private let lock = NSLock()
+  private var lines: [String] = []
+  func add(_ line: String) { lock.lock(); lines.append(line); if lines.count > 200 { lines.removeFirst(lines.count - 200) }; lock.unlock() }
+  func drain() -> [String] { lock.lock(); defer { lines.removeAll(); lock.unlock() }; return lines }
+}
+
+func ms(since start: Date) -> String { String(format: "%.0fms", Date().timeIntervalSince(start) * 1000) }
+
+func shortId(_ uri: String) -> String { String(uri.suffix(14)) }
+
 func resolveURL(_ uri: String) throws -> URL {
   guard uri.hasPrefix("ph://") else {
     guard let url = URL(string: uri) else { throw Exception(name: "InvalidUri", description: uri) }
     return url
   }
-  if let cached = ResolvedURLs.shared.get(uri), FileManager.default.isReadableFile(atPath: cached.path) { return cached }
+  let gate = ResolvedURLs.shared.gate(uri)
+  gate.lock()
+  defer { gate.unlock() }
+  let began = Date()
+  if let cached = ResolvedURLs.shared.get(uri) {
+    if FileManager.default.isReadableFile(atPath: cached.path) { return cached }
+    NativeLog.shared.add("resolve \(shortId(uri)) memory cache unreadable: \(cached.lastPathComponent)")
+  }
   let kept = originalCopyURL(for: uri)
   if FileManager.default.isReadableFile(atPath: kept.path) {
     ResolvedURLs.shared.set(uri, kept)
+    NativeLog.shared.add("resolve \(shortId(uri)) kept copy \(ms(since: began))")
     return kept
   }
   let id = String(uri.dropFirst(5))
@@ -371,19 +403,26 @@ func resolveURL(_ uri: String) throws -> URL {
   if url == nil { (url, _) = request(.original, network: false) }
   if let local = url {
     ResolvedURLs.shared.set(uri, local)
+    NativeLog.shared.add("resolve \(shortId(uri)) on device \(ms(since: began))")
     return local
   }
+  NativeLog.shared.add("resolve \(shortId(uri)) not on device, downloading")
   (url, error) = request(.current, network: true)
   if url == nil, error == nil { (url, error) = request(.original, network: true) }
   guard let downloaded = url else {
+    NativeLog.shared.add("resolve \(shortId(uri)) download failed \(ms(since: began)): \(error?.localizedDescription ?? "no url")")
     throw Exception(name: "DownloadFailed", description: "영상을 받지 못했어요\(error.map { ": \($0.localizedDescription)" } ?? "")")
   }
+  NativeLog.shared.add("resolve \(shortId(uri)) downloaded \(ms(since: began)) at \(downloaded.path)")
+  let copyStart = Date()
   do {
     try? FileManager.default.removeItem(at: kept)
     try FileManager.default.copyItem(at: downloaded, to: kept)
     ResolvedURLs.shared.set(uri, kept)
+    NativeLog.shared.add("resolve \(shortId(uri)) kept copy saved \(ms(since: copyStart))")
     return kept
   } catch {
+    NativeLog.shared.add("resolve \(shortId(uri)) keep copy failed: \(error.localizedDescription)")
     ResolvedURLs.shared.set(uri, downloaded)
     return downloaded
   }

@@ -19,6 +19,7 @@ declare class ClimbVideoModule extends NativeModule {
   thumbnails(uri: string, times: number[], width: number): Promise<string[]>;
   detect(uri: string): Promise<DetectResult>;
   cancelDetect?(uri: string): void;
+  drainLogs?(): string[];
   releaseVideo?(uri: string): void;
   cleanupOriginals?(keep: string[]): void;
   pickVideos?(): Promise<PickedAsset[]>;

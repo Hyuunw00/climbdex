@@ -165,6 +165,7 @@ class ClimbVideoModule : Module() {
             "handheld" to false,
             "segments" to confident.map { mapOf("start" to it.start, "end" to it.end) },
             "candidates" to low.map { mapOf("start" to it.start, "end" to it.end) },
+            "tracks" to people.map { track -> track.map { listOf(r3(it.t), r3(it.x), r3(it.y), r3(it.torso), r3(it.ankleY)) } },
           )
         } finally {
           sampler.close()
@@ -172,14 +173,16 @@ class ClimbVideoModule : Module() {
       }
     }
 
-    AsyncFunction("followPath") Coroutine { uri: String, start: Double, end: Double ->
+    AsyncFunction("followPath") Coroutine { uri: String, start: Double, end: Double, tracks: List<List<List<Double>>>? ->
       val source = Uri.parse(uri)
       withContext(Dispatchers.IO) {
-        val sampler = PoseSampler(context)
-        val person = try {
-          sampler.sample(source, 5.0, start, end).maxByOrNull { it.size }
-        } finally {
-          sampler.close()
+        val person = personFrom(tracks, start, end) ?: run {
+          val sampler = PoseSampler(context)
+          try {
+            sampler.sample(source, 5.0, start, end).maxByOrNull { it.size }
+          } finally {
+            sampler.close()
+          }
         }
         if (person == null || person.size < 3) throw NoPersonException()
         val info = videoInfo(context, source)
@@ -225,15 +228,17 @@ class ClimbVideoModule : Module() {
       Uri.fromFile(output).toString()
     }
 
-    AsyncFunction("exportFollow") Coroutine { uri: String, start: Double, end: Double ->
+    AsyncFunction("exportFollow") Coroutine { uri: String, start: Double, end: Double, tracks: List<List<List<Double>>>? ->
       val source = Uri.parse(uri)
       val output = File(context.cacheDir, "climbdex-follow-${UUID.randomUUID()}.mp4")
       withContext(Dispatchers.IO) {
-        val sampler = PoseSampler(context)
-        val person = try {
-          sampler.sample(source, 5.0, start, end).maxByOrNull { it.size }
-        } finally {
-          sampler.close()
+        val person = personFrom(tracks, start, end) ?: run {
+          val sampler = PoseSampler(context)
+          try {
+            sampler.sample(source, 5.0, start, end).maxByOrNull { it.size }
+          } finally {
+            sampler.close()
+          }
         }
         if (person == null || person.size < 3) throw NoPersonException()
         val info = videoInfo(context, source)
@@ -250,6 +255,16 @@ private fun ClimbVideoModule.checkpointFile(uri: String): File {
   val digest = MessageDigest.getInstance("SHA-256").digest(uri.toByteArray()).joinToString("") { "%02x".format(it) }
   val dir = File(appContext.reactContext!!.cacheDir, "detect-checkpoints").apply { mkdirs() }
   return File(dir, digest.take(32) + ".json")
+}
+
+private fun r3(v: Double) = Math.round(v * 1000) / 1000.0
+
+private fun personFrom(tracks: List<List<List<Double>>>?, start: Double, end: Double): List<Sample>? {
+  if (tracks == null) return null
+  val people = tracks.map { track ->
+    track.filter { it.size >= 5 && it[0] >= start && it[0] <= end }.map { Sample(it[0], it[4], it[3], it[1], it[2]) }
+  }
+  return people.maxByOrNull { it.size }?.takeIf { it.size >= 3 }
 }
 
 class NoPersonException : expo.modules.kotlin.exception.CodedException("구간 안에서 사람을 못 찾았어요")

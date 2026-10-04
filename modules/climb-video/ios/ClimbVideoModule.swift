@@ -63,9 +63,9 @@ public class ClimbVideoModule: Module {
       return out
     }
 
-    AsyncFunction("followPath") { (uri: String, start: Double, end: Double) throws -> [String: Any] in
+    AsyncFunction("followPath") { (uri: String, start: Double, end: Double, tracks: [[[Double]]]?) throws -> [String: Any] in
       let url = try resolveURL(uri)
-      let plan = try planFollow(url: url, start: start, end: end, minConfidence: 0.3)
+      let plan = try planFollow(url: url, start: start, end: end, minConfidence: 0.3, tracks: tracks)
       return [
         "frame": ["width": plan.frame.width, "height": plan.frame.height],
         "crop": ["width": plan.crop.width, "height": plan.crop.height],
@@ -73,11 +73,11 @@ public class ClimbVideoModule: Module {
       ]
     }
 
-    AsyncFunction("exportFollow") { (uri: String, start: Double, end: Double) throws -> String in
+    AsyncFunction("exportFollow") { (uri: String, start: Double, end: Double, tracks: [[[Double]]]?) throws -> String in
       let url = try resolveURL(uri)
       let output = FileManager.default.temporaryDirectory
         .appendingPathComponent("climbdex-follow-\(UUID().uuidString).mov")
-      try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3)
+      try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, tracks: tracks)
       return output.absoluteString
     }
 
@@ -117,6 +117,17 @@ public class ClimbVideoModule: Module {
 
     AsyncFunction("resolveUri") { (uri: String) throws -> String in
       try resolveURL(uri).absoluteString
+    }
+
+    Function("releaseVideo") { (uri: String) in
+      try? FileManager.default.removeItem(at: originalCopyURL(for: uri))
+      try? FileManager.default.removeItem(at: checkpointURL(for: uri))
+    }
+
+    Function("cleanupOriginals") { (keep: [String]) in
+      let names = Set(keep.map { originalCopyURL(for: $0).lastPathComponent })
+      let files = (try? FileManager.default.contentsOfDirectory(at: originalsDir, includingPropertiesForKeys: nil)) ?? []
+      for file in files where !names.contains(file.lastPathComponent) { try? FileManager.default.removeItem(at: file) }
     }
 
     Function("cancelDetect") { (uri: String) in
@@ -167,6 +178,7 @@ public class ClimbVideoModule: Module {
         "handheld": handheld,
         "segments": resolved.confident.map { ["start": $0.start, "end": $0.end] },
         "candidates": resolved.low.map { ["start": $0.start, "end": $0.end] },
+        "tracks": tracksPayload(people),
       ]
     }.runOnQueue(detectQueue)
   }
@@ -296,19 +308,52 @@ final class ResolvedURLs {
   func set(_ key: String, _ url: URL) { lock.lock(); cache[key] = url; lock.unlock() }
 }
 
+func peopleFrom(_ tracks: [[[Double]]]?, start: Double, end: Double) -> [[Sample]]? {
+  guard let tracks = tracks else { return nil }
+  let people = tracks.map { track in
+    track.compactMap { v -> Sample? in
+      guard v.count >= 5, v[0] >= start, v[0] <= end else { return nil }
+      return Sample(t: v[0], ankleY: v[4], torso: v[3] > 0 ? v[3] : nil, x: v[1], y: v[2])
+    }
+  }
+  guard let best = people.max(by: { $0.count < $1.count }), best.count >= 3 else { return nil }
+  return people
+}
+
+func tracksPayload(_ people: [[Sample]]) -> [[[Double]]] {
+  func r(_ v: Double) -> Double { (v * 1000).rounded() / 1000 }
+  return people.map { $0.map { [r($0.t), r($0.x), r($0.y), r($0.torso ?? 0), r($0.ankleY)] } }
+}
+
+let originalsDir: URL = {
+  let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("icloud-originals", isDirectory: true)
+  try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+  return dir
+}()
+
+func originalCopyURL(for uri: String) -> URL {
+  let hash = SHA256.hash(data: Data(uri.utf8)).map { String(format: "%02x", $0) }.joined()
+  return originalsDir.appendingPathComponent("\(hash.prefix(32)).mov")
+}
+
 func resolveURL(_ uri: String) throws -> URL {
   guard uri.hasPrefix("ph://") else {
     guard let url = URL(string: uri) else { throw Exception(name: "InvalidUri", description: uri) }
     return url
   }
   if let cached = ResolvedURLs.shared.get(uri), FileManager.default.isReadableFile(atPath: cached.path) { return cached }
+  let kept = originalCopyURL(for: uri)
+  if FileManager.default.isReadableFile(atPath: kept.path) {
+    ResolvedURLs.shared.set(uri, kept)
+    return kept
+  }
   let id = String(uri.dropFirst(5))
   guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject else {
     throw Exception(name: "AssetMissing", description: "사진 앱에서 영상을 찾을 수 없어요")
   }
-  func request(_ version: PHVideoRequestOptionsVersion) -> (URL?, Error?) {
+  func request(_ version: PHVideoRequestOptionsVersion, network: Bool) -> (URL?, Error?) {
     let options = PHVideoRequestOptions()
-    options.isNetworkAccessAllowed = true
+    options.isNetworkAccessAllowed = network
     options.deliveryMode = .highQualityFormat
     options.version = version
     let done = DispatchSemaphore(value: 0)
@@ -322,13 +367,26 @@ func resolveURL(_ uri: String) throws -> URL {
     done.wait()
     return (found, failure)
   }
-  var (url, error) = request(.current)
-  if url == nil, error == nil { (url, error) = request(.original) }
-  guard let url = url else {
+  var (url, error) = request(.current, network: false)
+  if url == nil { (url, _) = request(.original, network: false) }
+  if let local = url {
+    ResolvedURLs.shared.set(uri, local)
+    return local
+  }
+  (url, error) = request(.current, network: true)
+  if url == nil, error == nil { (url, error) = request(.original, network: true) }
+  guard let downloaded = url else {
     throw Exception(name: "DownloadFailed", description: "영상을 받지 못했어요\(error.map { ": \($0.localizedDescription)" } ?? "")")
   }
-  ResolvedURLs.shared.set(uri, url)
-  return url
+  do {
+    try? FileManager.default.removeItem(at: kept)
+    try FileManager.default.copyItem(at: downloaded, to: kept)
+    ResolvedURLs.shared.set(uri, kept)
+    return kept
+  } catch {
+    ResolvedURLs.shared.set(uri, downloaded)
+    return downloaded
+  }
 }
 
 final class VideoPickerDelegate: NSObject, PHPickerViewControllerDelegate {
@@ -888,8 +946,8 @@ struct FollowPlan {
   let keyframes: [(t: Double, rect: CGRect)]
 }
 
-func planFollow(url: URL, start: Double, end: Double, minConfidence: Float) throws -> FollowPlan {
-  let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
+func planFollow(url: URL, start: Double, end: Double, minConfidence: Float, tracks: [[[Double]]]? = nil) throws -> FollowPlan {
+  let people = try peopleFrom(tracks, start: start, end: end) ?? sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end).0
   guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
     throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
   }
@@ -930,7 +988,7 @@ func planFixed(url: URL) throws -> FollowPlan {
   return FollowPlan(frame: frame, crop: crop, path: FollowPath(center: 0.5, 0.5), keyframes: [(0, followRect(frame: frame, crop: crop, center: (0.5, 0.5)))])
 }
 
-func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float, fixed: Bool = false) throws {
+func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float, fixed: Bool = false, tracks: [[[Double]]]? = nil) throws {
   let asset = AVURLAsset(url: url)
   guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
   let orient = orientation(for: videoTrack.preferredTransform)
@@ -941,7 +999,7 @@ func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfiden
     path = FollowPath(center: 0.5, 0.5)
     crop = fixedCropSize(frame: frame)
   } else {
-    let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
+    let people = try peopleFrom(tracks, start: start, end: end) ?? sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end).0
     guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
       throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
     }

@@ -2,7 +2,13 @@ package expo.modules.climbvideo
 
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.provider.OpenableColumns
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
@@ -16,6 +22,8 @@ import java.util.UUID
 import kotlin.math.max
 
 class ClimbVideoModule : Module() {
+  private var pendingPick: Promise? = null
+  private val pickRequest = 4211
   private val context get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
   override fun definition() = ModuleDefinition {
@@ -57,6 +65,75 @@ class ClimbVideoModule : Module() {
       }
     }
 
+    AsyncFunction("pickVideos") { promise: Promise ->
+      val activity = appContext.currentActivity
+      if (activity == null) {
+        promise.reject("NoActivity", "화면을 찾지 못했어요", null)
+        return@AsyncFunction
+      }
+      pendingPick?.resolve(emptyList<Any>())
+      pendingPick = promise
+      val intent = if (Build.VERSION.SDK_INT >= 33) {
+        Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+          type = "video/*"
+          putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, MediaStore.getPickImagesMaxLimit())
+        }
+      } else {
+        Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+          addCategory(Intent.CATEGORY_OPENABLE)
+          type = "video/*"
+          putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        }
+      }
+      activity.startActivityForResult(intent, pickRequest)
+    }
+
+    OnActivityResult { _, payload ->
+      if (payload.requestCode != pickRequest) return@OnActivityResult
+      val promise = pendingPick ?: return@OnActivityResult
+      pendingPick = null
+      val data = payload.data
+      if (payload.resultCode != Activity.RESULT_OK || data == null) {
+        promise.resolve(emptyList<Any>())
+        return@OnActivityResult
+      }
+      val uris = mutableListOf<Uri>()
+      data.clipData?.let { clip -> for (i in 0 until clip.itemCount) uris.add(clip.getItemAt(i).uri) }
+      if (uris.isEmpty()) data.data?.let { uris.add(it) }
+      val resolver = context.contentResolver
+      val items = uris.mapNotNull { uri ->
+        try {
+          try {
+            resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+          } catch (_: Exception) {
+          }
+          val info = videoInfo(context, uri)
+          var name: String? = null
+          resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+            if (c.moveToFirst()) name = c.getString(0)
+          }
+          mapOf(
+            "uri" to uri.toString(),
+            "assetId" to uri.toString(),
+            "duration" to info.durationSec,
+            "width" to info.displayWidth,
+            "height" to info.displayHeight,
+            "fileName" to name,
+          )
+        } catch (_: Exception) {
+          null
+        }
+      }
+      promise.resolve(items)
+    }
+
+    AsyncFunction("resolveUri") { uri: String -> uri }
+
+    Function("cancelDetect") { uri: String ->
+      DetectCancels.add(uri)
+      checkpointFile(uri).delete()
+    }
+
     Function("startBackgroundRun") { title: String, subtitle: String, totalSeconds: Double ->
       BackgroundRun.start(context, title, subtitle, totalSeconds)
     }
@@ -78,15 +155,16 @@ class ClimbVideoModule : Module() {
         val sampler = PoseSampler(context)
         val params = Params()
         try {
-          val people = sampler.sample(Uri.parse(uri), 5.0, checkpoint = checkpointFile(uri), onProgress = { BackgroundRun.report(it) })
+          DetectCancels.clear(uri)
+          val people = sampler.sample(Uri.parse(uri), 5.0, checkpoint = checkpointFile(uri), onProgress = { BackgroundRun.report(it) }, cancelKey = uri)
           val all = people.withIndex()
             .filter { it.value.size >= (params.minDuration * 5).toInt() }
-            .flatMap { (n, samples) -> segments(samples, params).map { Pair(it, n) } }
-          val merged = mergeOverlapping(all, people)
+            .flatMap { (n, samples) -> segments(samples, params, people.filterIndexed { k, _ -> k != n }.flatten()).map { Pair(it, n) } }
+          val (confident, low) = resolveClips(people, mergeOverlappingP(all, people))
           mapOf(
             "handheld" to false,
-            "segments" to merged.map { mapOf("start" to it.start, "end" to it.end) },
-            "candidates" to candidateSpans(people, merged).map { mapOf("start" to it.start, "end" to it.end) },
+            "segments" to confident.map { mapOf("start" to it.start, "end" to it.end) },
+            "candidates" to low.map { mapOf("start" to it.start, "end" to it.end) },
           )
         } finally {
           sampler.close()

@@ -5,6 +5,8 @@ import CoreImage
 import UIKit
 import CryptoKit
 import BackgroundTasks
+import Photos
+import PhotosUI
 
 private let detectQueue = DispatchQueue(label: "climbdex.detect", qos: .userInitiated)
 
@@ -17,9 +19,7 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("trim") { (uri: String, start: Double, end: Double) async throws -> String in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let asset = AVURLAsset(url: url)
       guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
         throw Exception(name: "ExportSessionUnavailable", description: uri)
@@ -40,9 +40,7 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("thumbnails") { (uri: String, times: [Double], width: Double) throws -> [String] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
       generator.appliesPreferredTrackTransform = true
       generator.maximumSize = CGSize(width: width, height: width)
@@ -66,9 +64,7 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("followPath") { (uri: String, start: Double, end: Double) throws -> [String: Any] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let plan = try planFollow(url: url, start: start, end: end, minConfidence: 0.3)
       return [
         "frame": ["width": plan.frame.width, "height": plan.frame.height],
@@ -78,9 +74,7 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("exportFollow") { (uri: String, start: Double, end: Double) throws -> String in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let output = FileManager.default.temporaryDirectory
         .appendingPathComponent("climbdex-follow-\(UUID().uuidString).mov")
       try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3)
@@ -88,9 +82,7 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("exportCrop") { (uri: String, start: Double, end: Double) throws -> String in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let output = FileManager.default.temporaryDirectory
         .appendingPathComponent("climbdex-crop-\(UUID().uuidString).mov")
       try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, fixed: true)
@@ -98,15 +90,38 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("cropPlan") { (uri: String) throws -> [String: Any] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let plan = try planFixed(url: url)
       return [
         "frame": ["width": plan.frame.width, "height": plan.frame.height],
         "crop": ["width": plan.crop.width, "height": plan.crop.height],
         "points": plan.keyframes.map { ["t": $0.t, "x": $0.rect.minX, "y": $0.rect.minY] },
       ]
+    }
+
+    AsyncFunction("pickVideos") { (promise: Promise) in
+      var config = PHPickerConfiguration(photoLibrary: .shared())
+      config.filter = .videos
+      config.selectionLimit = 0
+      config.preferredAssetRepresentationMode = .current
+      let picker = PHPickerViewController(configuration: config)
+      let delegate = VideoPickerDelegate(promise: promise)
+      VideoPickerDelegate.active = delegate
+      picker.delegate = delegate
+      guard let presenter = self.appContext?.utilities?.currentViewController() else {
+        promise.reject(Exception(name: "NoViewController", description: "화면을 찾지 못했어요"))
+        return
+      }
+      presenter.present(picker, animated: true)
+    }.runOnQueue(.main)
+
+    AsyncFunction("resolveUri") { (uri: String) throws -> String in
+      try resolveURL(uri).absoluteString
+    }
+
+    Function("cancelDetect") { (uri: String) in
+      DetectCancels.shared.add(uri)
+      try? FileManager.default.removeItem(at: checkpointURL(for: uri))
     }
 
     Function("startBackgroundRun") { (title: String, subtitle: String, totalSeconds: Double) -> Bool in
@@ -126,16 +141,15 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("detect") { (uri: String) throws -> [String: Any] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let params = Params()
-      let (rawPeople, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3, checkpoint: checkpointURL(for: uri))
+      DetectCancels.shared.clear(uri)
+      let (rawPeople, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3, checkpoint: checkpointURL(for: uri), cancelKey: uri)
       let people = rawPeople.map { dropStatic($0) }
       let handheld = shift > params.handheldShift
       var all: [(Segment, Int)] = []
       for (n, samples) in people.enumerated() where samples.count >= Int(params.minDuration * 5) {
-        for seg in handheld ? presenceSegments(samples, params) : segments(samples, params) { all.append((seg, n)) }
+        for seg in handheld ? presenceSegments(samples, params) : segments(samples, params, others: people.enumerated().filter { $0.offset != n }.flatMap { $0.element }) { all.append((seg, n)) }
       }
       all.sort { $0.0.start < $1.0.start }
       var merged: [(Segment, Int)] = []
@@ -148,10 +162,11 @@ public class ClimbVideoModule: Module {
           merged.append(item)
         }
       }
+      let resolved = resolveClips(people, merged)
       return [
         "handheld": handheld,
-        "segments": merged.map { ["start": $0.0.start, "end": $0.0.end] },
-        "candidates": candidateSpans(people, confident: merged.map { $0.0 }).map { ["start": $0.start, "end": $0.end] },
+        "segments": resolved.confident.map { ["start": $0.start, "end": $0.end] },
+        "candidates": resolved.low.map { ["start": $0.start, "end": $0.end] },
       ]
     }.runOnQueue(detectQueue)
   }
@@ -264,6 +279,88 @@ final class AppActivity {
   }
 }
 
+final class DetectCancels {
+  static let shared = DetectCancels()
+  private let lock = NSLock()
+  private var keys = Set<String>()
+  func add(_ key: String) { lock.lock(); keys.insert(key); lock.unlock() }
+  func clear(_ key: String) { lock.lock(); keys.remove(key); lock.unlock() }
+  func has(_ key: String) -> Bool { lock.lock(); defer { lock.unlock() }; return keys.contains(key) }
+}
+
+final class ResolvedURLs {
+  static let shared = ResolvedURLs()
+  private let lock = NSLock()
+  private var cache: [String: URL] = [:]
+  func get(_ key: String) -> URL? { lock.lock(); defer { lock.unlock() }; return cache[key] }
+  func set(_ key: String, _ url: URL) { lock.lock(); cache[key] = url; lock.unlock() }
+}
+
+func resolveURL(_ uri: String) throws -> URL {
+  guard uri.hasPrefix("ph://") else {
+    guard let url = URL(string: uri) else { throw Exception(name: "InvalidUri", description: uri) }
+    return url
+  }
+  if let cached = ResolvedURLs.shared.get(uri), FileManager.default.isReadableFile(atPath: cached.path) { return cached }
+  let id = String(uri.dropFirst(5))
+  guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject else {
+    throw Exception(name: "AssetMissing", description: "사진 앱에서 영상을 찾을 수 없어요")
+  }
+  func request(_ version: PHVideoRequestOptionsVersion) -> (URL?, Error?) {
+    let options = PHVideoRequestOptions()
+    options.isNetworkAccessAllowed = true
+    options.deliveryMode = .highQualityFormat
+    options.version = version
+    let done = DispatchSemaphore(value: 0)
+    var found: URL? = nil
+    var failure: Error? = nil
+    PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { avAsset, _, info in
+      found = (avAsset as? AVURLAsset)?.url
+      failure = info?[PHImageErrorKey] as? Error
+      done.signal()
+    }
+    done.wait()
+    return (found, failure)
+  }
+  var (url, error) = request(.current)
+  if url == nil, error == nil { (url, error) = request(.original) }
+  guard let url = url else {
+    throw Exception(name: "DownloadFailed", description: "영상을 받지 못했어요\(error.map { ": \($0.localizedDescription)" } ?? "")")
+  }
+  ResolvedURLs.shared.set(uri, url)
+  return url
+}
+
+final class VideoPickerDelegate: NSObject, PHPickerViewControllerDelegate {
+  static var active: VideoPickerDelegate? = nil
+  let promise: Promise
+  init(promise: Promise) { self.promise = promise }
+
+  func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+    picker.dismiss(animated: true)
+    let ids = results.compactMap { $0.assetIdentifier }
+    let fetched = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
+    var byId: [String: PHAsset] = [:]
+    fetched.enumerateObjects { asset, _, _ in byId[asset.localIdentifier] = asset }
+    let items: [[String: Any]] = ids.compactMap { id in
+      guard let asset = byId[id] else { return nil }
+      let name = PHAssetResource.assetResources(for: asset).first?.originalFilename
+      var item: [String: Any] = [
+        "uri": "ph://\(id)",
+        "assetId": id,
+        "duration": asset.duration,
+        "width": asset.pixelWidth,
+        "height": asset.pixelHeight,
+      ]
+      if let name = name { item["fileName"] = name }
+      if let created = asset.creationDate { item["createdAt"] = created.timeIntervalSince1970 * 1000 }
+      return item
+    }
+    promise.resolve(items)
+    VideoPickerDelegate.active = nil
+  }
+}
+
 final class BackgroundRun {
   static let shared = BackgroundRun()
   static let prefix = "com.climbdex.app.detect"
@@ -372,7 +469,7 @@ func interrupted() -> Exception {
   Exception(name: "Interrupted", description: "앱이 백그라운드로 가서 멈췄어요. 돌아오면 이어서 해요")
 }
 
-func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil, checkpoint: URL? = nil) throws -> ([[Sample]], Double, Double) {
+func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil, checkpoint: URL? = nil, cancelKey: String? = nil) throws -> ([[Sample]], Double, Double) {
   var resumed: Checkpoint? = nil
   if let checkpoint = checkpoint, let data = try? Data(contentsOf: checkpoint),
      let saved = try? JSONDecoder().decode(Checkpoint.self, from: data), saved.version == Checkpoint.version {
@@ -425,6 +522,11 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
 
   func flush() throws {
     guard !batch.isEmpty else { return }
+    if let key = cancelKey, DetectCancels.shared.has(key) {
+      if let checkpoint = checkpoint { try? FileManager.default.removeItem(at: checkpoint) }
+      DetectCancels.shared.clear(key)
+      throw Exception(name: "Cancelled", description: "삭제된 영상이라 멈췄어요")
+    }
     if checkpoint != nil, AppActivity.shared.isBackground, !BackgroundRun.shared.isActive { throw stop() }
     var found = [[Candidate]](repeating: [], count: batch.count)
     var visionFailed = false
@@ -454,7 +556,8 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
         var bestScore = Double.infinity
         for (n, tr) in tracks.enumerated() where !taken.contains(n) && t - tr.lastT <= trackTimeout && torsoBand.contains(c.torso / tr.torso) {
           let dist = ((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y)).squareRoot()
-          let radius = min(maxRadius, followRadius + 0.1 * (t - tr.lastT))
+          let base = min(followRadius, max(0.08, 3.0 * tr.torso))
+          let radius = min(maxRadius, base + 0.1 * (t - tr.lastT))
           if dist <= radius, dist / radius < bestScore { best = n; bestScore = dist / radius }
         }
         let tr: Track
@@ -522,6 +625,58 @@ func dropStatic(_ samples: [Sample], minSpan: Double = 8.0, tolerance: Double = 
     i = j + 1
   }
   return keep
+}
+
+func resolveClips(_ people: [[Sample]], _ merged: [(Segment, Int)], lowGap: Double = 3.0) -> (confident: [Segment], low: [Segment]) {
+  var spans: [(seg: Segment, n: Int)] = []
+  do {
+    var reference: [Double] = []
+    for samples in people {
+      for s in samples where merged.contains(where: { s.t >= $0.0.start && s.t <= $0.0.end }) {
+        if let torso = s.torso { reference.append(torso) }
+      }
+    }
+    let ref = median(reference)
+    for (n, samples) in people.enumerated() {
+      var i = 0
+      while i < samples.count {
+        var j = i
+        while j + 1 < samples.count, samples[j + 1].t - samples[j].t <= 3.0 { j += 1 }
+        let start = samples[i].t, end = samples[j].t
+        if end - start >= 8.0 {
+          let covered = merged.reduce(0.0) { $0 + max(0, min(end, $1.0.end) - max(start, $1.0.start)) }
+          let torsos = samples[i...j].compactMap { $0.torso }
+          let sizeOk = ref <= 0 || torsos.isEmpty || (0.6...1.7).contains(median(torsos) / ref)
+          if covered < 0.5 * (end - start), sizeOk { spans.append((Segment(start: start, end: end), n)) }
+        }
+        i = j + 1
+      }
+    }
+  }
+  spans.sort { $0.seg.start < $1.seg.start }
+  var low: [(seg: Segment, first: Int, last: Int, ids: Set<Int>)] = []
+  for item in spans {
+    if var prev = low.last, item.seg.start - prev.seg.end <= lowGap,
+       item.n == prev.last || handoff(people[prev.last], people[item.n], aEnd: prev.seg.end, bStart: item.seg.start) {
+      prev.seg = Segment(start: prev.seg.start, end: max(prev.seg.end, item.seg.end))
+      prev.last = item.n
+      prev.ids.insert(item.n)
+      low[low.count - 1] = prev
+    } else {
+      low.append((item.seg, item.n, item.n, [item.n]))
+    }
+  }
+  var confident = merged
+  var remaining: [Segment] = []
+  for item in low {
+    if let k = confident.firstIndex(where: { item.ids.contains($0.1) && min(item.seg.end, $0.0.end) > max(item.seg.start, $0.0.start) }) {
+      let c = confident[k].0
+      confident[k].0 = Segment(start: min(c.start, item.seg.start), end: max(c.end, item.seg.end))
+    } else {
+      remaining.append(item.seg)
+    }
+  }
+  return (confident.map { $0.0 }, remaining)
 }
 
 func candidateSpans(_ people: [[Sample]], confident: [Segment], minSpan: Double = 8.0, maxGap: Double = 3.0) -> [Segment] {
@@ -608,7 +763,7 @@ func groundLevel(_ ys: [Double], _ p: Params) -> Double {
   return median(sorted.filter { $0 >= lo && $0 < lo + 2 * p.bin })
 }
 
-func segments(_ d: [Sample], _ p: Params) -> [Segment] {
+func segments(_ d: [Sample], _ p: Params, others: [Sample] = []) -> [Segment] {
   func sameDistance(_ torso: Double?, _ ref: Double) -> Bool {
     guard let torso = torso, ref > 0 else { return true }
     return p.torsoBand.contains(torso / ref)
@@ -624,13 +779,22 @@ func segments(_ d: [Sample], _ p: Params) -> [Segment] {
     let near = d.filter { $0.t >= d[i].t - p.groundReach && $0.t <= d[h].t + p.groundReach && sameDistance($0.torso, refTorso) }
     let ground = groundLevel(near.map { $0.ankleY }, p)
     let rise = d.map { $0.ankleY - ground }
+    var startGround = ground
+    do {
+      let before = d.filter { $0.t < d[i].t }.map { $0.ankleY }
+      let after = d.filter { $0.t > d[h].t }.map { $0.ankleY }
+      let similar = others.filter { sameDistance($0.torso, refTorso) }.map { $0.ankleY }
+      let source = before.count >= 5 ? before : after.count >= 5 ? after : similar.count >= 5 ? similar : []
+      if !source.isEmpty { startGround = min(ground, groundLevel(source, p)) }
+    }
+    let riseStart = d.map { $0.ankleY - startGround }
 
     var k = i
     var b = i
     var groundFrom: Double? = nil
     while b > 0, d[b].t - d[b - 1].t <= p.maxGap {
       b -= 1
-      if rise[b] > p.low {
+      if riseStart[b] > p.low {
         k = b
         groundFrom = nil
       } else if let from = groundFrom {

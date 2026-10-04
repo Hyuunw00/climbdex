@@ -2,6 +2,7 @@ import { NativeModule, requireNativeModule } from 'expo';
 
 export type DetectedSegment = { start: number; end: number };
 export type DetectResult = { handheld: boolean; segments: DetectedSegment[]; candidates?: DetectedSegment[] };
+export type PickedAsset = { uri: string; assetId: string | null; duration: number; width: number; height: number; fileName?: string; createdAt?: number };
 export type FollowPlan = {
   frame: { width: number; height: number };
   crop: { width: number; height: number };
@@ -16,6 +17,9 @@ declare class ClimbVideoModule extends NativeModule {
   cropPlan(uri: string): Promise<FollowPlan>;
   thumbnails(uri: string, times: number[], width: number): Promise<string[]>;
   detect(uri: string): Promise<DetectResult>;
+  cancelDetect?(uri: string): void;
+  pickVideos?(): Promise<PickedAsset[]>;
+  resolveUri?(uri: string): Promise<string>;
   startBackgroundRun?(title: string, subtitle: string, totalSeconds: number): boolean;
   updateBackgroundRun?(completedSeconds: number, subtitle: string): void;
   finishBackgroundRun?(success: boolean): void;

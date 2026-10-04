@@ -50,6 +50,15 @@ class Track(c: Candidate, t: Double) {
 
 const val CHECKPOINT_VERSION = 1
 
+object DetectCancels {
+  private val keys = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+  fun add(key: String) { keys.add(key) }
+  fun clear(key: String) { keys.remove(key) }
+  fun has(key: String) = keys.contains(key)
+}
+
+class DetectCancelledException : expo.modules.kotlin.exception.CodedException("Cancelled: 삭제된 영상이라 멈췄어요")
+
 private fun loadCheckpoint(file: File?): Pair<Double, MutableList<Track>>? {
   if (file == null || !file.exists()) return null
   return try {
@@ -140,7 +149,7 @@ class PoseSampler(private val context: Context) {
     return out
   }
 
-  fun sample(uri: Uri, fps: Double, from: Double? = null, to: Double? = null, checkpoint: File? = null, onProgress: ((Double) -> Unit)? = null): List<List<Sample>> {
+  fun sample(uri: Uri, fps: Double, from: Double? = null, to: Double? = null, checkpoint: File? = null, onProgress: ((Double) -> Unit)? = null, cancelKey: String? = null): List<List<Sample>> {
     val info = videoInfo(context, uri)
     val aspect = info.displayWidth.toDouble() / info.displayHeight.toDouble()
     val followRadius = 0.25
@@ -170,7 +179,8 @@ class PoseSampler(private val context: Context) {
             tracks.forEachIndexed { n, tr ->
               if (n in taken || t - tr.lastT > trackTimeout || c.torso / tr.torso !in torsoBand) return@forEachIndexed
               val dist = sqrt((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y))
-              val radius = min(0.4, followRadius + 0.1 * (t - tr.lastT))
+              val base = min(followRadius, max(0.08, 3.0 * tr.torso))
+              val radius = min(0.4, base + 0.1 * (t - tr.lastT))
               if (dist <= radius && dist / radius < bestScore) { best = n; bestScore = dist / radius }
             }
             val tr = if (best != null) tracks[best!!].also { taken.add(best!!) } else Track(c, t).also { tracks.add(it); taken.add(tracks.size - 1) }
@@ -179,6 +189,11 @@ class PoseSampler(private val context: Context) {
           }
         }
         onProgress?.invoke(t)
+        if (cancelKey != null && DetectCancels.has(cancelKey)) {
+          DetectCancels.clear(cancelKey)
+          checkpoint?.delete()
+          throw DetectCancelledException()
+        }
         if (checkpoint != null && t - savedAt >= 30) {
           saveCheckpoint(checkpoint, t + 1.0 / fps, tracks)
           savedAt = t

@@ -63,10 +63,13 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   useEffect(() => {
     if (!video.uri.startsWith('ph://')) return;
     let cancelled = false;
+    const openedAt = Date.now();
     ClimbVideo.resolveUri?.(video.uri)
       .then(async (uri) => {
         if (cancelled) return;
+        console.log('trim resolved', video.fileName, Date.now() - openedAt + 'ms');
         await player.replaceAsync(uri);
+        console.log('trim player ready', video.fileName, Date.now() - openedAt + 'ms');
         player.currentTime = clipsOf(video, settings)[0]?.start ?? 0;
         player.play();
       })

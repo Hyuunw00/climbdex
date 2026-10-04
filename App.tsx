@@ -97,6 +97,14 @@ export default function App() {
   }, [videos]);
 
   useEffect(() => {
+    if (!__DEV__) return;
+    const timer = setInterval(() => {
+      for (const line of ClimbVideo.drainLogs?.() ?? []) console.log('[native]', line);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
     cleanupPickerCopies(videos.map((v) => v.uri));
     ClimbVideo.cleanupOriginals?.(videos.map((v) => v.uri).filter((u) => u.startsWith('ph://')));
   }, []);

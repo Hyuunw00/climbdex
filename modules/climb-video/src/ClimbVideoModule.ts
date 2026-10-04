@@ -16,6 +16,10 @@ declare class ClimbVideoModule extends NativeModule {
   cropPlan(uri: string): Promise<FollowPlan>;
   thumbnails(uri: string, times: number[], width: number): Promise<string[]>;
   detect(uri: string): Promise<DetectResult>;
+  startBackgroundRun?(title: string, subtitle: string, totalSeconds: number): boolean;
+  updateBackgroundRun?(completedSeconds: number, subtitle: string): void;
+  finishBackgroundRun?(success: boolean): void;
+  backgroundRunActive?(): boolean;
 }
 
 export default requireNativeModule<ClimbVideoModule>('ClimbVideo');

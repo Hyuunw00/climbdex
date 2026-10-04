@@ -3,12 +3,18 @@ import AVFoundation
 import Vision
 import CoreImage
 import UIKit
+import CryptoKit
+import BackgroundTasks
 
 private let detectQueue = DispatchQueue(label: "climbdex.detect", qos: .userInitiated)
 
 public class ClimbVideoModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ClimbVideo")
+
+    OnCreate {
+      DispatchQueue.main.async { AppActivity.shared.start() }
+    }
 
     AsyncFunction("trim") { (uri: String, start: Double, end: Double) async throws -> String in
       guard let url = URL(string: uri) else {
@@ -103,12 +109,28 @@ public class ClimbVideoModule: Module {
       ]
     }
 
+    Function("startBackgroundRun") { (title: String, subtitle: String, totalSeconds: Double) -> Bool in
+      BackgroundRun.shared.start(title: title, subtitle: subtitle, totalSeconds: totalSeconds)
+    }
+
+    Function("updateBackgroundRun") { (completedSeconds: Double, subtitle: String) in
+      BackgroundRun.shared.setBase(completedSeconds: completedSeconds, subtitle: subtitle)
+    }
+
+    Function("finishBackgroundRun") { (success: Bool) in
+      BackgroundRun.shared.finish(success: success)
+    }
+
+    Function("backgroundRunActive") { () -> Bool in
+      BackgroundRun.shared.isActive
+    }
+
     AsyncFunction("detect") { (uri: String) throws -> [String: Any] in
       guard let url = URL(string: uri) else {
         throw Exception(name: "InvalidUri", description: uri)
       }
       let params = Params()
-      let (rawPeople, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3)
+      let (rawPeople, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3, checkpoint: checkpointURL(for: uri))
       let people = rawPeople.map { dropStatic($0) }
       let handheld = shift > params.handheldShift
       var all: [(Segment, Int)] = []
@@ -118,8 +140,9 @@ public class ClimbVideoModule: Module {
       all.sort { $0.0.start < $1.0.start }
       var merged: [(Segment, Int)] = []
       for item in all {
-        if let last = merged.last, item.0.start <= last.0.end,
-           item.1 == last.1 || sameSpot(people[item.1], people[last.1], from: item.0.start, to: min(item.0.end, last.0.end)) {
+        if let last = merged.last,
+       (item.0.start <= last.0.end && (item.1 == last.1 || sameSpot(people[item.1], people[last.1], from: item.0.start, to: min(item.0.end, last.0.end))))
+       || (item.0.start > last.0.end && item.0.start - last.0.end < params.handoffGap && handoff(people[last.1], people[item.1], aEnd: last.0.end, bStart: item.0.start)) {
           merged[merged.count - 1] = (Segment(start: last.0.start, end: max(last.0.end, item.0.end)), last.1)
         } else {
           merged.append(item)
@@ -134,7 +157,7 @@ public class ClimbVideoModule: Module {
   }
 }
 
-struct Sample {
+struct Sample: Codable {
   let t: Double
   let ankleY: Double
   let torso: Double?
@@ -196,14 +219,172 @@ final class Track {
   var lastT: Double
   var samples: [Sample] = []
   init(_ c: Candidate, t: Double) { x = c.x; y = c.y; torso = c.torso; lastT = t }
+  init(_ s: TrackState) { x = s.x; y = s.y; torso = s.torso; lastT = s.lastT; samples = s.samples }
+  var state: TrackState { TrackState(x: x, y: y, torso: torso, lastT: lastT, samples: samples) }
 }
 
-func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil) throws -> ([[Sample]], Double, Double) {
+struct TrackState: Codable {
+  let x: Double
+  let y: Double
+  let torso: Double
+  let lastT: Double
+  let samples: [Sample]
+}
+
+struct Checkpoint: Codable {
+  static let version = 1
+  let version: Int
+  let nextT: Double
+  let nextMotionT: Double
+  let last: Double
+  let shifts: [Double]
+  let tracks: [TrackState]
+}
+
+final class AppActivity {
+  static let shared = AppActivity()
+  private let lock = NSLock()
+  private var background = false
+  private var observers: [NSObjectProtocol] = []
+
+  func start() {
+    guard observers.isEmpty else { return }
+    let center = NotificationCenter.default
+    observers.append(center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in self?.set(true) })
+    observers.append(center.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { [weak self] _ in self?.set(false) })
+  }
+
+  private func set(_ value: Bool) {
+    lock.lock(); background = value; lock.unlock()
+  }
+
+  var isBackground: Bool {
+    lock.lock(); defer { lock.unlock() }
+    return background
+  }
+}
+
+final class BackgroundRun {
+  static let shared = BackgroundRun()
+  static let prefix = "com.climbdex.app.detect"
+  private let lock = NSLock()
+  private var task: AnyObject? = nil
+  private var pendingId: String? = nil
+  private var expired = false
+  private var baseUnits: Int64 = 0
+  private var totalUnits: Int64 = 1
+  private var wildcardRegistered = false
+
+  var isActive: Bool {
+    lock.lock(); defer { lock.unlock() }
+    return (task != nil || pendingId != nil) && !expired
+  }
+
+  func start(title: String, subtitle: String, totalSeconds: Double) -> Bool {
+    guard #available(iOS 26.0, *) else { return false }
+    lock.lock()
+    if task != nil || pendingId != nil { lock.unlock(); return !expired }
+    expired = false
+    baseUnits = 0
+    totalUnits = max(1, Int64(totalSeconds * 10))
+    let id = "\(BackgroundRun.prefix).\(UUID().uuidString.prefix(8))"
+    pendingId = id
+    lock.unlock()
+
+    let handler: (BGTask) -> Void = { [weak self] bgTask in
+      guard let self = self, let continued = bgTask as? BGContinuedProcessingTask else {
+        bgTask.setTaskCompleted(success: false)
+        return
+      }
+      self.lock.lock()
+      self.task = continued
+      self.pendingId = nil
+      continued.progress.totalUnitCount = self.totalUnits
+      continued.progress.completedUnitCount = self.baseUnits
+      self.lock.unlock()
+      continued.expirationHandler = { [weak self] in
+        guard let self = self else { return }
+        self.lock.lock(); self.expired = true; self.task = nil; self.lock.unlock()
+        continued.setTaskCompleted(success: false)
+      }
+    }
+    var registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: id, using: nil, launchHandler: handler)
+    if !registered {
+      lock.lock()
+      let need = !wildcardRegistered
+      wildcardRegistered = true
+      lock.unlock()
+      registered = need ? BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(BackgroundRun.prefix).*", using: nil, launchHandler: handler) : true
+    }
+    let request = BGContinuedProcessingTaskRequest(identifier: id, title: title, subtitle: subtitle)
+    request.strategy = .queue
+    do {
+      try BGTaskScheduler.shared.submit(request)
+      return true
+    } catch {
+      lock.lock(); pendingId = nil; lock.unlock()
+      return false
+    }
+  }
+
+  func setBase(completedSeconds: Double, subtitle: String?) {
+    lock.lock()
+    baseUnits = Int64(completedSeconds * 10)
+    let current = task
+    let total = totalUnits
+    lock.unlock()
+    guard #available(iOS 26.0, *), let continued = current as? BGContinuedProcessingTask else { return }
+    continued.progress.totalUnitCount = total
+    continued.progress.completedUnitCount = min(total, baseUnits)
+    if let subtitle = subtitle { continued.updateTitle(continued.title, subtitle: subtitle) }
+  }
+
+  func report(videoSeconds: Double) {
+    lock.lock()
+    let current = task
+    let units = min(totalUnits, baseUnits + Int64(videoSeconds * 10))
+    lock.unlock()
+    guard #available(iOS 26.0, *), let continued = current as? BGContinuedProcessingTask else { return }
+    if units > continued.progress.completedUnitCount { continued.progress.completedUnitCount = units }
+  }
+
+  func finish(success: Bool) {
+    lock.lock()
+    let current = task
+    task = nil
+    pendingId = nil
+    expired = false
+    lock.unlock()
+    guard #available(iOS 26.0, *), let continued = current as? BGContinuedProcessingTask else { return }
+    continued.progress.completedUnitCount = continued.progress.totalUnitCount
+    continued.setTaskCompleted(success: success)
+  }
+}
+
+func checkpointURL(for uri: String) -> URL {
+  let hash = SHA256.hash(data: Data(uri.utf8)).map { String(format: "%02x", $0) }.joined()
+  let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("detect-checkpoints", isDirectory: true)
+  try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+  return dir.appendingPathComponent("\(hash.prefix(32)).json")
+}
+
+func interrupted() -> Exception {
+  Exception(name: "Interrupted", description: "앱이 백그라운드로 가서 멈췄어요. 돌아오면 이어서 해요")
+}
+
+func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil, checkpoint: URL? = nil) throws -> ([[Sample]], Double, Double) {
+  var resumed: Checkpoint? = nil
+  if let checkpoint = checkpoint, let data = try? Data(contentsOf: checkpoint),
+     let saved = try? JSONDecoder().decode(Checkpoint.self, from: data), saved.version == Checkpoint.version {
+    resumed = saved
+  }
   let asset = AVURLAsset(url: url)
   guard let track = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
   let reader = try AVAssetReader(asset: asset)
   if let from = from, let to = to {
     reader.timeRange = CMTimeRange(start: CMTime(seconds: from, preferredTimescale: 600), end: CMTime(seconds: to, preferredTimescale: 600))
+  } else if let resumed = resumed {
+    reader.timeRange = CMTimeRange(start: CMTime(seconds: max(0, resumed.nextT - 0.05), preferredTimescale: 600), end: asset.duration)
   }
   let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
     kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
@@ -222,25 +403,44 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
   let torsoBand = 0.6...1.7
   let trackTimeout = 10.0
 
-  var nextT = from ?? 0.0
-  var nextMotionT = from ?? 0.0
-  var last = 0.0
+  var nextT = resumed?.nextT ?? from ?? 0.0
+  var nextMotionT = resumed?.nextMotionT ?? from ?? 0.0
+  var last = resumed?.last ?? 0.0
   var previous: CVPixelBuffer? = nil
-  var shifts: [Double] = []
-  var tracks: [Track] = []
+  var shifts: [Double] = resumed?.shifts ?? []
+  var tracks: [Track] = resumed?.tracks.map { Track($0) } ?? []
   var batch: [(t: Double, pixel: CVPixelBuffer)] = []
+  var savedAt = nextT
+
+  func save(resumeAt: Double) {
+    guard let checkpoint = checkpoint else { return }
+    let state = Checkpoint(version: Checkpoint.version, nextT: resumeAt, nextMotionT: nextMotionT, last: last, shifts: shifts, tracks: tracks.map { $0.state })
+    if let data = try? JSONEncoder().encode(state) { try? data.write(to: checkpoint, options: .atomic) }
+  }
+
+  func stop() -> Exception {
+    save(resumeAt: batch.first?.t ?? nextT)
+    return interrupted()
+  }
 
   func flush() throws {
     guard !batch.isEmpty else { return }
+    if checkpoint != nil, AppActivity.shared.isBackground, !BackgroundRun.shared.isActive { throw stop() }
     var found = [[Candidate]](repeating: [], count: batch.count)
+    var visionFailed = false
     let lock = NSLock()
     DispatchQueue.concurrentPerform(iterations: batch.count) { i in
-      var list = (try? candidates(batch[i].pixel, orient, nil, aspect: aspect, minConfidence: minConfidence)) ?? []
-      if list.isEmpty {
-        list = tiles.flatMap { (try? candidates(batch[i].pixel, orient, $0, aspect: aspect, minConfidence: minConfidence)) ?? [] }
+      do {
+        var list = try candidates(batch[i].pixel, orient, nil, aspect: aspect, minConfidence: minConfidence)
+        if list.isEmpty {
+          list = try tiles.flatMap { try candidates(batch[i].pixel, orient, $0, aspect: aspect, minConfidence: minConfidence) }
+        }
+        lock.lock(); found[i] = list; lock.unlock()
+      } catch {
+        lock.lock(); visionFailed = true; lock.unlock()
       }
-      lock.lock(); found[i] = list; lock.unlock()
     }
+    if visionFailed, checkpoint != nil { throw stop() }
     for i in batch.indices {
       let t = batch[i].t
       var taken = Set<Int>()
@@ -271,6 +471,11 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
       }
     }
     batch.removeAll()
+    if checkpoint != nil { BackgroundRun.shared.report(videoSeconds: nextT) }
+    if checkpoint != nil, nextT - savedAt >= 30 {
+      save(resumeAt: nextT)
+      savedAt = nextT
+    }
   }
 
   while let buffer = output.copyNextSampleBuffer() {
@@ -293,8 +498,12 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
     batch.append((t, pixel))
     if batch.count >= batchSize { try flush() }
   }
+  if reader.status == .failed {
+    if checkpoint != nil { throw stop() }
+    throw reader.error ?? NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "reader failed"])
+  }
   try flush()
-  if reader.status == .failed { throw reader.error ?? NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "reader failed"]) }
+  if let checkpoint = checkpoint { try? FileManager.default.removeItem(at: checkpoint) }
   return (tracks.map { $0.samples }, last, median(shifts))
 }
 
@@ -342,6 +551,13 @@ func candidateSpans(_ people: [[Sample]], confident: [Segment], minSpan: Double 
   return result.sorted { $0.start < $1.start }
 }
 
+func handoff(_ a: [Sample], _ b: [Sample], aEnd: Double, bStart: Double) -> Bool {
+  guard let pa = a.last(where: { $0.t <= aEnd + 0.01 }), let pb = b.first(where: { $0.t >= bStart - 0.01 }) else { return false }
+  let gap = max(0, pb.t - pa.t)
+  let dist = ((pa.x - pb.x) * (pa.x - pb.x) + (pa.y - pb.y) * (pa.y - pb.y)).squareRoot()
+  return dist <= min(0.4, 0.25 + 0.1 * gap)
+}
+
 func sameSpot(_ a: [Sample], _ b: [Sample], from: Double, to: Double) -> Bool {
   var j = 0
   var dists: [Double] = []
@@ -365,6 +581,8 @@ struct Params {
   var torsoBand = 0.5...2.0
   var groundReach = 15.0
   var handheldShift = 0.05
+  var startGround = 4.0
+  var handoffGap = 1.0
 }
 
 func presenceSegments(_ d: [Sample], _ p: Params) -> [Segment] {
@@ -408,7 +626,20 @@ func segments(_ d: [Sample], _ p: Params) -> [Segment] {
     let rise = d.map { $0.ankleY - ground }
 
     var k = i
-    while k > 0, d[k].t - d[k - 1].t <= p.maxGap, rise[k - 1] > p.low { k -= 1 }
+    var b = i
+    var groundFrom: Double? = nil
+    while b > 0, d[b].t - d[b - 1].t <= p.maxGap {
+      b -= 1
+      if rise[b] > p.low {
+        k = b
+        groundFrom = nil
+      } else if let from = groundFrom {
+        if from - d[b].t >= p.startGround { break }
+      } else {
+        groundFrom = d[b].t
+        if p.startGround <= 0 { break }
+      }
+    }
     let startIdx = k > 0 && d[k].t - d[k - 1].t <= p.maxGap ? k - 1 : k
 
     var j = h

@@ -11,6 +11,9 @@ import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.max
@@ -25,6 +28,50 @@ class Track(c: Candidate, t: Double) {
   var torso = c.torso
   var lastT = t
   val samples = mutableListOf<Sample>()
+
+  fun toJson(): JSONObject {
+    val list = JSONArray()
+    for (s in samples) list.put(JSONArray(listOf(s.t, s.ankleY, s.torso, s.x, s.y, s.confidence)))
+    return JSONObject().put("x", x).put("y", y).put("torso", torso).put("lastT", lastT).put("samples", list)
+  }
+
+  companion object {
+    fun fromJson(o: JSONObject): Track {
+      val tr = Track(Candidate(0.0, o.getDouble("torso"), o.getDouble("x"), o.getDouble("y"), 0.0), o.getDouble("lastT"))
+      val list = o.getJSONArray("samples")
+      for (i in 0 until list.length()) {
+        val a = list.getJSONArray(i)
+        tr.samples.add(Sample(a.getDouble(0), a.getDouble(1), a.getDouble(2), a.getDouble(3), a.getDouble(4), a.getDouble(5)))
+      }
+      return tr
+    }
+  }
+}
+
+const val CHECKPOINT_VERSION = 1
+
+private fun loadCheckpoint(file: File?): Pair<Double, MutableList<Track>>? {
+  if (file == null || !file.exists()) return null
+  return try {
+    val o = JSONObject(file.readText())
+    if (o.getInt("version") != CHECKPOINT_VERSION) return null
+    val arr = o.getJSONArray("tracks")
+    Pair(o.getDouble("nextT"), MutableList(arr.length()) { Track.fromJson(arr.getJSONObject(it)) })
+  } catch (e: Exception) {
+    null
+  }
+}
+
+private fun saveCheckpoint(file: File?, nextT: Double, tracks: List<Track>) {
+  if (file == null) return
+  try {
+    val arr = JSONArray()
+    for (tr in tracks) arr.put(tr.toJson())
+    val tmp = File(file.parentFile, file.name + ".tmp")
+    tmp.writeText(JSONObject().put("version", CHECKPOINT_VERSION).put("nextT", nextT).put("tracks", arr).toString())
+    tmp.renameTo(file)
+  } catch (_: Exception) {
+  }
 }
 
 data class VideoInfo(val width: Int, val height: Int, val durationSec: Double, val rotation: Int) {
@@ -93,17 +140,20 @@ class PoseSampler(private val context: Context) {
     return out
   }
 
-  fun sample(uri: Uri, fps: Double, from: Double? = null, to: Double? = null): List<List<Sample>> {
+  fun sample(uri: Uri, fps: Double, from: Double? = null, to: Double? = null, checkpoint: File? = null, onProgress: ((Double) -> Unit)? = null): List<List<Sample>> {
     val info = videoInfo(context, uri)
     val aspect = info.displayWidth.toDouble() / info.displayHeight.toDouble()
     val followRadius = 0.25
     val torsoBand = 0.5..2.0
     val trackTimeout = 6.0
-    val tracks = mutableListOf<Track>()
+    val resumed = if (from == null) loadCheckpoint(checkpoint) else null
+    val tracks = resumed?.second ?: mutableListOf()
+    val startAt = resumed?.first ?: from ?: 0.0
+    var savedAt = startAt
     val source = FrameSource(context, uri)
     try {
       val end = min(info.durationSec, to ?: info.durationSec)
-      source.frames(from ?: 0.0, end, fps, frameLongSide) { t, bitmap ->
+      source.frames(startAt, end, fps, frameLongSide) { t, bitmap ->
         run {
           var found = candidates(bitmap, null, aspect)
           if (found.isEmpty()) {
@@ -128,11 +178,17 @@ class PoseSampler(private val context: Context) {
             tr.samples.add(Sample(t, c.ankleY, c.torso, c.x, c.y, c.confidence))
           }
         }
+        onProgress?.invoke(t)
+        if (checkpoint != null && t - savedAt >= 30) {
+          saveCheckpoint(checkpoint, t + 1.0 / fps, tracks)
+          savedAt = t
+        }
       }
     } finally {
       source.release()
     }
-    return tracks.map { it.samples }.filter { !isStatic(it) }
+    checkpoint?.delete()
+    return tracks.map { dropStatic(it.samples) }.filter { !isStatic(it) }
   }
 
   private fun isStatic(samples: List<Sample>): Boolean {

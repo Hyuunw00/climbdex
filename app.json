@@ -9,7 +9,12 @@
     "ios": {
       "bundleIdentifier": "com.climbdex.app",
       "supportsTablet": false,
-      "appleTeamId": "UZTXXV5UD5"
+      "appleTeamId": "UZTXXV5UD5",
+      "infoPlist": {
+        "BGTaskSchedulerPermittedIdentifiers": [
+          "com.climbdex.app.detect.*"
+        ]
+      }
     },
     "plugins": [
       "expo-video",

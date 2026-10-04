@@ -19,6 +19,8 @@ data class Params(
   val groundTime: Double = 1.0,
   val torsoBand: ClosedFloatingPointRange<Double> = 0.5..2.0,
   val groundReach: Double = 15.0,
+  val startGround: Double = 4.0,
+  val handoffGap: Double = 1.0,
 )
 
 fun median(xs: List<Double>): Double {
@@ -69,7 +71,20 @@ fun segments(d: List<Sample>, p: Params): List<Segment> {
     val rise = d.map { it.ankleY - ground }
 
     var k = i
-    while (k > 0 && d[k].t - d[k - 1].t <= p.maxGap && rise[k - 1] > p.low) k--
+    var b = i
+    var groundFrom: Double? = null
+    while (b > 0 && d[b].t - d[b - 1].t <= p.maxGap) {
+      b--
+      if (rise[b] > p.low) {
+        k = b
+        groundFrom = null
+      } else if (groundFrom != null) {
+        if (groundFrom - d[b].t >= p.startGround) break
+      } else {
+        groundFrom = d[b].t
+        if (p.startGround <= 0) break
+      }
+    }
     val startIdx = if (k > 0 && d[k].t - d[k - 1].t <= p.maxGap) k - 1 else k
 
     var j = h
@@ -113,14 +128,23 @@ fun sameSpot(a: List<Sample>, b: List<Sample>, from: Double, to: Double): Boolea
   return dists.sorted()[dists.size / 2] < 0.15
 }
 
-fun mergeOverlapping(all: List<Pair<Segment, Int>>, people: List<List<Sample>>): List<Segment> {
+fun handoff(a: List<Sample>, b: List<Sample>, aEnd: Double, bStart: Double): Boolean {
+  val pa = a.lastOrNull { it.t <= aEnd + 0.01 } ?: return false
+  val pb = b.firstOrNull { it.t >= bStart - 0.01 } ?: return false
+  val gap = max(0.0, pb.t - pa.t)
+  return hypot(pa.x - pb.x, pa.y - pb.y) <= min(0.4, 0.25 + 0.1 * gap)
+}
+
+fun mergeOverlapping(all: List<Pair<Segment, Int>>, people: List<List<Sample>>, handoffGap: Double = Params().handoffGap): List<Segment> {
   val merged = mutableListOf<Pair<Segment, Int>>()
   for (item in all.sortedBy { it.first.start }) {
     val last = merged.lastOrNull()
     val overlaps = last != null && item.first.start <= last.first.end
     val samePerson = last != null && (item.second == last.second ||
       sameSpot(people[item.second], people[last.second], item.first.start, min(item.first.end, last.first.end)))
-    if (last != null && overlaps && samePerson) {
+    val handedOff = last != null && !overlaps && item.first.start - last.first.end < handoffGap &&
+      handoff(people[last.second], people[item.second], last.first.end, item.first.start)
+    if (last != null && ((overlaps && samePerson) || handedOff)) {
       merged[merged.size - 1] = Pair(Segment(last.first.start, max(last.first.end, item.first.end)), last.second)
     } else {
       merged.add(item)
@@ -154,4 +178,16 @@ fun candidateSpans(people: List<List<Sample>>, confident: List<Segment>, minSpan
     }
   }
   return result.sortedBy { it.start }
+}
+
+fun dropStatic(samples: List<Sample>, minSpan: Double = 8.0, tolerance: Double = 0.005): List<Sample> {
+  val keep = mutableListOf<Sample>()
+  var i = 0
+  while (i < samples.size) {
+    var j = i
+    while (j + 1 < samples.size && abs(samples[j + 1].x - samples[i].x) <= tolerance && abs(samples[j + 1].y - samples[i].y) <= tolerance) j++
+    if (samples[j].t - samples[i].t < minSpan) keep.addAll(samples.subList(i, j + 1))
+    i = j + 1
+  }
+  return keep
 }

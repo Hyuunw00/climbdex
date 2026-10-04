@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.security.MessageDigest
 import java.util.UUID
 import kotlin.math.max
 
@@ -56,12 +57,28 @@ class ClimbVideoModule : Module() {
       }
     }
 
+    Function("startBackgroundRun") { title: String, subtitle: String, totalSeconds: Double ->
+      BackgroundRun.start(context, title, subtitle, totalSeconds)
+    }
+
+    Function("updateBackgroundRun") { completedSeconds: Double, subtitle: String ->
+      BackgroundRun.setBase(completedSeconds, subtitle)
+    }
+
+    Function("finishBackgroundRun") { _: Boolean ->
+      BackgroundRun.finish()
+    }
+
+    Function("backgroundRunActive") {
+      BackgroundRun.active
+    }
+
     AsyncFunction("detect") Coroutine { uri: String ->
       withContext(Dispatchers.IO) {
         val sampler = PoseSampler(context)
         val params = Params()
         try {
-          val people = sampler.sample(Uri.parse(uri), 5.0)
+          val people = sampler.sample(Uri.parse(uri), 5.0, checkpoint = checkpointFile(uri), onProgress = { BackgroundRun.report(it) })
           val all = people.withIndex()
             .filter { it.value.size >= (params.minDuration * 5).toInt() }
             .flatMap { (n, samples) -> segments(samples, params).map { Pair(it, n) } }
@@ -149,6 +166,12 @@ class ClimbVideoModule : Module() {
       Uri.fromFile(output).toString()
     }
   }
+}
+
+private fun ClimbVideoModule.checkpointFile(uri: String): File {
+  val digest = MessageDigest.getInstance("SHA-256").digest(uri.toByteArray()).joinToString("") { "%02x".format(it) }
+  val dir = File(appContext.reactContext!!.cacheDir, "detect-checkpoints").apply { mkdirs() }
+  return File(dir, digest.take(32) + ".json")
 }
 
 class NoPersonException : expo.modules.kotlin.exception.CodedException("구간 안에서 사람을 못 찾았어요")

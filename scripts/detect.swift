@@ -227,6 +227,13 @@ func candidateSpans(_ people: [[Sample]], confident: [Segment], minSpan: Double 
   return result.sorted { $0.start < $1.start }
 }
 
+func handoff(_ a: [Sample], _ b: [Sample], aEnd: Double, bStart: Double) -> Bool {
+  guard let pa = a.last(where: { $0.t <= aEnd + 0.01 }), let pb = b.first(where: { $0.t >= bStart - 0.01 }) else { return false }
+  let gap = max(0, pb.t - pa.t)
+  let dist = ((pa.x - pb.x) * (pa.x - pb.x) + (pa.y - pb.y) * (pa.y - pb.y)).squareRoot()
+  return dist <= min(0.4, 0.25 + 0.1 * gap)
+}
+
 func sameSpot(_ a: [Sample], _ b: [Sample], from: Double, to: Double) -> Bool {
   var j = 0
   var dists: [Double] = []
@@ -250,6 +257,8 @@ struct Params {
   var torsoBand = 0.5...2.0
   var groundReach = 15.0
   var handheldShift = 0.05
+  var startGround = Double(ProcessInfo.processInfo.environment["START_GROUND"] ?? "") ?? 4
+  var handoffGap = Double(ProcessInfo.processInfo.environment["HANDOFF_GAP"] ?? "") ?? 1
 }
 
 func presenceSegments(_ d: [Sample], _ p: Params) -> [Segment] {
@@ -293,7 +302,20 @@ func segments(_ d: [Sample], _ p: Params) -> [Segment] {
     let rise = d.map { $0.ankleY - ground }
 
     var k = i
-    while k > 0, d[k].t - d[k - 1].t <= p.maxGap, rise[k - 1] > p.low { k -= 1 }
+    var b = i
+    var groundFrom: Double? = nil
+    while b > 0, d[b].t - d[b - 1].t <= p.maxGap {
+      b -= 1
+      if rise[b] > p.low {
+        k = b
+        groundFrom = nil
+      } else if let from = groundFrom {
+        if from - d[b].t >= p.startGround { break }
+      } else {
+        groundFrom = d[b].t
+        if p.startGround <= 0 { break }
+      }
+    }
     let startIdx = k > 0 && d[k].t - d[k - 1].t <= p.maxGap ? k - 1 : k
 
     var j = h
@@ -526,8 +548,9 @@ if args[1] == "replay" {
   all.sort { $0.0.start < $1.0.start }
   var merged: [(Segment, Int)] = []
   for item in all {
-    if let lastItem = merged.last, item.0.start <= lastItem.0.end,
-       item.1 == lastItem.1 || sameSpot(people[item.1], people[lastItem.1], from: item.0.start, to: min(item.0.end, lastItem.0.end)) {
+    if let lastItem = merged.last,
+       (item.0.start <= lastItem.0.end && (item.1 == lastItem.1 || sameSpot(people[item.1], people[lastItem.1], from: item.0.start, to: min(item.0.end, lastItem.0.end))))
+       || (item.0.start > lastItem.0.end && item.0.start - lastItem.0.end < params.handoffGap && handoff(people[lastItem.1], people[item.1], aEnd: lastItem.0.end, bStart: item.0.start)) {
       merged[merged.count - 1] = (Segment(start: lastItem.0.start, end: max(lastItem.0.end, item.0.end)), lastItem.1)
     } else {
       merged.append(item)
@@ -556,8 +579,9 @@ all.sort { $0.0.start < $1.0.start }
 for (seg, n) in all { print("raw \(String(format: "%.1f", seg.start))s - \(String(format: "%.1f", seg.end))s  person \(n) (\(people[n].count) samples)") }
 var merged: [(Segment, Int)] = []
 for item in all {
-  if let lastItem = merged.last, item.0.start <= lastItem.0.end,
-     item.1 == lastItem.1 || sameSpot(people[item.1], people[lastItem.1], from: item.0.start, to: min(item.0.end, lastItem.0.end)) {
+  if let lastItem = merged.last,
+       (item.0.start <= lastItem.0.end && (item.1 == lastItem.1 || sameSpot(people[item.1], people[lastItem.1], from: item.0.start, to: min(item.0.end, lastItem.0.end))))
+       || (item.0.start > lastItem.0.end && item.0.start - lastItem.0.end < params.handoffGap && handoff(people[lastItem.1], people[item.1], aEnd: lastItem.0.end, bStart: item.0.start)) {
     merged[merged.count - 1] = (Segment(start: lastItem.0.start, end: max(lastItem.0.end, item.0.end)), lastItem.1)
   } else {
     merged.append(item)

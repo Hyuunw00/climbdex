@@ -60,7 +60,7 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
           <Text style={styles.title}>내 영상</Text>
           {progress && (
             <Text style={styles.progress}>
-              {progress.done}/{progress.total} 찾는 중 · {formatRemaining(progress.remainingSec)} · 화면을 켜 두세요
+              {progress.done}/{progress.total} 찾는 중 · {formatRemaining(progress.remainingSec)} · {progress.background ? '앱을 나가도 계속돼요' : '화면을 켜 두세요'}
             </Text>
           )}
         </View>
@@ -77,6 +77,7 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
       </View>
       <FlatList
         style={styles.list}
+        contentContainerStyle={styles.listContent}
         data={videos}
         keyExtractor={(item, index) => `${item.uri}-${index}`}
         ListEmptyComponent={<Text style={styles.empty}>고른 영상이 없어요</Text>}
@@ -109,18 +110,20 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
+  container: { flex: 1, paddingTop: 8, paddingBottom: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 16 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   title: { fontSize: 20, fontWeight: '700' },
   progress: { fontSize: 12, color: '#666', marginTop: 2 },
   list: { flex: 1 },
+  listContent: { paddingHorizontal: 16 },
   addButton: {
     backgroundColor: '#111',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
+    marginHorizontal: 16,
   },
   addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   empty: { textAlign: 'center', color: '#888', marginTop: 40 },

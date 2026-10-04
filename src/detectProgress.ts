@@ -3,7 +3,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Notifications from 'expo-notifications';
 import { AppState, Platform } from 'react-native';
 
-export type DetectProgress = { done: number; total: number; remainingSec: number };
+export type DetectProgress = { done: number; total: number; remainingSec: number; background?: boolean };
 
 const TAG = 'detect';
 const DEFAULT_RATE = 0.2;
@@ -49,12 +49,15 @@ export class DetectQueue {
   done = 0;
   clips = 0;
   pendingSec = 0;
+  totalSec = 0;
   workMs = 0;
   videoSec = 0;
 
   start(durations: number[]) {
     this.total += durations.length;
-    this.pendingSec += durations.reduce((a, b) => a + b, 0);
+    const sum = durations.reduce((a, b) => a + b, 0);
+    this.pendingSec += sum;
+    this.totalSec += sum;
   }
 
   finishOne(duration: number, elapsedMs: number, clips: number) {
@@ -79,6 +82,7 @@ export class DetectQueue {
     this.done = 0;
     this.clips = 0;
     this.pendingSec = 0;
+    this.totalSec = 0;
   }
 }
 

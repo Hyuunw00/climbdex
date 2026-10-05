@@ -16,6 +16,12 @@ type Props = {
   onRemove: (index: number) => void;
   onClear: () => void;
   onOpen: (index: number) => void;
+  today: { gymName: string; count: number | null } | null;
+  onTodayAdd: () => void;
+  onTodayDismiss: () => void;
+  here: { gymName: string; count: number } | null;
+  onHere: () => void;
+  onHereDismiss: () => void;
 };
 
 function formatSeconds(seconds: number) {
@@ -33,20 +39,22 @@ function statusOf(video: PickedVideo, settings: Settings) {
   return parts.join(' · ');
 }
 
-export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen }: Props) {
+export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen, today, onTodayAdd, onTodayDismiss, here, onHere, onHereDismiss }: Props) {
   const [loading, setLoading] = useState(false);
 
   const pick = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
+    if (!permission.granted) return false;
     if (ClimbVideo.pickVideos) {
       try {
         const assets = await ClimbVideo.pickVideos();
-        if (assets.length > 0) onAdd(assets.map((a) => ({ ...a, fileName: a.fileName ?? null })));
+        if (assets.length === 0) return false;
+        onAdd(assets.map((a) => ({ ...a, fileName: a.fileName ?? null })));
+        return true;
       } catch (e) {
         Alert.alert('영상을 고르지 못했어요', String((e as Error)?.message ?? e));
+        return false;
       }
-      return;
     }
     setLoading(true);
     let result: ImagePicker.ImagePickerResult;
@@ -58,11 +66,11 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
       });
     } catch (e) {
       Alert.alert('영상을 불러오지 못했어요', `iPhone 저장 공간이 충분한지 확인해 주세요.\n${String((e as Error)?.message ?? e)}`);
-      return;
+      return false;
     } finally {
       setLoading(false);
     }
-    if (result.canceled) return;
+    if (result.canceled) return false;
     onAdd(
       result.assets.map((a) => ({
         uri: a.uri,
@@ -73,6 +81,11 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
         fileName: a.fileName ?? null,
       })),
     );
+    return true;
+  };
+
+  const pickForToday = async () => {
+    if (await pick()) onTodayDismiss();
   };
 
   return (
@@ -97,6 +110,32 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
           </Pressable>
         </View>
       </View>
+      {here && (
+        <Pressable style={styles.today} onPress={onHere}>
+          <View style={styles.todayBody}>
+            <Text style={styles.todayTitle} numberOfLines={1}>
+              {here.count > 1 ? `${here.gymName} 외 ${here.count - 1}곳 근처예요` : `${here.gymName}에 있네요`}
+            </Text>
+            <Text style={styles.todayAction}>체크인하고 사진 찍기 →</Text>
+          </View>
+          <Pressable hitSlop={10} onPress={onHereDismiss}>
+            <Ionicons name="close" size={18} color="#888" />
+          </Pressable>
+        </Pressable>
+      )}
+      {today && (
+        <Pressable style={styles.today} onPress={today.count === null ? pickForToday : onTodayAdd}>
+          <View style={styles.todayBody}>
+            <Text style={styles.todayTitle} numberOfLines={1}>
+              {today.count === null ? `오늘 ${today.gymName} 다녀왔네요` : `오늘 ${today.gymName} · 새 영상 ${today.count}개`}
+            </Text>
+            <Text style={styles.todayAction}>{today.count === null ? '찍은 영상 고르기 →' : '시도 구간 찾기 →'}</Text>
+          </View>
+          <Pressable hitSlop={10} onPress={onTodayDismiss}>
+            <Ionicons name="close" size={18} color="#888" />
+          </Pressable>
+        </Pressable>
+      )}
       <FlatList
         style={styles.list}
         contentContainerStyle={styles.listContent}
@@ -145,6 +184,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700' },
   progress: { fontSize: 12, color: '#666', marginTop: 2 },
   list: { flex: 1 },
+  today: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginBottom: 4, padding: 14, borderRadius: 12, backgroundColor: '#f2f2f2' },
+  todayBody: { flex: 1, gap: 4 },
+  todayTitle: { fontSize: 15, fontWeight: '600' },
+  todayAction: { fontSize: 13, color: '#d7263d', fontWeight: '600' },
   listContent: { paddingHorizontal: 16 },
   addButton: {
     backgroundColor: '#111',

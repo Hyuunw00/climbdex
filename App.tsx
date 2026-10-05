@@ -6,8 +6,9 @@ import { Alert, AppState, Modal, Platform, Pressable, SafeAreaView, StatusBar as
 import { ClimbVideo } from './modules/climb-video';
 import { cleanupPickerCopies, deleteFile } from './src/videoFiles';
 import { DetectQueue, type DetectProgress, keepAwake, notifyDone, prepareNotifications } from './src/detectProgress';
-import type { Candidate, Gym } from './src/data/gyms';
-import { formatDistance } from './src/components/dex';
+import { type Candidate, type Gym, nearbyGyms } from './src/data/gyms';
+import { allowedMeters, formatDistance } from './src/components/dex';
+import * as Location from 'expo-location';
 import Celebration from './src/components/Celebration';
 import AllGymsScreen from './src/screens/AllGymsScreen';
 import DexScreen from './src/screens/DexScreen';
@@ -25,6 +26,7 @@ import AuthScreen from './src/screens/AuthScreen';
 import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, visitedToday } from './src/store/dex';
 import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
+import { dismissToday, dismissedToday, newVideosToday, todayGym } from './src/todayVideos';
 
 const store = new File(Paths.document, 'videos.json');
 
@@ -81,6 +83,55 @@ export default function App() {
   const removed = useRef(new Set<string>()).current;
   const detecting = useRef<string | null>(null);
   const [progress, setProgress] = useState<DetectProgress | null>(null);
+  const [today, setToday] = useState<{ gym: Gym; videos: PickedVideo[] | null } | null>(null);
+  const [activeAt, setActiveAt] = useState(Date.now());
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setActiveAt(Date.now());
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    const target = todayGym(dex);
+    if (!target || dismissedToday('videos')) return setToday(null);
+    let cancelled = false;
+    const known = new Set(videos.map((v) => v.assetId).filter((id): id is string => !!id));
+    newVideosToday(known)
+      .then((found) => {
+        if (!cancelled && !dismissedToday('videos')) setToday(found && found.length === 0 ? null : { gym: target, videos: found });
+      })
+      .catch((e) => console.log('today videos error', String(e)));
+    return () => {
+      cancelled = true;
+    };
+  }, [dex.visits, videos.length, activeAt]);
+
+  const [here, setHere] = useState<Candidate[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (!permission.granted) return setHere([]);
+        const position =
+          (await Location.getLastKnownPositionAsync({ maxAge: 120000, requiredAccuracy: 100 })) ??
+          (await Promise.race([Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }), new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000))]));
+        if (cancelled) return;
+        setHere(position ? nearbyGyms(position.coords.latitude, position.coords.longitude, allowedMeters(position.coords.accuracy)).slice(0, 5) : []);
+      } catch (e) {
+        console.log('here location error', String(e));
+        if (!cancelled) setHere([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAt]);
+
+  const hereBanner = here.length > 0 && !here.some((c) => visitedToday(dex, c.gym.id)) && !here.some((c) => dismissedToday(`checkin:${c.gym.id}`)) ? here : null;
 
   const awake = progress !== null && !progress.background;
   useEffect(() => {
@@ -394,17 +445,17 @@ export default function App() {
       );
     });
 
-  const checkIn = async (candidates: Candidate[]) => {
+  const checkIn = async (candidates: Candidate[], open = true) => {
     const target = await pickGym(candidates);
     if (!target) return;
     if (visitedToday(dex, target.id)) {
-      setGym(target);
+      if (open) setGym(target);
       return;
     }
     const choice = await choosePhoto();
     if (!choice) return;
     recordVisit(target, choice.uri);
-    setGym(target);
+    if (open) setGym(target);
   };
 
   const showCard = (target: Gym) => {
@@ -444,13 +495,31 @@ export default function App() {
           onRemove={(index) => {
             const target = videos[index];
             if (target) forget(target.uri);
+            if (target?.assetId) dismissToday(`asset:${target.assetId}`);
             setVideos((prev) => prev.filter((_, i) => i !== index));
           }}
           onClear={() => {
             for (const v of videos) forget(v.uri);
+            dismissToday(...videos.flatMap((v) => (v.assetId ? [`asset:${v.assetId}`] : [])));
             setVideos([]);
           }}
           onOpen={setEditing}
+          today={today ? { gymName: today.gym.name, count: today.videos?.length ?? null } : null}
+          onTodayAdd={() => {
+            if (!today?.videos) return;
+            add(today.videos);
+            setToday(null);
+          }}
+          onTodayDismiss={() => {
+            dismissToday('videos');
+            setToday(null);
+          }}
+          here={hereBanner ? { gymName: hereBanner[0].gym.name, count: hereBanner.length } : null}
+          onHere={() => (session ? hereBanner && checkIn(hereBanner, false) : setAuthPrompt(true))}
+          onHereDismiss={() => {
+            if (hereBanner) dismissToday(...hereBanner.map((c) => `checkin:${c.gym.id}`));
+            setHere([]);
+          }}
         />
       );
   } else {

@@ -2,10 +2,11 @@ import { type Gym, gymById, nearbyGyms } from '../data/gyms';
 import { supabase } from '../lib/supabase';
 import { type DexState, dayKey } from './dex';
 import type { Clip, PickedVideo } from '../types';
+import { APP_VERSION, DETECT_VERSION, PLATFORM } from '../version';
 
 export type Basis = 'location' | 'visit';
 export type GymCandidate = { gym: Gym; basis: Basis };
-export type SendRecord = { gymId: string; basis: Basis; clip: Clip; label: string; sent: boolean; vMin: number | null; vMax: number | null };
+export type SendRecord = { gymId: string; basis: Basis; clip: Clip; label: string | null; sent: boolean; vMin: number | null; vMax: number | null };
 
 const VIDEO_RADIUS = 200;
 const FALL_DROP = 1.5;
@@ -77,7 +78,7 @@ export async function fetchMySends(userId: string): Promise<MySend[]> {
   return (data ?? []).map((r) => ({ gymId: r.gym_id, at: r.at, sent: r.sent }));
 }
 
-export type GymSend = { videoKey: string; clipId: string; start: number; end: number; label: string; sent: boolean; at: string };
+export type GymSend = { videoKey: string; clipId: string; start: number; end: number; label: string | null; sent: boolean; at: string };
 
 export async function fetchGymSends(userId: string, gymId: string): Promise<GymSend[]> {
   const { data, error } = await supabase
@@ -104,6 +105,27 @@ export async function updateSendRange(userId: string, key: string, clipId: strin
 export function sameAttempt(a: { start: number; end: number }, start: number, end: number) {
   const overlap = Math.min(a.end, end) - Math.max(a.start, start);
   return overlap > 0.5 * (Math.max(a.end, end) - Math.min(a.start, start));
+}
+
+export async function pushVideoSummary(userId: string, video: PickedVideo, gym: GymCandidate | null, detectMs: number) {
+  const segments = video.segments ?? [];
+  const { error } = await supabase.from('video_summaries').upsert({
+    user_id: userId,
+    video_key: videoKey(video),
+    at: new Date(video.createdAt ?? video.pickedAt ?? Date.now()).toISOString(),
+    duration: Math.round(video.duration * 10) / 10,
+    attempts: segments.length,
+    candidates: video.candidates?.length ?? 0,
+    climb_seconds: Math.round(segments.reduce((sum, s) => sum + (s.end - s.start), 0) * 10) / 10,
+    handheld: !!video.handheld,
+    gym_id: gym?.gym.id ?? null,
+    basis: gym?.basis ?? null,
+    detect_ms: Math.round(detectMs),
+    detect_version: DETECT_VERSION,
+    app_version: APP_VERSION,
+    platform: PLATFORM,
+  });
+  if (error) throw error;
 }
 
 export function videoKey(video: PickedVideo) {
@@ -139,6 +161,8 @@ export async function pushSends(userId: string, video: PickedVideo, records: Sen
     tape_version: 1,
     v_min: r.vMin,
     v_max: r.vMax,
+    detect_version: DETECT_VERSION,
+    app_version: APP_VERSION,
   }));
   const { error } = await supabase.from('sends').upsert(rows, { onConflict: 'user_id,video_key,clip_id' });
   if (error) throw error;

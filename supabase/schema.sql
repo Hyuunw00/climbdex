@@ -96,7 +96,7 @@ create table if not exists public.sends (
   user_id uuid not null references auth.users(id) on delete cascade,
   gym_id text not null,
   at timestamptz not null,
-  label text not null,
+  label text,
   sent boolean not null,
   basis text not null check (basis in ('location', 'visit')),
   video_key text not null,
@@ -129,11 +129,39 @@ drop policy if exists "sends own" on public.sends;
 create policy "sends own" on public.sends
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+alter table public.sends alter column label drop not null;
+alter table public.sends add column if not exists detect_version text;
+alter table public.sends add column if not exists app_version text;
+
+create table if not exists public.video_summaries (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  video_key text not null,
+  at timestamptz not null,
+  duration numeric not null,
+  attempts int not null,
+  candidates int not null,
+  climb_seconds numeric not null,
+  handheld boolean not null,
+  gym_id text,
+  basis text check (basis in ('location', 'visit')),
+  detect_ms int,
+  detect_version text,
+  app_version text,
+  platform text,
+  created_at timestamptz not null default now(),
+  primary key (user_id, video_key)
+);
+alter table public.video_summaries enable row level security;
+drop policy if exists "video_summaries own" on public.video_summaries;
+create policy "video_summaries own" on public.video_summaries
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 -- 띠 입력·투표 자격: 그 암장에 도감 등록했거나 영상 위치로 확정된 완등 기록이 있는 사용자
 create or replace function public.checked_in(gym text)
 returns boolean language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.visits where user_id = auth.uid() and gym_id = gym)
-      or exists (select 1 from public.sends where user_id = auth.uid() and gym_id = gym);
+  select not coalesce((auth.jwt()->>'is_anonymous')::boolean, false)
+     and (exists (select 1 from public.visits where user_id = auth.uid() and gym_id = gym)
+      or exists (select 1 from public.sends where user_id = auth.uid() and gym_id = gym and basis = 'location'));
 $$;
 
 alter table public.gym_tapes enable row level security;
@@ -156,6 +184,64 @@ create policy "tape_votes own checked-in" on public.tape_votes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id and public.checked_in(gym_id));
 
 drop policy if exists "tape_reports insert own" on public.tape_reports;
-create policy "tape_reports insert own" on public.tape_reports for insert with check (auth.uid() = user_id);
+create policy "tape_reports insert own" on public.tape_reports for insert with check (auth.uid() = user_id and not coalesce((auth.jwt()->>'is_anonymous')::boolean, false));
 drop policy if exists "tape_reports read own" on public.tape_reports;
 create policy "tape_reports read own" on public.tape_reports for select using (auth.uid() = user_id);
+
+-- 익명 계정 기록을 이미 있는 계정으로 옮기기: 익명일 때 토큰을 만들고, 로그인 뒤 그 토큰으로 호출
+create table if not exists public.anon_merge (
+  token uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+alter table public.anon_merge enable row level security;
+drop policy if exists "anon_merge own" on public.anon_merge;
+create policy "anon_merge own" on public.anon_merge
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create or replace function public.merge_anonymous(t uuid)
+returns int language plpgsql security definer set search_path = public as $$
+declare
+  anon uuid;
+  moved int := 0;
+  n int;
+begin
+  if auth.uid() is null or coalesce((auth.jwt()->>'is_anonymous')::boolean, false) then return 0; end if;
+  select user_id into anon from public.anon_merge where token = t and created_at > now() - interval '1 hour';
+  if anon is null or anon = auth.uid() then return 0; end if;
+  if not exists (select 1 from auth.users where id = anon and is_anonymous) then return 0; end if;
+  delete from public.sends s where s.user_id = anon
+    and exists (select 1 from public.sends r where r.user_id = auth.uid() and r.video_key = s.video_key and r.clip_id = s.clip_id);
+  update public.sends set user_id = auth.uid() where user_id = anon;
+  get diagnostics n = row_count; moved := moved + n;
+  delete from public.video_summaries v where v.user_id = anon
+    and exists (select 1 from public.video_summaries r where r.user_id = auth.uid() and r.video_key = v.video_key);
+  update public.video_summaries set user_id = auth.uid() where user_id = anon;
+  get diagnostics n = row_count; moved := moved + n;
+  delete from public.anon_merge where user_id = anon;
+  delete from auth.users where id = anon and is_anonymous;
+  return moved;
+end $$;
+revoke all on function public.merge_anonymous(uuid) from public, anon;
+grant execute on function public.merge_anonymous(uuid) to authenticated;
+
+-- 익명 계정은 자기 등반 기록·영상 요약만 쓰고, 남에게 보이거나 도감에 들어가는 쓰기는 정식 계정만 (Supabase 권장: restrictive 정책)
+do $$
+declare
+  t text;
+  c text;
+begin
+  foreach t in array array['gym_tapes', 'tape_votes', 'tape_reports', 'visits', 'gym_photos'] loop
+    foreach c in array array['insert', 'update', 'delete'] loop
+      execute format('drop policy if exists %I on public.%I', 'permanent only ' || c, t);
+      if c = 'insert' then
+        execute format('create policy %I on public.%I as restrictive for insert to authenticated with check ((select (auth.jwt()->>''is_anonymous'')::boolean) is not true)', 'permanent only ' || c, t);
+      else
+        execute format('create policy %I on public.%I as restrictive for %s to authenticated using ((select (auth.jwt()->>''is_anonymous'')::boolean) is not true)', 'permanent only ' || c, t, c);
+      end if;
+    end loop;
+  end loop;
+end $$;
+drop policy if exists "gym-photos permanent only" on storage.objects;
+create policy "gym-photos permanent only" on storage.objects as restrictive for insert to authenticated
+  with check (bucket_id <> 'gym-photos' or (select (auth.jwt()->>'is_anonymous')::boolean) is not true);

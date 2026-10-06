@@ -61,7 +61,7 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
 
   const requireMember = (action: () => void) => {
     if (!userId) return onNeedAuth();
-    if (!checkedIn) return Alert.alert('도감에 등록한 암장만 할 수 있어요', '암장에서 도감에 등록한 뒤 참여해 주세요');
+    if (!checkedIn) return Alert.alert('이 암장에 간 기록이 필요해요', '도감에 등록하거나 이 암장에서 찍은 영상으로 클립을 저장하면 참여할 수 있어요');
     action();
   };
 
@@ -93,6 +93,13 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
         </View>
       ) : (
         <>
+          <View style={styles.boardWrap}>
+            <View style={styles.rail}>
+              <Text style={styles.railArrow}>▲</Text>
+              {summary.map((t, i) => (
+                <View key={t.label} style={[styles.railStep, { opacity: 1 - (i / Math.max(1, summary.length - 1)) * 0.85 }]} />
+              ))}
+            </View>
           <View style={styles.board}>
             {[...summary].reverse().map((t) => (
               <Pressable key={t.label} style={[styles.row, t.voted && styles.rowVoted]} onPress={() => requireMember(() => setVoting(t))}>
@@ -104,7 +111,8 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
               </Pressable>
             ))}
           </View>
-          <Text style={styles.hint}>위로 갈수록 어려워요 · 누르면 투표할 수 있어요</Text>
+          </View>
+          <Text style={styles.hint}>누르면 투표할 수 있어요</Text>
           <Pressable onPress={() => (userId ? setReporting(true) : onNeedAuth())}>
             <Text style={styles.report}>표가 틀렸나요? 신고하기</Text>
           </Pressable>
@@ -182,7 +190,6 @@ export function VoteSheet({ tape, mine, onClose, onSubmit, onRemove, skipLabel, 
   confirmLabel?: string;
 }) {
   const [picked, setPicked] = useState<{ min: number; max: number } | null>(mine ? { min: mine.vMin, max: mine.vMax } : null);
-  const chosen = confirmLabel ? picked : mine ? { min: mine.vMin, max: mine.vMax } : null;
   const pick = (v: number) => {
     if (!picked || picked.min !== picked.max || v < picked.min || v > picked.min + 1) setPicked({ min: v, max: v });
     else setPicked({ min: picked.min, max: v });
@@ -195,21 +202,19 @@ export function VoteSheet({ tape, mine, onClose, onSubmit, onRemove, skipLabel, 
       </View>
       <View style={styles.grid}>
         {V_OPTIONS.map((v) => {
-          const on = chosen !== null && v >= chosen.min && v <= chosen.max;
+          const on = picked !== null && v >= picked.min && v <= picked.max;
           return (
-            <Pressable key={v} style={[styles.cell, on && styles.cellOn]} onPress={() => (confirmLabel ? pick(v) : onSubmit(v, v))}>
+            <Pressable key={v} style={[styles.cell, on && styles.cellOn]} onPress={() => pick(v)}>
               <Text style={[styles.cellText, on && styles.cellTextOn]}>{formatV(v)}</Text>
             </Pressable>
           );
         })}
       </View>
-      {confirmLabel && <Text style={styles.hint}>바로 위 등급을 한 번 더 누르면 두 단계 범위로 돼요</Text>}
-      {confirmLabel && (
-        <Pressable style={[styles.primary, picked === null && styles.disabled]} disabled={picked === null} onPress={() => picked !== null && onSubmit(picked.min, picked.max)}>
-          <Text style={styles.primaryText}>{picked === null ? '등급을 골라 주세요' : `${formatRange(picked.min, picked.max)} · ${confirmLabel}`}</Text>
-        </Pressable>
-      )}
-      {mine && !confirmLabel && (
+      <Text style={styles.hint}>바로 위 등급을 한 번 더 누르면 두 단계 범위로 돼요</Text>
+      <Pressable style={[styles.primary, picked === null && styles.disabled]} disabled={picked === null} onPress={() => picked !== null && onSubmit(picked.min, picked.max)}>
+        <Text style={styles.primaryText}>{picked === null ? '등급을 골라 주세요' : `${formatRange(picked.min, picked.max)} · ${confirmLabel ?? '투표하기'}`}</Text>
+      </Pressable>
+      {mine && (
         <Pressable onPress={onRemove} style={styles.textButton}>
           <Text style={styles.textButtonLabel}>내 투표 취소</Text>
         </Pressable>
@@ -317,7 +322,11 @@ const styles = StyleSheet.create({
   source: { fontSize: 12, color: '#999' },
   empty: { color: '#999', fontSize: 13 },
   emptyBox: { gap: 8, alignItems: 'flex-start' },
-  board: { gap: 4, paddingVertical: 8 },
+  boardWrap: { flexDirection: 'row', gap: 8, paddingVertical: 8 },
+  rail: { width: 10, alignItems: 'center', gap: 4 },
+  railArrow: { fontSize: 10, color: '#111', lineHeight: 12, marginBottom: -2 },
+  railStep: { flex: 1, width: 4, borderRadius: 2, backgroundColor: '#111' },
+  board: { flex: 1, gap: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 6, borderWidth: 2, borderColor: 'transparent', paddingRight: 6 },
   rowVoted: { borderColor: RED },
   bar: { width: 120, height: 26, borderRadius: 3, justifyContent: 'center', paddingHorizontal: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },

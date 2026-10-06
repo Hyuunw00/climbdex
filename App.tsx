@@ -21,12 +21,13 @@ import { loadSettings, saveSettings, type Settings } from './src/settings';
 import VideoListScreen from './src/screens/VideoListScreen';
 import type { Session } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
-import { signOut } from './src/auth/auth';
+import { ensureSession, retryMerge, signOut } from './src/auth/auth';
 import { supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
 import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, dayKey, visitedToday } from './src/store/dex';
 import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
+import { pushVideoSummary, resolveGyms } from './src/store/sends';
 import { dismissToday, dismissedToday } from './src/todayVideos';
 
 const store = new File(Paths.document, 'videos.json');
@@ -76,6 +77,7 @@ export default function App() {
   const [dex, setDex] = useState<DexState>(EMPTY_DEX);
   const [dexReady, setDexReady] = useState(false);
   const [gym, setGym] = useState<Gym | null>(null);
+  const [gymDay, setGymDay] = useState<string | null>(null);
   const [dexView, setDexView] = useState<DexView>('home');
   const [historyMonth, setHistoryMonth] = useState(() => ({ year: new Date().getFullYear(), month: new Date().getMonth() }));
   const [historyDay, setHistoryDay] = useState(() => dayKey(new Date()));
@@ -148,7 +150,10 @@ export default function App() {
     ClimbVideo.cleanupOriginals?.(videos.map((v) => v.uri).filter((u) => u.startsWith('ph://')));
   }, []);
 
-  const userId = session?.user.id ?? null;
+  const ownerId = session?.user.id ?? null;
+  const userId = session && !session.user.is_anonymous ? session.user.id : null;
+  const latest = useRef({ ownerId, dex });
+  latest.current = { ownerId, dex };
 
   const refreshDex = async () => {
     if (!userId) return;
@@ -160,9 +165,21 @@ export default function App() {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
-    return () => sub.subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      if (!data.session) ensureSession();
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      setSession(next);
+      if (event === 'SIGNED_OUT') ensureSession();
+    });
+    const active = AppState.addEventListener('change', (state) => {
+      if (state === 'active') ensureSession();
+    });
+    return () => {
+      sub.subscription.unsubscribe();
+      active.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -213,6 +230,10 @@ export default function App() {
     return () => {
       cancelled = true;
     };
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) retryMerge();
   }, [userId]);
 
   useEffect(() => {
@@ -272,10 +293,12 @@ export default function App() {
           console.log('thumbnail error', video.fileName, String(e));
         }
       }
+      let meta: Partial<PickedVideo> = {};
       if (video.assetId && (!video.createdAt || video.location === undefined)) {
         try {
           const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
-          patch(video.uri, { createdAt: video.createdAt ?? info.creationTime, location: info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null });
+          meta = { createdAt: video.createdAt ?? info.creationTime, location: info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null };
+          patch(video.uri, meta);
         } catch {}
       }
       let segments: PickedVideo['segments'] = [];
@@ -314,6 +337,13 @@ export default function App() {
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
       if (candidates.length > 0) console.log('detect low', video.fileName, JSON.stringify(candidates));
       patch(video.uri, { segments, handheld, candidates, tracks });
+      if (!latest.current.ownerId) await ensureSession();
+      const uid = latest.current.ownerId ?? (await supabase.auth.getSession()).data.session?.user.id;
+      if (uid) {
+        const done: PickedVideo = { ...video, ...meta, segments, candidates, handheld };
+        const gyms = resolveGyms(done, latest.current.dex);
+        pushVideoSummary(uid, done, gyms.length === 1 ? gyms[0] : null, Date.now() - startedAt).catch((e) => console.log('video summary error', String(e)));
+      }
       if (segments.length > 0) {
         try {
           const [thumbnail] = await ClimbVideo.thumbnails(video.uri, [(segments[0].start + segments[0].end) / 2], 240);
@@ -484,7 +514,8 @@ export default function App() {
           onBack={() => setEditing(null)}
           onNavigate={(delta) => setEditing(Math.max(0, Math.min(videos.length - 1, editing + delta)))}
           onUpdate={(changes) => patch(videos[editing].uri, changes)}
-          userId={userId}
+          userId={ownerId}
+          member={!!userId}
           dex={dex}
         />
       ) : (
@@ -505,7 +536,7 @@ export default function App() {
           }}
           onOpen={setEditing}
           here={hereBanner ? { gymName: hereBanner[0].gym.name, count: hereBanner.length } : null}
-          onHere={() => (session ? hereBanner && checkIn(hereBanner, false) : setAuthPrompt(true))}
+          onHere={() => (userId ? hereBanner && checkIn(hereBanner, false) : setAuthPrompt(true))}
           onHereDismiss={() => {
             if (hereBanner) dismissToday(...hereBanner.map((c) => `checkin:${c.gym.id}`));
             setHere([]);
@@ -513,18 +544,24 @@ export default function App() {
         />
       );
   } else {
-    const guest = !session;
+    const guest = !userId;
     const needLogin = () => setAuthPrompt(true);
     screen = gym ? (
       <GymScreen
+        key={`${gym.id}-${gymDay ?? ''}`}
         gym={gym}
+        day={gymDay}
         dex={dex}
         videos={videos}
-        onBack={() => setGym(null)}
+        onBack={() => {
+          setGym(null);
+          setGymDay(null);
+        }}
         onCheckIn={guest ? needLogin : checkIn}
         onRemoveVisit={removeVisitEverywhere}
         onPhoto={guest ? needLogin : setGymPhoto}
         onShowCard={guest ? needLogin : showCard}
+        ownerId={ownerId}
         onNeedAuth={needLogin}
         userId={userId}
         onRefresh={refreshDex}
@@ -533,7 +570,10 @@ export default function App() {
     ) : dexView === 'all' ? (
       <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} />
     ) : dexView === 'history' ? (
-      <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} userId={userId} month={historyMonth} onMonth={setHistoryMonth} selected={historyDay} onSelect={setHistoryDay} />
+      <HistoryScreen dex={dex} onOpenGym={(g, day) => {
+        setGymDay(day ?? null);
+        setGym(g);
+      }} onBack={() => setDexView('home')} onRefresh={refreshDex} userId={userId} month={historyMonth} onMonth={setHistoryMonth} selected={historyDay} onSelect={setHistoryDay} />
     ) : (
       <DexScreen
         dex={dex}
@@ -543,7 +583,7 @@ export default function App() {
         onOpenHistory={guest ? needLogin : () => setDexView('history')}
         onRefresh={refreshDex}
         onAccount={guest ? needLogin : accountMenu}
-        account={session ? { name: String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? ''), email: session.user.email ?? '' } : null}
+        account={userId && session ? { name: String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? ''), email: session.user.email ?? '' } : null}
       />
     );
   }
@@ -574,7 +614,7 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
-    {authPrompt && !session && (
+    {authPrompt && !userId && (
       <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAuthPrompt(false)}>
         <AuthScreen onClose={() => setAuthPrompt(false)} />
       </Modal>

@@ -1,6 +1,6 @@
 import type { DetectedSegment } from '../modules/climb-video';
 
-export type Clip = { id?: string; start: number; end: number; low?: boolean; saved?: boolean; gymId?: string; tape?: string; sent?: boolean; autoSent?: boolean | null };
+export type Clip = { id?: string; start: number; end: number; low?: boolean; saved?: boolean; gymId?: string; tape?: string; tapeAuto?: boolean; sent?: boolean; autoSent?: boolean | null };
 
 export type PickedVideo = {
   uri: string;

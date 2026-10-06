@@ -21,6 +21,8 @@ type Props = {
   onRemoveVisit: (id: string) => void;
   onPhoto: (gym: Gym, photoUri: string) => void;
   onShowCard: (gym: Gym) => void;
+  day?: string | null;
+  ownerId: string | null;
   onNeedAuth: () => void;
   userId: string | null;
   onRefresh?: () => Promise<void>;
@@ -71,7 +73,7 @@ export function choosePhoto(): Promise<PhotoChoice> {
   });
 }
 
-export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onShowCard, onNeedAuth, userId, onRefresh, guest }: Props) {
+export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onShowCard, day, ownerId, onNeedAuth, userId, onRefresh, guest }: Props) {
   const [tapeRefresh, setTapeRefresh] = useState(0);
   const refreshControl = useRefreshControl(onRefresh && (async () => { setTapeRefresh((n) => n + 1); await onRefresh(); }));
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
@@ -83,9 +85,9 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
   const [sends, setSends] = useState<GymSend[]>([]);
   const savedKey = videos.map((v) => `${v.uri}:${(v.clips ?? []).filter((c) => c.saved).length}`).join('|');
   useEffect(() => {
-    if (!userId) return setSends([]);
+    if (!ownerId) return setSends([]);
     let cancelled = false;
-    fetchGymSends(userId, gym.id)
+    fetchGymSends(ownerId, gym.id)
       .then((rows) => {
         if (!cancelled) setSends(rows);
       })
@@ -93,14 +95,15 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
     return () => {
       cancelled = true;
     };
-  }, [userId, gym.id, savedKey]);
-  const clips = [
+  }, [ownerId, gym.id, savedKey]);
+  const [showAll, setShowAll] = useState(!day);
+  const allClips = [
     ...sends.map((s) => ({
       key: `${s.videoKey}#${s.clipId}`,
       uri: Platform.OS === 'ios' ? `ph://${s.videoKey}` : s.videoKey,
       start: s.start,
       end: s.end,
-      label: s.label as string | undefined,
+      label: s.label ?? undefined,
       sent: s.sent,
       at: s.at as string | number | undefined,
       record: { videoKey: s.videoKey, clipId: s.clipId } as { videoKey: string; clipId: string } | null,
@@ -112,10 +115,11 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         .map((c) => ({ key: `${video.uri}#${c.start}-${c.end}`, uri: video.uri, start: c.start, end: c.end, label: c.tape, sent: c.sent ?? true, at: video.createdAt as string | number | undefined, record: null }));
     }),
   ];
+  const clips = showAll || !day ? allClips : allClips.filter((c) => c.at && dayKey(c.at) === day);
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [missing, setMissing] = useState<Record<string, boolean>>({});
   const [playing, setPlaying] = useState<number | null>(null);
-  const clipTitle = (c: (typeof clips)[number]) => {
+  const clipTitle = (c: (typeof allClips)[number]) => {
     const date = c.at ? new Date(c.at) : null;
     return [c.label, c.sent ? '완등' : '추락', date ? `${date.getMonth() + 1}월 ${date.getDate()}일` : null].filter(Boolean).join(' · ');
   };
@@ -257,17 +261,27 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         ))
       )}
 
-      <Text style={styles.sectionTitle}>이 암장에서 저장한 클립 {clips.length}개</Text>
+      <View style={styles.clipHeader}>
+        <Text style={styles.sectionTitle}>
+          {day && !showAll ? `${Number(day.slice(5, 7))}월 ${Number(day.slice(8))}일 저장한 클립 ${clips.length}개` : `이 암장에서 저장한 클립 ${clips.length}개`}
+        </Text>
+        {day && allClips.length > 0 && (
+          <Pressable onPress={() => setShowAll(!showAll)} hitSlop={8}>
+            <Text style={styles.clipToggle}>{showAll ? '그날만 보기' : `전체 보기 (${allClips.length})`}</Text>
+          </Pressable>
+        )}
+      </View>
       {clips.length === 0 ? (
-        <Text style={styles.empty}>이 암장에서 찍은 영상으로 클립을 저장하면 여기 모여요</Text>
+        <Text style={styles.empty}>{day && !showAll ? '이날 이 암장에서 저장한 클립이 없어요' : '이 암장에서 찍은 영상으로 클립을 저장하면 여기 모여요'}</Text>
       ) : (
         <View style={styles.clips}>
           {clips.map((c, i) => (
             <Pressable key={c.key} style={styles.clip} onPress={() => (missing[c.key] ? Alert.alert('원본 영상이 없어요', '사진 앱에서 원본을 지우면 기록만 남아요') : setPlaying(i))}>
               {thumbs[c.key] ? <Image source={{ uri: thumbs[c.key] }} style={styles.clipImage} /> : null}
               {missing[c.key] ? <Text style={styles.clipMissing}>원본 없음</Text> : null}
-              {c.label ? <Text style={styles.clipLabel}>{c.sent ? c.label : `${c.label} · 추락`}</Text> : null}
+              {c.label || !c.sent ? <Text style={styles.clipLabel}>{[c.label, c.sent ? null : '추락'].filter(Boolean).join(' · ')}</Text> : null}
               <Text style={styles.clipLength}>{Math.round(c.end - c.start)}초</Text>
+              {c.at && (showAll || !day) ? <Text style={styles.clipDate}>{`${new Date(c.at).getMonth() + 1}/${new Date(c.at).getDate()}`}</Text> : null}
             </Pressable>
           ))}
         </View>
@@ -279,9 +293,9 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
           onClose={() => setPlaying(null)}
           onSaved={async (key, start, end) => {
             const record = clips.find((c) => c.key === key)?.record;
-            if (!record || !userId) return;
-            await updateSendRange(userId, record.videoKey, record.clipId, start, end);
-            setSends(await fetchGymSends(userId, gym.id));
+            if (!record || !ownerId) return;
+            await updateSendRange(ownerId, record.videoKey, record.clipId, start, end);
+            setSends(await fetchGymSends(ownerId, gym.id));
           }}
         />
       )}
@@ -309,6 +323,8 @@ const styles = StyleSheet.create({
   primary: { paddingVertical: 14, borderRadius: 12, backgroundColor: RED, alignItems: 'center', marginTop: 8 },
   primaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   sectionTitle: { fontSize: 15, fontWeight: '600', marginTop: 16 },
+  clipHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  clipToggle: { fontSize: 13, color: '#666', fontWeight: '600' },
   empty: { color: '#999', fontSize: 13 },
   visitRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 },
   visit: { fontSize: 14, color: '#333' },
@@ -320,6 +336,7 @@ const styles = StyleSheet.create({
   clip: { width: 90, height: 120, borderRadius: 8, backgroundColor: '#ddd', overflow: 'hidden' },
   clipImage: { width: '100%', height: '100%' },
   clipMissing: { position: 'absolute', top: 50, left: 0, right: 0, textAlign: 'center', color: '#888', fontSize: 11, fontWeight: '600' },
+  clipDate: { position: 'absolute', left: 4, bottom: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
   clipLabel: { position: 'absolute', left: 4, top: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
   clipLength: { position: 'absolute', right: 4, bottom: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
 });

@@ -8,7 +8,7 @@ import { type MySend, fetchMySends } from '../store/sends';
 
 type Props = {
   dex: DexState;
-  onOpenGym: (gym: Gym) => void;
+  onOpenGym: (gym: Gym, day?: string) => void;
   onBack: () => void;
   onRefresh?: () => Promise<void>;
   userId: string | null;
@@ -162,7 +162,7 @@ export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userI
                 gym={v.gym}
                 dex={dex}
                 meta={[`${v.gym.region1} ${v.gym.region2}`, ...(v.clips > 0 ? [`클립 ${v.clips}개 · 완등 ${v.sent}`] : [])].join(' · ')}
-                onPress={() => onOpenGym(v.gym)}
+                onPress={() => onOpenGym(v.gym, selected)}
               />
             ))}
           </View>

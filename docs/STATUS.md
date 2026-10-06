@@ -43,11 +43,13 @@
 - iOS Release 빌드가 Metro 없이 폰에서 켜지는 것 확인(사용자). 안드로이드 테스터 APK 전달해 실기기 테스트 시작
 - Google 콘솔 테스트 사용자에 theo@supermembers.co.kr 추가(총 3명). 콘솔 '사용자 추가' 다이얼로그는 저장을 눌러도 안 닫힐 때가 있어 목록 카운트가 바뀌는지 보고 떠날 것
 - **안드로이드 하단 탭이 시스템 내비게이션 바와 겹치던 문제 수정**. SDK 54는 안드로이드 edge-to-edge가 기본인데 RN 기본 `SafeAreaView`는 iOS에서만 동작. `react-native-safe-area-context`(~5.6.0) 설치, App을 `SafeAreaProvider`+그쪽 `SafeAreaView`로 감싸고 안드로이드 전용 상태바 paddingTop·탭 paddingBottom 8 임시 처리 제거. 에뮬레이터 Medium_Phone(안드로이드 16)에서 제스처·3버튼 모두 확인. **네이티브 추가라 양쪽 재빌드 필요** — 아이폰 디버그 빌드, 에뮬레이터 디버그 빌드, 테스터 APK(바탕화면, 10-02 09:32) 전부 갱신됨. 미커밋
+- **Play 콘솔 내부 테스트 준비**(사용자에게 개발자 계정 있음). 업로드 키스토어 `~/.climbdex/climbdex-upload.keystore`(alias `climbdex`, SHA1 98:2F:D4:A3:…:91:0A), 비밀번호는 `~/.gradle/gradle.properties`의 `CLIMBDEX_UPLOAD_*` 네 항목. `android/app/build.gradle`에 `signingConfigs.release` 추가하고 release 빌드타입이 그걸 쓰게 함. `./gradlew bundleRelease` → `/Users/kimhyunwoo/Desktop/climbdex-1.0.0-1.aab`(112MB, 서명 확인). app.json에 `android.versionCode: 1`. 콘솔 업로드는 사용자가 직접
 - 안드로이드 실기기는 USB에서 안 잡힘(맥 USB 트리에 아예 없음, 폰에서 '파일 전송' 선택 불가 → 충전 전용 케이블). 당분간 안드로이드는 에뮬레이터, 실기기는 iOS로만
 
 ## 다음에 할 일
 - 체크인 배너 실기기 확인: 다음 암장 갈 때 체크인 → 영상 찍고 → 영상 탭 배너 수·추가·사라짐 확인(사용자 결정)
 - 새 아이콘 반영 빌드(iOS 홈 화면·잠금 화면 라이브 액티비티 확인)
+- Play 콘솔 개발자 계정 인증 완료 → 앱 만들고 내부 테스트 트랙에 AAB 업로드, 테스터 이메일 등록. 테스터는 기존 디버그 키 APK를 지우고 스토어에서 재설치
 - 테스터 피드백 받기: 영상 검출 실패 영상은 `/Users/kimhyunwoo/Desktop/클라이밍/`에 모아 exp-01 표에 추가
 - 트림 화면 "처음부터" 버튼(시작을 0초로)
 - Apple Developer Program 가입 → Apple 로그인 복구, TestFlight
@@ -60,6 +62,10 @@
 - 출시 준비: 앱 아이콘·이름, 첫 실행 안내, 권한 거부 안내
 
 ## 막힌 것 / 함정 (2026-10-02)
+- **릴리스 서명은 `android/app/build.gradle`에 직접 넣었고 android/는 gitignore**. `npx expo prebuild --clean` 하면 날아가므로 그 뒤엔 signingConfigs에 release 블록(storeFile file(CLIMBDEX_UPLOAD_STORE_FILE) 등 네 줄)과 `release { signingConfig signingConfigs.release }`를 다시 넣을 것. config plugin으로 자동화하려 했으나 이번 세션 권한 분류기가 파일 생성을 막음
+- **Play 업로드마다 versionCode 증가 필요**. app.json `android.versionCode`가 원본이지만 android/에 반영되는 건 prebuild 때뿐이라 prebuild 없이 빌드하면 `android/app/build.gradle`의 versionCode도 손으로 같이 올릴 것
+- 키스토어는 레포 밖 `~/.climbdex/`에만 있음. **다른 기기에서 AAB를 만들려면 키스토어 파일과 `~/.gradle/gradle.properties`의 CLIMBDEX_UPLOAD_* 네 줄을 옮겨야 함.** 잃어버리면 Play App Signing의 업로드 키 재설정 절차 필요
+- 바탕화면 APK(10-02 09:32)는 아직 디버그 키 서명. 이후 `assembleRelease`로 만드는 APK는 업로드 키 서명이라 디버그 키 APK 위에 덮어쓰기 설치가 안 됨(지우고 설치)
 - **node_modules 재설치 뒤엔 Metro도 다시 띄울 것**. 전날 켜 둔 Metro가 재설치로 지워졌다 다시 생긴 `@expo/vector-icons` 폰트를 못 찾아 "Unable to resolve ./vendor/react-native-vector-icons/Fonts/AntDesign.ttf"로 번들 실패. 파일은 있고 Metro 파일 감시가 낡은 것. 재시작으로 해결
 - **`expo run:ios --device`가 "Connecting to: 혀누"에서 멈춤**(Release·Debug 모두, 폰 잠금 안 풀려 있어도). 컴파일은 끝난 상태라 `xcrun devicectl device install app --device 00008110-0011056C1428401E <DerivedData>/Build/Products/<Debug|Release>-iphoneos/climbdex.app` 후 `xcrun devicectl device process launch --device … com.climbdex.app`으로 직접 설치·실행
 - 폰이 Metro 서버 목록에서 맥을 못 찾으면 `--payload-url "exp+climbdex://expo-development-client/?url=http%3A%2F%2F192.168.50.64%3A8081"`로 주소를 직접 넘김. 이번엔 이걸로 바로 붙음

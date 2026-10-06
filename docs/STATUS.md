@@ -70,7 +70,7 @@
 ## 다음에 할 일
 - 미커밋 작업물 커밋: `data/grades.json`, `data/gyms.json`, `data/spiri7/`, `docs/research/`, `scripts/spiri7-grades.py`, `scripts/collect-gyms.mjs`, `src/data/gyms.ts`, `src/screens/GymScreen.tsx`, `CLAUDE.md`, `docs/roadmap.md`, `docs/STATUS.md`
 - 암장 페이지 종목 표시 폰에서 확인(Metro만 띄우면 됨)
-- 띠레벨 표 구현 착수(roadmap 3번 2026-10-06 결정): Supabase 테이블(암장별 띠 표, 투표), 암장 페이지 띠 난이도 섹션, 영상 저장 시 암장 확정(영상 위치 → 체크인) + 띠 한 탭, 완등 자동 판정
+- 띠레벨 표 구현 착수(roadmap 3번 2026-10-06 결정): Supabase 테이블(암장별 띠 표, 투표, **신고**), 암장 페이지 띠 난이도 섹션 + "틀렸나요?" 신고 한 줄, 영상 저장 시 암장 확정(영상 위치 → 체크인) + 띠 한 탭, 완등 자동 판정. 시드는 최신 여부 미검증이라 신고로 고쳐 나감(roadmap 3번 저녁 항목)
 - 체크인 배너 실기기 확인: 다음 암장 갈 때 체크인 → 영상 찍고 → 영상 탭 배너 수·추가·사라짐 확인(사용자 결정)
 - 새 아이콘 반영 빌드(iOS 홈 화면·잠금 화면 라이브 액티비티 확인)
 - Play 콘솔 개발자 계정 인증 완료 → 앱 만들고 내부 테스트 트랙에 AAB 업로드, 테스터 이메일 등록. 테스터는 기존 디버그 키 APK를 지우고 스토어에서 재설치

@@ -47,7 +47,7 @@ for gid,sids in rev.items():
             if s!=best: res[s]=None
 matched={sid:gid for sid,gid in res.items() if gid}
 
-COLOR={'흰색':'#f5f5f5','노랑':'#f4d03f','주황':'#f39c12','초록':'#27ae60','연두':'#8bc34a','파랑':'#2e86de','하늘':'#5dade2','남색':'#1f3a93','빨강':'#e74c3c','핑크':'#ff6fb5','보라':'#8e44ad','갈색':'#8d6e63','회색':'#95a5a6','검정':'#111111','자주':'#8e244d'}
+COLOR={'흰색':'#f5f5f5','노랑':'#f4d03f','주황':'#f39c12','초록':'#27ae60','연두':'#8bc34a','파랑':'#2e86de','하늘':'#5dade2','남색':'#1f3a93','빨강':'#d62828','핑크':'#ff6fb5','보라':'#8e44ad','갈색':'#8d6e63','회색':'#95a5a6','검정':'#111111','자주':'#8e244d'}
 OURS={-3:-1,-2:-0.5,-1:0,0:0.5}
 ours=lambda L: OURS.get(L, L if L>0 else max(-2, L+2))
 DEFAULT20=['Vb','V0-','V0','V0+']+[f'V{i}' for i in range(1,17)]

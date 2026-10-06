@@ -447,19 +447,27 @@ export default function App() {
         text: '회원 탈퇴',
         style: 'destructive',
         onPress: () =>
-          Alert.alert('정말 탈퇴할까요?', '도감 기록과 사진이 모두 지워지고 되돌릴 수 없어요', [
+          Alert.alert('정말 탈퇴할까요?', '도감 기록, 사진, 등반 기록이 모두 지워져요', [
             { text: '취소', style: 'cancel' },
             {
-              text: '탈퇴',
+              text: '계속',
               style: 'destructive',
-              onPress: async () => {
-                if (!userId) return;
-                try {
-                  await deleteAccount(userId);
-                } catch (e) {
-                  Alert.alert('탈퇴 실패', String(e));
-                }
-              },
+              onPress: () =>
+                Alert.alert('마지막으로 확인할게요', '탈퇴하면 되돌릴 수 없어요. 정말 탈퇴할까요?', [
+                  { text: '취소', style: 'cancel' },
+                  {
+                    text: '탈퇴하기',
+                    style: 'destructive',
+                    onPress: async () => {
+                      if (!userId) return;
+                      try {
+                        await deleteAccount(userId);
+                      } catch (e) {
+                        Alert.alert('탈퇴 실패', String(e));
+                      }
+                    },
+                  },
+                ]),
             },
           ]),
       },

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { type ReactNode, useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RED } from './dex';
 import {
   PALETTE, type Tape, type TapeData, type TapeSummary, V_MAX, V_MIN,
@@ -74,7 +75,7 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
         <Text style={styles.sectionTitle}>난이도 표</Text>
         {data?.set && (
           <Text style={styles.source}>
-            {voteTotal > 0 ? `추정 · 투표 ${voteTotal}` : '추정'}
+            {[data.set.source === 'user' ? '제보 1명' : '추정', voteTotal > 0 ? `투표 ${voteTotal}` : null].filter(Boolean).join(' · ')}
           </Text>
         )}
       </View>
@@ -269,35 +270,68 @@ function ReportSheet({ tapes, onClose, onSubmit }: { tapes: Tape[]; onClose: () 
   );
 }
 
+function Layer({ color, label, step, onPress }: { color: string; label: string; step: number; onPress: () => void }) {
+  const drop = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(drop, { toValue: 1, friction: 5, tension: 140, useNativeDriver: true }).start();
+  }, []);
+  const light = isDark(color);
+  return (
+    <Animated.View
+      style={[
+        styles.layerWrap,
+        { opacity: drop, transform: [{ translateY: drop.interpolate({ inputRange: [0, 1], outputRange: [-80, 0] }) }] },
+      ]}
+    >
+      <Pressable onPress={onPress} style={[styles.layer, { backgroundColor: color }]}>
+        <Text style={[styles.layerStep, light && styles.barLabelLight]}>{step}</Text>
+        <Text style={[styles.layerLabel, light && styles.barLabelLight]}>{label}</Text>
+        <Ionicons name="close" size={16} color={light ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.35)'} />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export function OrderSheet({ onClose, onSubmit, skipLabel, onSkip }: { onClose: () => void; onSubmit: (tapes: Tape[]) => void; skipLabel?: string; onSkip?: () => void }) {
   const [picked, setPicked] = useState<{ label: string; color: string }[]>([]);
-  const toggle = (p: { label: string; color: string }) =>
-    setPicked(picked.some((x) => x.label === p.label) ? picked.filter((x) => x.label !== p.label) : [...picked, p]);
+  const add = (p: { label: string; color: string }) => {
+    setPicked((cur) => (cur.some((x) => x.label === p.label) ? cur : [...cur, p]));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  };
+  const remove = (label: string) => setPicked((cur) => cur.filter((x) => x.label !== label));
+  const left = PALETTE.filter((p) => !picked.some((x) => x.label === p.label));
   return (
     <Sheet title="난이도 순서 알려 주세요" onClose={onClose}>
-      <Text style={styles.hint}>가장 쉬운 난이도부터 차례로 눌러 주세요. 다시 누르면 빠져요</Text>
-      <View style={styles.palette}>
-        {PALETTE.map((p) => {
-          const order = picked.findIndex((x) => x.label === p.label);
-          return (
-            <Pressable key={p.label} style={[styles.paletteItem, order >= 0 && styles.paletteOn]} onPress={() => toggle(p)}>
-              <Swatch color={p.color} size={20} />
-              <Text style={styles.paletteText}>{p.label}</Text>
-              {order >= 0 && <Text style={styles.paletteOrder}>{order + 1}</Text>}
-            </Pressable>
-          );
-        })}
+      <Text style={styles.hint}>이 암장에 있는 난이도만 쌓아 주세요</Text>
+      <View style={styles.towerBox}>
+        <Text style={styles.towerTop}>▲ 어려움</Text>
+        <ScrollView style={styles.tower} contentContainerStyle={styles.towerContent}>
+          {picked.length === 0 ? (
+            <View style={styles.slot}>
+              <Text style={styles.slotText}>가장 쉬운 난이도부터 눌러서 쌓아 주세요</Text>
+            </View>
+          ) : (
+            [...picked].reverse().map((p, k) => <Layer key={p.label} color={p.color} label={p.label} step={picked.length - k} onPress={() => remove(p.label)} />)
+          )}
+        </ScrollView>
+        <View style={styles.ground}>
+          <Text style={styles.groundText}>쉬움</Text>
+        </View>
       </View>
-      <Text style={styles.label}>쉬운 순서 →</Text>
-      <View style={styles.orderRow}>
-        {picked.length === 0 ? <Text style={styles.empty}>아직 고른 난이도가 없어요</Text> : picked.map((p) => <Swatch key={p.label} color={p.color} size={24} />)}
+      <View style={styles.paletteGrid}>
+        {left.map((p) => (
+          <Pressable key={p.label} style={styles.paletteCell} onPress={() => add(p)}>
+            <View style={[styles.paletteDot, { backgroundColor: p.color }]} />
+            <Text style={styles.paletteText}>{p.label}</Text>
+          </Pressable>
+        ))}
       </View>
       <Pressable
         style={[styles.primary, picked.length < 2 && styles.disabled]}
         disabled={picked.length < 2}
         onPress={() => onSubmit(picked.map((p) => ({ label: p.label, color: p.color, v: null, vMin: null, vMax: null })))}
       >
-        <Text style={styles.primaryText}>{picked.length}단계로 저장</Text>
+        <Text style={styles.primaryText}>{picked.length < 2 ? '2단계 이상 쌓아 주세요' : `${picked.length}단계로 저장`}</Text>
       </Pressable>
       {skipLabel && (
         <Pressable onPress={onSkip ?? onClose} style={styles.textButton}>
@@ -360,10 +394,23 @@ const styles = StyleSheet.create({
   segmentTextOn: { color: '#fff', fontWeight: '600' },
   label: { fontSize: 13, color: '#666', marginTop: 4 },
   palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  towerBox: { flex: 1, backgroundColor: '#f6f6f8', borderRadius: 16, paddingTop: 10, overflow: 'hidden' },
+  towerTop: { fontSize: 12, fontWeight: '700', color: '#999', textAlign: 'center' },
+  tower: { flex: 1 },
+  towerContent: { flexGrow: 1, justifyContent: 'flex-end', gap: 4, paddingHorizontal: 16, paddingVertical: 8 },
+  layerWrap: { alignSelf: 'stretch' },
+  layer: { height: 40, borderRadius: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
+  layerStep: { fontSize: 13, fontWeight: '800', color: '#111', width: 18 },
+  layerLabel: { flex: 1, fontSize: 15, fontWeight: '700', color: '#111' },
+  slot: { width: '100%', height: 40, borderRadius: 8, borderWidth: 2, borderStyle: 'dashed', borderColor: '#ccc', alignItems: 'center', justifyContent: 'center' },
+  slotText: { fontSize: 13, color: '#999' },
+  ground: { height: 26, backgroundColor: '#e3e4e8', alignItems: 'center', justifyContent: 'center' },
+  groundText: { fontSize: 12, fontWeight: '700', color: '#888' },
+  paletteGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12, paddingVertical: 4 },
+  paletteCell: { width: '20%', alignItems: 'center', gap: 4 },
+  paletteDot: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' },
   paletteItem: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#f4f4f6', borderWidth: 2, borderColor: 'transparent' },
   paletteOn: { borderColor: RED },
   paletteText: { fontSize: 13 },
-  paletteOrder: { fontSize: 12, fontWeight: '700', color: RED },
   input: { minHeight: 80, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 10, fontSize: 15, textAlignVertical: 'top' },
-  orderRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, minHeight: 36, alignItems: 'center' },
 });

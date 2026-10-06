@@ -21,7 +21,7 @@ export const PALETTE: { label: string; color: string }[] = [
   { label: '남색', color: '#1f3a93' },
   { label: '보라', color: '#8e44ad' },
   { label: '핑크', color: '#ff6fb5' },
-  { label: '빨강', color: '#e74c3c' },
+  { label: '빨강', color: '#d62828' },
   { label: '자주', color: '#8e244d' },
   { label: '갈색', color: '#8d6e63' },
   { label: '회색', color: '#95a5a6' },

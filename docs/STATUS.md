@@ -25,6 +25,12 @@
 - 트림 화면: 난이도 기본 선택(같은 영상 앞 클립 → 그 암장에서 이번 실행 중 마지막으로 고른 것), 문구 '완등 기록'→'등반 기록', '낙하'→'추락', 따라가기 설명 한 줄로
 - **난이도 안 골라도 저장**(사용자 결정: 첫 사용자가 '난이도를 골라 주세요'에 막히지 않게, 익명 계정 도입으로 게스트도 기록 구역이 뜨게 된 뒤). 기록 켜짐 + 난이도 없음이면 `sends.label` 빈 채로 기록(암장·완등/추락·구간은 남음), 순서 입력·투표 시트는 난이도를 고른 경우만. '기록 안 함'은 여전히 아무것도 안 보냄. 암장 후보가 여럿인데 안 고른 경우는 그대로 막음. `sends.label` nullable 적용 완료
 - 리뷰 반영(익명 로그인): 익명 가입은 한 번에 하나만(`ensureSession`, 이미 세션 있으면 안 함), 앱이 앞으로 올 때·검출 끝났는데 세션 없을 때 다시 시도. 기존 계정 병합 토큰 생성 실패 시 로그인 전에 중단, 토큰은 SecureStore에 두고 병합 성공할 때까지 정식 로그인 때마다 재시도(`retryMerge`), 병합 뒤 익명 auth.users 삭제. `checked_in()`의 등반 기록 경로는 `basis = 'location'`만 인정(visit 기반은 이미 방문 기록이 있으니 같은 결과, 아무 암장 sends를 직접 넣어 투표 자격 얻는 것 방지 — 완전 차단은 아님). 자동으로 채운 난이도(`tapeAuto`)로는 투표·순서 시트를 띄우지 않음
+- 시작 여유 0초인데 이른 시작(IMG_6644): 설정은 정상 적용, 원인은 검출 시작점(E 규칙이 카메라 앞 발목까지 바닥으로 씀). 실험 둘 다 부작용으로 폐기. '여기서 시작/끝' 버튼도 검토했으나 화면만 복잡해져서 **현 상태 유지**(핸들로 조절, 사용자 결정). 상세 exp-01 10-06
+- 난이도 순서 입력 시트를 '탑 쌓기'로: 색을 누르면 위에서 떨어지며 아래(쉬움)부터 쌓임(스프링·가벼운 햅틱), 층 누르면 빠짐, 남은 색만 큰 동그라미, 층은 난이도 표와 같은 너비(피라미드는 사용자가 기각)
+- 사용자가 넣은 난이도 표엔 "제보 1명" 표시(조사 표는 "추정"). 처음 입력한 사람 순서를 그대로 쓰는 건 유지, 사람이 생기면 사용자별 순서 저장 → 가장 많이 겹치는 순서로 표 결정(나중, 사용자 결정)
+- 빨강 색을 `#e74c3c`(당근색 느낌) → `#d62828`로: 팔레트·`spiri7-grades.py`·`grades.json`·`seed-tapes.sql`·DB `gym_tapes` 237행 갱신(사용자 피드백)
+- 회원 탈퇴 2단계 확인("계속" → "마지막으로 확인할게요" → "탈퇴하기"), 안내에 등반 기록 포함. DB 확인: auth.users 삭제 시 visits·gym_photos·sends·video_summaries·tape_votes·tape_reports·anon_merge cascade, gym_tapes는 updated_by만 null
+- `SKIP_DISTANCE_CHECK` false로 되돌림
 - 결정: 완등 기록 날짜는 **촬영일**(`sends.at` = 영상 createdAt, 저장 시각은 `created_at`). 옛 영상을 오늘 저장해도 그날 기록. 성장·랭킹 기간 계산이 실제 등반일이어야 해서(사용자 확인)
 - **앱 문구 '띠' → '난이도'**(사용자 결정: '띠'는 어감이 안 붙고 '색'은 홀드 색과 헷갈림). 암장 페이지 섹션 "난이도 표", 투표 "파랑 난이도는 몇 V?", 순서 입력 "난이도 순서 알려 주세요", 트림 화면 라벨 "난이도". CLAUDE.md 원칙에 규칙 추가. 코드 이름은 그대로
 
@@ -60,6 +66,7 @@
 - `npx expo prebuild`(clean 없이) → pod install → 아이폰 디버그 빌드 설치, Metro 연결 확인. 디스크 정리로 DerivedData·옛 DeviceSupport·npm/CocoaPods 캐시 35GB 비움
 
 ## 막힌 것 / 함정 (2026-10-06)
+- **Orca에서 돌리면 `~/Desktop/클라이밍영상` 등이 'Operation not permitted'**: macOS TCC(커널 로그 `System Policy: … deny file-read-data`). 터미널이 Orca Helper 프로세스라 설정의 Orca 데스크탑 권한이 안 먹고, 폴더 선택 창으로 연 폴더(`com.apple.macl` 속성)만 읽힘. `/add-dir`·샌드박스 해제로는 안 풀림. Orca 왼쪽 프로젝트 추가(폴더 아이콘)로 그 폴더를 한 번 고르면 해결(10-06 `클라이밍영상` 처리함)
 - **Xcode 26.3 + 런타임**: 실기기 빌드도 iOS 플랫폼 런타임이 있어야 함("iOS 26.2 is not installed"). `xcodebuild -downloadPlatform iOS`로 받은 26.3.1은 actool이 안 받아 빌드 실패("No simulator runtime version from [...] available to use with iphonesimulator SDK 23C57"). **Xcode 앱을 열어 첫 실행 구성 요소 창(또는 Settings → Components)에서 iOS 26.2를 받으면 됨**. 그 뒤 같은 26.3.1 이름으로 등록되지만 빌드 통과
 - **prebuild 뒤 iOS 빌드 전 두 가지**: (1) `ios/climbdex/climbdex.entitlements`에서 `aps-environment` 삭제(expo-notifications가 넣는 푸시 권한, 개인 팀 불가, 노트북 10-03 기록과 동일), (2) 프로파일 없으면 expo CLI가 자동 생성 옵션을 안 넘기므로 `ios/`에서 `xcodebuild -workspace climbdex.xcworkspace -scheme climbdex -configuration Debug -destination 'platform=iOS,id=00008110-0011056C1428401E' -allowProvisioningUpdates -allowProvisioningDeviceRegistration build` 한 번. 설치는 `xcrun devicectl device install app --device … <DerivedData>/Build/Products/Debug-iphoneos/climbdex.app`
 - 안드로이드 `android/app/build.gradle`의 릴리스 서명 블록은 clean 없는 prebuild에선 유지됨(확인)
@@ -113,9 +120,9 @@
 - 안드로이드 실기기는 USB에서 안 잡힘(맥 USB 트리에 아예 없음, 폰에서 '파일 전송' 선택 불가 → 충전 전용 케이블). 당분간 안드로이드는 에뮬레이터, 실기기는 iOS로만
 
 ## 다음에 할 일
+- **출시 전 점검(10-07 정리)**: (1) 폰 미확인 — 익명→구글 연결·기존 계정 병합, 범위 투표, 재생 창 트림 저장, 탑 쌓기 순서 입력, 탈퇴 2단계 확인 (2) 안드로이드 이번 주 네이티브 변경 전부 미컴파일 (3) 오류 수집 없음 → Sentry 등 PostHog와 같이 출시 직전 (4) 등반 기록·영상 요약 전송 실패 재시도 없음(방문만 대기열 있음) (5) 익명 가입 CAPTCHA 없음, sends 직접 insert로 투표 자격(위치 기반 주장) 얻는 길 남음 (6) 개인정보 처리방침
 - 익명 로그인 폰 확인: 대시보드에서 익명 허용 켬 → 앱 로그아웃 상태로 클립 저장 → `sends`에 익명 user_id 행 → 구글 로그인 → 같은 user_id가 정식으로 바뀌는지(이미 가입한 구글 계정이면 행이 기존 계정으로 옮겨지는지)
 - 출시 직전: PostHog 붙이기(사용자 계정·프로젝트 키 → `.env`, 네이티브 재빌드 필요할 수 있음), 이벤트 후보: 앱 실행·영상 고름(개수)·검출 완료·트림 열기·클립 저장(따라가기·기록 여부)·기록 끔·투표·순서 입력·도감 등록
-- `src/components/dex.tsx` `SKIP_DISTANCE_CHECK` false로 되돌리기(10-06 테스트용으로 켬)
 - 클립 저장 후 `sends`에 clip_id·auto_sent·v_min 들어가는지, 같은 클립 구간 고쳐 다시 저장하면 행이 안 늘고 갱신되는지
 - 개인정보 처리방침 초안 → 공개 URL(Notion 공개 페이지나 GitHub Pages)
 - 근처 암장 "도감에 등록" 배너(영상 탭) 실기기 확인: 다음 암장 갈 때

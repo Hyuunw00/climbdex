@@ -49,7 +49,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.5,
      "vMin": 5,
      "vMax": 6
@@ -81,7 +81,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -148,7 +148,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.5,
      "vMin": 1,
      "vMax": 2
@@ -173,7 +173,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -226,7 +226,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -321,7 +321,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -381,7 +381,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0,
      "vMin": 0,
      "vMax": 1
@@ -433,7 +433,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.5,
      "vMin": 0,
      "vMax": 1
@@ -472,7 +472,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -595,7 +595,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -613,7 +613,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -687,7 +687,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -761,7 +761,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -842,7 +842,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -923,7 +923,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -997,7 +997,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1085,7 +1085,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -1166,7 +1166,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1240,7 +1240,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -1265,7 +1265,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1332,7 +1332,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1413,7 +1413,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.5,
      "vMin": 0,
      "vMax": 1
@@ -1508,7 +1508,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 6.0,
      "vMin": 6,
      "vMax": 6
@@ -1533,7 +1533,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1607,7 +1607,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1681,7 +1681,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -1748,7 +1748,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -2324,7 +2324,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2412,7 +2412,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2500,7 +2500,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2588,7 +2588,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2676,7 +2676,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2764,7 +2764,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2852,7 +2852,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -2940,7 +2940,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -3028,7 +3028,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -3116,7 +3116,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -3204,7 +3204,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -3257,7 +3257,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -3338,7 +3338,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -3433,7 +3433,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.5,
      "vMin": 0,
      "vMax": 1
@@ -3623,7 +3623,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 4.0,
      "vMin": 4,
      "vMax": 4
@@ -3662,7 +3662,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -3743,7 +3743,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -3838,7 +3838,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -3912,7 +3912,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -3958,7 +3958,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -4025,7 +4025,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -2.0,
      "vMin": -2,
      "vMax": -2
@@ -4162,7 +4162,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -4180,7 +4180,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -4398,7 +4398,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 7.5,
      "vMin": 7,
      "vMax": 8
@@ -4472,7 +4472,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 7.5,
      "vMin": 7,
      "vMax": 8
@@ -4510,7 +4510,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -4549,7 +4549,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -4567,7 +4567,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -4662,7 +4662,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -4708,7 +4708,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -4768,7 +4768,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -4877,7 +4877,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -4937,7 +4937,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -4997,7 +4997,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5057,7 +5057,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5117,7 +5117,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5177,7 +5177,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5237,7 +5237,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5297,7 +5297,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5357,7 +5357,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5417,7 +5417,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5477,7 +5477,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5537,7 +5537,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5597,7 +5597,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5657,7 +5657,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5717,7 +5717,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5777,7 +5777,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5837,7 +5837,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5897,7 +5897,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -5957,7 +5957,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -6017,7 +6017,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -6077,7 +6077,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -6137,7 +6137,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -6197,7 +6197,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -6229,7 +6229,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -6352,7 +6352,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -6412,7 +6412,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 4.0,
      "vMin": 4,
      "vMax": 4
@@ -6486,7 +6486,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 7.0,
      "vMin": 7,
      "vMax": 7
@@ -6532,7 +6532,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -6557,7 +6557,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -6631,7 +6631,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -6712,7 +6712,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -6786,7 +6786,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -6867,7 +6867,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.25,
      "vMin": 0,
      "vMax": 1
@@ -6927,7 +6927,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -7071,7 +7071,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -7117,7 +7117,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.0,
      "vMin": 5,
      "vMax": 5
@@ -7142,7 +7142,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -7230,7 +7230,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -7276,7 +7276,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -7392,7 +7392,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 6.0,
      "vMin": 6,
      "vMax": 6
@@ -7466,7 +7466,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 6.0,
      "vMin": 6,
      "vMax": 6
@@ -7498,7 +7498,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -7558,7 +7558,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -7632,7 +7632,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -7741,7 +7741,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 6.0,
      "vMin": 6,
      "vMax": 6
@@ -7787,7 +7787,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -7861,7 +7861,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -7921,7 +7921,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 7.0,
      "vMin": 7,
      "vMax": 7
@@ -7946,7 +7946,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8034,7 +8034,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -8073,7 +8073,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8147,7 +8147,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8228,7 +8228,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8309,7 +8309,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8390,7 +8390,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8471,7 +8471,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -8573,7 +8573,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 7.5,
      "vMin": 7,
      "vMax": 8
@@ -8626,7 +8626,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -8707,7 +8707,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -8788,7 +8788,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -9076,7 +9076,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 4.5,
      "vMin": 4,
      "vMax": 5
@@ -9115,7 +9115,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -9217,7 +9217,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -9277,7 +9277,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -9323,7 +9323,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -9464,7 +9464,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -9559,7 +9559,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -9633,7 +9633,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -9735,7 +9735,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -9809,7 +9809,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -9890,7 +9890,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -9936,7 +9936,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -10031,7 +10031,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -10112,7 +10112,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -10158,7 +10158,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -10232,7 +10232,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -10380,7 +10380,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -10447,7 +10447,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -10542,7 +10542,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -10708,7 +10708,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.5,
      "vMin": 2,
      "vMax": 3
@@ -10733,7 +10733,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -10807,7 +10807,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.5,
      "vMin": 0,
      "vMax": 1
@@ -10874,7 +10874,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -10948,7 +10948,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11036,7 +11036,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -11054,7 +11054,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11128,7 +11128,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11223,7 +11223,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -11290,7 +11290,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.0,
      "vMin": 5,
      "vMax": 5
@@ -11364,7 +11364,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -11389,7 +11389,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -11512,7 +11512,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -11530,7 +11530,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -11604,7 +11604,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11692,7 +11692,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11780,7 +11780,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11868,7 +11868,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -11984,7 +11984,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.0,
      "vMin": 5,
      "vMax": 5
@@ -12030,7 +12030,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -12076,7 +12076,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -12143,7 +12143,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -12263,7 +12263,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -12302,7 +12302,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -12376,7 +12376,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.5,
      "vMin": 1,
      "vMax": 2
@@ -12457,7 +12457,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -12524,7 +12524,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 7.0,
      "vMin": 7,
      "vMax": 7
@@ -12549,7 +12549,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -12662,7 +12662,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -12743,7 +12743,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.5,
      "vMin": 2,
      "vMax": 3
@@ -12796,7 +12796,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 6.5,
      "vMin": 6,
      "vMax": 7
@@ -12863,7 +12863,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 6.5,
      "vMin": 6,
      "vMax": 7
@@ -12881,7 +12881,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -12997,7 +12997,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -13071,7 +13071,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -13110,7 +13110,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -13184,7 +13184,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -13251,7 +13251,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -13290,7 +13290,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -13357,7 +13357,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -13452,7 +13452,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.0,
      "vMin": 5,
      "vMax": 5
@@ -13484,7 +13484,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -13558,7 +13558,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -13576,7 +13576,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -13664,7 +13664,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -13731,7 +13731,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -13805,7 +13805,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -13879,7 +13879,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.0,
      "vMin": 1,
      "vMax": 1
@@ -13939,7 +13939,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.25,
      "vMin": 0,
      "vMax": 1
@@ -14006,7 +14006,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -14087,7 +14087,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -14154,7 +14154,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -14270,7 +14270,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 4.0,
      "vMin": 4,
      "vMax": 4
@@ -14323,7 +14323,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5,
      "vMin": 4,
      "vMax": 6
@@ -14382,7 +14382,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -14421,7 +14421,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -14495,7 +14495,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -14576,7 +14576,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -14677,7 +14677,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 4.5,
      "vMin": 4,
      "vMax": 5
@@ -14702,7 +14702,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -14776,7 +14776,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -14968,7 +14968,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -15042,7 +15042,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -15130,7 +15130,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.75,
      "vMin": 0,
      "vMax": 1
@@ -15225,7 +15225,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.0,
      "vMin": 5,
      "vMax": 5
@@ -15250,7 +15250,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -15310,7 +15310,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -15384,7 +15384,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -15444,7 +15444,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -15504,7 +15504,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -15564,7 +15564,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.5,
      "vMin": 0,
      "vMax": 1
@@ -15610,7 +15610,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.5,
      "vMin": 0,
      "vMax": 1
@@ -15670,7 +15670,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -15702,7 +15702,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -15801,7 +15801,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -15903,7 +15903,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.5,
      "vMin": 2,
      "vMax": 3
@@ -15935,7 +15935,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16065,7 +16065,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.5,
      "vMin": 5,
      "vMax": 6
@@ -16090,7 +16090,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16171,7 +16171,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -16280,7 +16280,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.5,
      "vMin": 1,
      "vMax": 2
@@ -16326,7 +16326,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16449,7 +16449,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": null,
      "vMin": null,
      "vMax": null
@@ -16474,7 +16474,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16548,7 +16548,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16622,7 +16622,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16731,7 +16731,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 4.0,
      "vMin": 4,
      "vMax": 4
@@ -16798,7 +16798,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 5.0,
      "vMin": 5,
      "vMax": 5
@@ -16830,7 +16830,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16897,7 +16897,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -16978,7 +16978,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.5,
      "vMin": 3,
      "vMax": 4
@@ -17031,7 +17031,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 2.0,
      "vMin": 2,
      "vMax": 2
@@ -17112,7 +17112,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 1.5,
      "vMin": 1,
      "vMax": 2
@@ -17171,7 +17171,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -17245,7 +17245,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -17354,7 +17354,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 3.0,
      "vMin": 3,
      "vMax": 3
@@ -17379,7 +17379,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -0.5,
      "vMin": -1,
      "vMax": 0
@@ -17446,7 +17446,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -17520,7 +17520,7 @@
     },
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": 0.0,
      "vMin": 0,
      "vMax": 0
@@ -17651,7 +17651,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1
@@ -17725,7 +17725,7 @@
    "tapes": [
     {
      "label": "빨강",
-     "color": "#e74c3c",
+     "color": "#d62828",
      "v": -1.0,
      "vMin": -1,
      "vMax": -1

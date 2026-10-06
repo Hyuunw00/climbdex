@@ -4,7 +4,7 @@
 
 ## 로드맵 (순서 고정)
 1. 영상 자동 컷 — 혼자 써도 완성, 서버 없음, 첫 출시 목표
-2. 암장 도감 — 진행 중. 카카오로 시딩 끝(`data/gyms.json` 529곳, API 재호출 안 함), 위치 체크인, 사진은 사용자가 찍음. 서버 없음
+2. 암장 도감 — 진행 중. 카카오로 시딩 끝(`data/gyms.json` 511곳, API 재호출 안 함), 위치 체크인, 사진은 사용자가 찍음. 서버 없음
 3. 띠레벨 표 — 도감 인증(체크인)된 사람만 투표, 둘 비교 방식, 내부 저장은 V등급 범위. 서버는 여기서 도입
 
 상세는 `docs/roadmap.md`. 다음 단계 기능을 미리 만들지 않는다.
@@ -27,4 +27,5 @@
 - 검출 로직을 바꾼 뒤엔 앱에서 "전체 비우기" 후 다시 골라야 함. 검출 결과가 영상 목록과 함께 저장돼 옛 결과가 남음
 - 시뮬레이터 테스트 영상 넣기: ASCII 경로로 복사 후 `xcrun simctl addmedia <UDID> <file>`
 - 안드로이드: `npx expo run:android` (에뮬레이터 Pixel_7 먼저 띄움). 에뮬레이터에 영상 넣기: `adb push <file> /sdcard/Movies/` 후 `MEDIA_SCANNER_SCAN_FILE` 브로드캐스트. Metro는 `adb reverse tcp:8081 tcp:8081`
+- `gyms.json`을 `collect-gyms.mjs --offline`으로 다시 만들면 `types` 칸이 비므로 바로 `python3 scripts/spiri7-grades.py`를 이어서 돌린다
 - 네이티브 로직은 `scripts/detect.swift`가 원본. iOS 모듈은 그 본문을 복사해 만들고, Android는 `Segmenter.kt`에 같은 규칙을 손으로 옮김. 규칙을 바꾸면 세 군데 같이

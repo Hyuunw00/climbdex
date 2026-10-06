@@ -1,6 +1,15 @@
 # STATUS
 
-## 마지막에 한 일 (2026-10-06, 회사 맥)
+## 마지막에 한 일 (2026-10-06 오후, 회사 맥)
+- **spiri7 띠→V 데이터 병합 완료**: `data/grades.json` 83곳 → **243곳(V 214곳)**. 스크립트 `scripts/spiri7-grades.py`(좌표 300m+이름 유사도 매칭, 재실행 가능). 커뮤니티 시트와 겹친 73곳 교차 검증은 피커스·알레·고고 등 순서 일치, 더클라임은 시트에 핑크만 빠졌던 것. 기록 11건 이상이면 spiri7 우선. 상세는 `docs/research/grades-research.md`
+- spiri7에만 있는 실내 암장 255곳은 카카오 원본에도 없어 **폐점으로 간주**(사용자 결정). 유일한 수집 누락 락트리 분당은 `collect-gyms.mjs` 필터 버그("트리클라이밍" 제외에 "락트리클라이밍"이 걸림)였고, 고쳐서 `--offline` 재실행. 이어서 주차장·빙벽장·키즈·협회·2026년 예정 등 **비암장 19곳을 `NOT_GYM`으로 제외 → gyms.json 511곳**(다른 항목 변화 없음). 손상원 잠실은 같은 주소의 클라임투더문(spiri7 기록이 3배 많고 sid도 나중)으로 대체된 걸로 보고 그쪽 표 사용
+- **종류 칸 `types`** 추가(볼더링·리드·지구력, spiri7 종목 칸 + 이름 규칙, 358곳. 모르는 곳은 빈 배열). `scripts/spiri7-grades.py`가 `gyms.json`에 써 넣으므로 `collect-gyms.mjs --offline` 뒤엔 꼭 이어서 실행. 암장 페이지 헤더에 "서울 강남구 · 실내 · 볼더링 · 지구력"처럼 표시(JS만, 재빌드 불필요, 폰 확인 전)
+- 띠 없이 V 표기를 쓰는 암장(두드림·더클라이밍짐)은 라벨 V 그대로 grades.json에 넣음. Vb~V16 20단계 통째는 spiri7 기본값이라 버림
+- 사용자가 다니는 암장 표 눈 검증은 아직(사용자에게 더클라임·피커스·서울숲·손상원·알레·클라이밍파크 표 보여 줌)
+
+## 이전 (2026-10-06 오전, 회사 맥)
+- **띠레벨 표 방향 재설계**(roadmap 3번 갱신): 경쟁 앱 ClimPick 분석 → SNS·기록 기능은 뺀 채로 암장별 띠색→V 표를 먼저, 완등 기록(영상 자동 판정+띠 색 한 탭, 완등만 서버)은 다음, 랭킹·레이팅은 사람 모인 뒤
+- **전국 암장 띠색→V 조사** → `data/grades.json`(83곳 띠 순서, 72곳 V 추정, 전부 커뮤니티·블로그 출처의 초안). 기록은 `docs/research/grades-research.md`. 몽키즈 23곳과 지방 독립 암장은 못 찾음. spiri7 앱에 같은 표가 있지만 경쟁 서비스 자산이라 사용 여부는 사용자 결정 대기
 - 주말 노트북 커밋(18개) 머지. 충돌은 App.tsx import 한 줄과 STATUS.md 세션 기록뿐. 머지 커밋 `aa85d8b`, 미푸시
 - **회사 맥 Xcode 26 전환**. 노트북 코드가 iOS 26 API(`BGContinuedProcessingTask`)를 써서 Xcode 16.2로는 컴파일 불가. macOS 15.5→15.8.1, `/Applications/Xcode-26.3.app` 추가(16.2 `Xcode.app`은 유지, 회사 앱용). Sequoia에서 되는 마지막 Xcode가 26.3(26.4+는 macOS 26 필요). 전환은 `sudo xcode-select -s /Applications/Xcode-26.3.app`, 회사 앱은 `… -s /Applications/Xcode.app`
 - `npx expo prebuild`(clean 없이) → pod install → 아이폰 디버그 빌드 설치, Metro 연결 확인. 디스크 정리로 DerivedData·옛 DeviceSupport·npm/CocoaPods 캐시 35GB 비움
@@ -59,6 +68,9 @@
 - 안드로이드 실기기는 USB에서 안 잡힘(맥 USB 트리에 아예 없음, 폰에서 '파일 전송' 선택 불가 → 충전 전용 케이블). 당분간 안드로이드는 에뮬레이터, 실기기는 iOS로만
 
 ## 다음에 할 일
+- 미커밋 작업물 커밋: `data/grades.json`, `data/gyms.json`, `data/spiri7/`, `docs/research/`, `scripts/spiri7-grades.py`, `scripts/collect-gyms.mjs`, `src/data/gyms.ts`, `src/screens/GymScreen.tsx`, `CLAUDE.md`, `docs/roadmap.md`, `docs/STATUS.md`
+- 암장 페이지 종목 표시 폰에서 확인(Metro만 띄우면 됨)
+- 띠레벨 표 구현 착수(roadmap 3번 2026-10-06 결정): Supabase 테이블(암장별 띠 표, 투표), 암장 페이지 띠 난이도 섹션, 영상 저장 시 암장 확정(영상 위치 → 체크인) + 띠 한 탭, 완등 자동 판정
 - 체크인 배너 실기기 확인: 다음 암장 갈 때 체크인 → 영상 찍고 → 영상 탭 배너 수·추가·사라짐 확인(사용자 결정)
 - 새 아이콘 반영 빌드(iOS 홈 화면·잠금 화면 라이브 액티비티 확인)
 - Play 콘솔 개발자 계정 인증 완료 → 앱 만들고 내부 테스트 트랙에 AAB 업로드, 테스터 이메일 등록. 테스터는 기존 디버그 키 APK를 지우고 스토어에서 재설치

@@ -312,6 +312,14 @@ export default function App() {
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
       if (candidates.length > 0) console.log('detect low', video.fileName, JSON.stringify(candidates));
       patch(video.uri, { segments, handheld, candidates, tracks });
+      if (segments.length > 0) {
+        try {
+          const [thumbnail] = await ClimbVideo.thumbnails(video.uri, [(segments[0].start + segments[0].end) / 2], 240);
+          if (thumbnail) patch(video.uri, { thumbnail });
+        } catch (e) {
+          console.log('thumbnail error', video.fileName, String(e));
+        }
+      }
       queue.finishOne(video.duration, Date.now() - startedAt, segments.length + candidates.length);
       syncProgress();
       ClimbVideo.updateBackgroundRun?.(queue.totalSec - queue.pendingSec, `${queue.done}/${queue.total}`);

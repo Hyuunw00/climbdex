@@ -270,6 +270,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   };
 
   const recording = !!(userId && choice && !noRecord);
+  const unsaved = clips.filter((c) => !c.saved).length;
 
   const pickRecordGym = () => {
     Alert.alert(
@@ -503,13 +504,19 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         <Pressable style={styles.secondary} onPress={togglePlay}>
           <Text style={styles.secondaryText}>{playing ? '일시정지' : '재생'}</Text>
         </Pressable>
-        <Pressable style={[styles.primary, saving !== null && styles.disabled]} onPress={() => save([clip])} disabled={saving !== null}>
-          <Text style={styles.primaryText}>{saving ?? `${current + 1}번 저장`}</Text>
+        <Pressable
+          style={[styles.primary, saving !== null && styles.disabled, clip.saved && styles.primarySaved]}
+          onPress={() => (clip.saved ? Alert.alert('이미 저장한 구간이에요', undefined, [{ text: '취소', style: 'cancel' }, { text: '다시 저장', onPress: () => save([clip]) }]) : save([clip]))}
+          disabled={saving !== null}
+        >
+          <Text style={styles.primaryText}>{saving ?? (clip.saved ? `${current + 1}번 저장됨 ✓` : `${current + 1}번 저장`)}</Text>
         </Pressable>
       </View>
       {clips.length > 1 && (
-        <Pressable onPress={() => save(clips)} disabled={saving !== null} hitSlop={6} style={styles.allLink}>
-          <Text style={[styles.allLinkText, saving !== null && styles.disabled]}>모든 구간 저장 ({clips.length}개)</Text>
+        <Pressable onPress={() => save(clips.filter((c) => !c.saved))} disabled={saving !== null || unsaved === 0} hitSlop={6} style={styles.allLink}>
+          <Text style={[styles.allLinkText, (saving !== null || unsaved === 0) && styles.disabled]}>
+            {unsaved === 0 ? '모든 구간 저장됨 ✓' : unsaved === clips.length ? `모든 구간 저장 (${clips.length}개)` : `남은 구간 저장 (${unsaved}개)`}
+          </Text>
         </Pressable>
       )}
     </View>
@@ -575,6 +582,7 @@ const styles = StyleSheet.create({
   secondary: { flex: 1, paddingVertical: 14, borderRadius: 10, borderWidth: 1, borderColor: '#111', alignItems: 'center' },
   secondaryText: { fontSize: 16 },
   primary: { flex: 1, paddingVertical: 14, borderRadius: 10, backgroundColor: '#111', alignItems: 'center' },
+  primarySaved: { backgroundColor: '#3a3a44' },
   primaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   disabled: { opacity: 0.5 },
   savedNote: { fontSize: 13, color: '#888', textAlign: 'center' },

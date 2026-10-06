@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { FlatList, Pressable, SectionList, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { useRefreshControl } from '../components/refresh';
 import { type Gym, formatNo, gyms, regions } from '../data/gyms';
 import type { DexState } from '../store/dex';
 import { GymCard, GymRow, Progress, RED } from '../components/dex';
@@ -12,11 +13,13 @@ type Props = {
   onQuery: (query: string) => void;
   onOpenGym: (gym: Gym) => void;
   onBack: () => void;
+  onRefresh?: () => Promise<void>;
 };
 
 const COLUMNS = 3;
 
-export default function AllGymsScreen({ dex, region, onRegion, query, onQuery, onOpenGym, onBack }: Props) {
+export default function AllGymsScreen({ dex, region, onRegion, query, onQuery, onOpenGym, onBack, onRefresh }: Props) {
+  const refreshControl = useRefreshControl(onRefresh);
   const { width } = useWindowDimensions();
   const visitedIds = useMemo(() => new Set(dex.visits.map((v) => v.gymId)), [dex.visits]);
 
@@ -80,6 +83,7 @@ export default function AllGymsScreen({ dex, region, onRegion, query, onQuery, o
         {header}
         <SectionList
           sections={sections}
+          refreshControl={refreshControl}
           keyExtractor={(row) => row.map((g) => g.id).join('-')}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={styles.list}
@@ -130,6 +134,7 @@ export default function AllGymsScreen({ dex, region, onRegion, query, onQuery, o
         <FlatList
           key="results"
           data={results}
+          refreshControl={refreshControl}
           keyExtractor={(g) => g.id}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
@@ -143,6 +148,7 @@ export default function AllGymsScreen({ dex, region, onRegion, query, onQuery, o
         <FlatList
           key="regions"
           data={regionStats}
+          refreshControl={refreshControl}
           keyExtractor={(r) => r.name}
           numColumns={2}
           columnWrapperStyle={styles.regionRow}

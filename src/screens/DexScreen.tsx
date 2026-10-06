@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useRefreshControl } from '../components/refresh';
 import { type Candidate, type Gym, distanceMeters, gymById, gyms, nearbyGyms } from '../data/gyms';
 import { type DexState, lastVisits, visitedToday } from '../store/dex';
 import { GymCard, GymRow, Progress, RED, allowedMeters, daysSince, formatAgo, formatDistance } from '../components/dex';
@@ -13,13 +14,15 @@ type Props = {
   onOpenHistory: () => void;
   onAccount: () => void;
   account: { name: string; email: string } | null;
+  onRefresh?: () => Promise<void>;
 };
 
 const COLUMNS = 3;
 const NEAR = 5;
 const STALE_DAYS = 7;
 
-export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpenHistory, onAccount, account }: Props) {
+export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpenHistory, onAccount, account, onRefresh }: Props) {
+  const refreshControl = useRefreshControl(onRefresh);
   const { width } = useWindowDimensions();
   const [nearby, setNearby] = useState<Candidate[]>([]);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -159,6 +162,7 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
       {header}
       <FlatList
         data={rows}
+        refreshControl={refreshControl}
         keyExtractor={(row) => row.map((g) => g.id).join('-')}
         contentContainerStyle={styles.list}
         ListHeaderComponent={

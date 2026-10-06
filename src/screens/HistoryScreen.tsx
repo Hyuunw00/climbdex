@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRefreshControl } from '../components/refresh';
 import { type Gym, gymById } from '../data/gyms';
 import { type DexState, dayKey, lastVisits } from '../store/dex';
 import { GymRow, RED, regionColor } from '../components/dex';
@@ -8,12 +9,14 @@ type Props = {
   dex: DexState;
   onOpenGym: (gym: Gym) => void;
   onBack: () => void;
+  onRefresh?: () => Promise<void>;
 };
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MAX_DOTS = 3;
 
-export default function HistoryScreen({ dex, onOpenGym, onBack }: Props) {
+export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh }: Props) {
+  const refreshControl = useRefreshControl(onRefresh);
   const today = new Date();
   const [month, setMonth] = useState({ year: today.getFullYear(), month: today.getMonth() });
   const [selected, setSelected] = useState<string>(dayKey(today));
@@ -66,7 +69,7 @@ export default function HistoryScreen({ dex, onOpenGym, onBack }: Props) {
           방문 {dex.visits.length}회 · 암장 {gymCount}곳
         </Text>
       </View>
-      <ScrollView contentContainerStyle={styles.list}>
+      <ScrollView contentContainerStyle={styles.list} refreshControl={refreshControl}>
         <View style={styles.monthRow}>
           <Pressable onPress={() => shift(-1)} hitSlop={12}>
             <Text style={styles.monthArrow}>‹</Text>

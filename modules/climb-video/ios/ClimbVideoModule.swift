@@ -3,17 +3,24 @@ import AVFoundation
 import Vision
 import CoreImage
 import UIKit
+import CryptoKit
+import BackgroundTasks
+import Photos
+import PhotosUI
 
 private let detectQueue = DispatchQueue(label: "climbdex.detect", qos: .userInitiated)
+private let mediaQueue = DispatchQueue(label: "climbdex.media", qos: .userInitiated, attributes: .concurrent)
 
 public class ClimbVideoModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ClimbVideo")
 
+    OnCreate {
+      DispatchQueue.main.async { AppActivity.shared.start() }
+    }
+
     AsyncFunction("trim") { (uri: String, start: Double, end: Double) async throws -> String in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let asset = AVURLAsset(url: url)
       guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
         throw Exception(name: "ExportSessionUnavailable", description: uri)
@@ -34,9 +41,9 @@ public class ClimbVideoModule: Module {
     }
 
     AsyncFunction("thumbnails") { (uri: String, times: [Double], width: Double) throws -> [String] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let thumbStart = Date()
+      defer { NativeLog.shared.add("thumbnails \(shortId(uri)) x\(times.count) \(ms(since: thumbStart))") }
+      let url = try resolveURL(uri)
       let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url))
       generator.appliesPreferredTrackTransform = true
       generator.maximumSize = CGSize(width: width, height: width)
@@ -57,59 +64,137 @@ public class ClimbVideoModule: Module {
         out.append(file.absoluteString)
       }
       return out
-    }
+    }.runOnQueue(mediaQueue)
 
-    AsyncFunction("followPath") { (uri: String, start: Double, end: Double) throws -> [String: Any] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
-      let plan = try planFollow(url: url, start: start, end: end, minConfidence: 0.3)
+    AsyncFunction("followPath") { (uri: String, start: Double, end: Double, tracks: [[[Double]]]?) throws -> [String: Any] in
+      let url = try resolveURL(uri)
+      let plan = try planFollow(url: url, start: start, end: end, minConfidence: 0.3, tracks: tracks)
       return [
         "frame": ["width": plan.frame.width, "height": plan.frame.height],
         "crop": ["width": plan.crop.width, "height": plan.crop.height],
         "points": plan.keyframes.map { ["t": $0.t, "x": $0.rect.minX, "y": $0.rect.minY] },
       ]
-    }
+    }.runOnQueue(mediaQueue)
 
-    AsyncFunction("exportFollow") { (uri: String, start: Double, end: Double) throws -> String in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+    AsyncFunction("exportFollow") { (uri: String, start: Double, end: Double, tracks: [[[Double]]]?) throws -> String in
+      let url = try resolveURL(uri)
       let output = FileManager.default.temporaryDirectory
         .appendingPathComponent("climbdex-follow-\(UUID().uuidString).mov")
-      try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3)
+      try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, tracks: tracks)
       return output.absoluteString
+    }.runOnQueue(mediaQueue)
+
+    AsyncFunction("exportCrop") { (uri: String, start: Double, end: Double) throws -> String in
+      let url = try resolveURL(uri)
+      let output = FileManager.default.temporaryDirectory
+        .appendingPathComponent("climbdex-crop-\(UUID().uuidString).mov")
+      try exportFollow(url: url, start: start, end: end, output: output, minConfidence: 0.3, fixed: true)
+      return output.absoluteString
+    }.runOnQueue(mediaQueue)
+
+    AsyncFunction("cropPlan") { (uri: String) throws -> [String: Any] in
+      let url = try resolveURL(uri)
+      let plan = try planFixed(url: url)
+      return [
+        "frame": ["width": plan.frame.width, "height": plan.frame.height],
+        "crop": ["width": plan.crop.width, "height": plan.crop.height],
+        "points": plan.keyframes.map { ["t": $0.t, "x": $0.rect.minX, "y": $0.rect.minY] },
+      ]
+    }.runOnQueue(mediaQueue)
+
+    AsyncFunction("pickVideos") { (promise: Promise) in
+      var config = PHPickerConfiguration(photoLibrary: .shared())
+      config.filter = .videos
+      config.selectionLimit = 0
+      config.preferredAssetRepresentationMode = .current
+      let picker = PHPickerViewController(configuration: config)
+      let delegate = VideoPickerDelegate(promise: promise)
+      VideoPickerDelegate.active = delegate
+      picker.delegate = delegate
+      guard let presenter = self.appContext?.utilities?.currentViewController() else {
+        promise.reject(Exception(name: "NoViewController", description: "화면을 찾지 못했어요"))
+        return
+      }
+      presenter.present(picker, animated: true)
+    }.runOnQueue(.main)
+
+    AsyncFunction("resolveUri") { (uri: String) throws -> String in
+      let start = Date()
+      let value = try resolveURL(uri).absoluteString
+      NativeLog.shared.add("resolveUri \(shortId(uri)) \(ms(since: start))")
+      return value
+    }.runOnQueue(mediaQueue)
+
+    Function("drainLogs") { () -> [String] in
+      NativeLog.shared.drain()
+    }
+
+    Function("releaseVideo") { (uri: String) in
+      try? FileManager.default.removeItem(at: originalCopyURL(for: uri))
+      try? FileManager.default.removeItem(at: checkpointURL(for: uri))
+    }
+
+    Function("cleanupOriginals") { (keep: [String]) in
+      let names = Set(keep.map { originalCopyURL(for: $0).lastPathComponent })
+      let files = (try? FileManager.default.contentsOfDirectory(at: originalsDir, includingPropertiesForKeys: nil)) ?? []
+      for file in files where !names.contains(file.lastPathComponent) { try? FileManager.default.removeItem(at: file) }
+    }
+
+    Function("cancelDetect") { (uri: String) in
+      DetectCancels.shared.add(uri)
+      try? FileManager.default.removeItem(at: checkpointURL(for: uri))
+    }
+
+    Function("startBackgroundRun") { (title: String, subtitle: String, totalSeconds: Double) -> Bool in
+      BackgroundRun.shared.start(title: title, subtitle: subtitle, totalSeconds: totalSeconds)
+    }
+
+    Function("updateBackgroundRun") { (completedSeconds: Double, subtitle: String) in
+      BackgroundRun.shared.setBase(completedSeconds: completedSeconds, subtitle: subtitle)
+    }
+
+    Function("finishBackgroundRun") { (success: Bool) in
+      BackgroundRun.shared.finish(success: success)
+    }
+
+    Function("backgroundRunActive") { () -> Bool in
+      BackgroundRun.shared.isActive
     }
 
     AsyncFunction("detect") { (uri: String) throws -> [String: Any] in
-      guard let url = URL(string: uri) else {
-        throw Exception(name: "InvalidUri", description: uri)
-      }
+      let url = try resolveURL(uri)
       let params = Params()
-      let (people, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3)
+      DetectCancels.shared.clear(uri)
+      let (rawPeople, _, shift) = try sample(url: url, fps: 5, minConfidence: 0.3, checkpoint: checkpointURL(for: uri), cancelKey: uri)
+      let people = rawPeople.map { dropStatic($0) }
       let handheld = shift > params.handheldShift
-      var all: [Segment] = []
-      for samples in people where samples.count >= Int(params.minDuration * 5) {
-        all += handheld ? presenceSegments(samples, params) : segments(samples, params)
+      var all: [(Segment, Int)] = []
+      for (n, samples) in people.enumerated() where samples.count >= Int(params.minDuration * 5) {
+        for seg in handheld ? presenceSegments(samples, params) : segments(samples, params, others: people.enumerated().filter { $0.offset != n }.flatMap { $0.element }) { all.append((seg, n)) }
       }
-      all.sort { $0.start < $1.start }
-      var merged: [Segment] = []
-      for seg in all {
-        if let last = merged.last, seg.start <= last.end {
-          merged[merged.count - 1] = Segment(start: last.start, end: max(last.end, seg.end))
+      all.sort { $0.0.start < $1.0.start }
+      var merged: [(Segment, Int)] = []
+      for item in all {
+        if let last = merged.last,
+       (item.0.start <= last.0.end && (item.1 == last.1 || sameSpot(people[item.1], people[last.1], from: item.0.start, to: min(item.0.end, last.0.end))))
+       || (item.0.start > last.0.end && item.0.start - last.0.end < params.handoffGap && handoff(people[last.1], people[item.1], aEnd: last.0.end, bStart: item.0.start)) {
+          merged[merged.count - 1] = (Segment(start: last.0.start, end: max(last.0.end, item.0.end)), last.1)
         } else {
-          merged.append(seg)
+          merged.append(item)
         }
       }
+      let resolved = resolveClips(people, merged)
       return [
         "handheld": handheld,
-        "segments": merged.map { ["start": $0.start, "end": $0.end] },
+        "segments": resolved.confident.map { ["start": $0.start, "end": $0.end] },
+        "candidates": resolved.low.map { ["start": $0.start, "end": $0.end] },
+        "tracks": tracksPayload(people),
       ]
     }.runOnQueue(detectQueue)
   }
 }
 
-struct Sample {
+struct Sample: Codable {
   let t: Double
   let ankleY: Double
   let torso: Double?
@@ -171,14 +256,329 @@ final class Track {
   var lastT: Double
   var samples: [Sample] = []
   init(_ c: Candidate, t: Double) { x = c.x; y = c.y; torso = c.torso; lastT = t }
+  init(_ s: TrackState) { x = s.x; y = s.y; torso = s.torso; lastT = s.lastT; samples = s.samples }
+  var state: TrackState { TrackState(x: x, y: y, torso: torso, lastT: lastT, samples: samples) }
 }
 
-func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil) throws -> ([[Sample]], Double, Double) {
+struct TrackState: Codable {
+  let x: Double
+  let y: Double
+  let torso: Double
+  let lastT: Double
+  let samples: [Sample]
+}
+
+struct Checkpoint: Codable {
+  static let version = 1
+  let version: Int
+  let nextT: Double
+  let nextMotionT: Double
+  let last: Double
+  let shifts: [Double]
+  let tracks: [TrackState]
+}
+
+final class AppActivity {
+  static let shared = AppActivity()
+  private let lock = NSLock()
+  private var background = false
+  private var observers: [NSObjectProtocol] = []
+
+  func start() {
+    guard observers.isEmpty else { return }
+    let center = NotificationCenter.default
+    observers.append(center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] _ in self?.set(true) })
+    observers.append(center.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: nil) { [weak self] _ in self?.set(false) })
+  }
+
+  private func set(_ value: Bool) {
+    lock.lock(); background = value; lock.unlock()
+  }
+
+  var isBackground: Bool {
+    lock.lock(); defer { lock.unlock() }
+    return background
+  }
+}
+
+final class DetectCancels {
+  static let shared = DetectCancels()
+  private let lock = NSLock()
+  private var keys = Set<String>()
+  func add(_ key: String) { lock.lock(); keys.insert(key); lock.unlock() }
+  func clear(_ key: String) { lock.lock(); keys.remove(key); lock.unlock() }
+  func has(_ key: String) -> Bool { lock.lock(); defer { lock.unlock() }; return keys.contains(key) }
+}
+
+final class ResolvedURLs {
+  static let shared = ResolvedURLs()
+  private let lock = NSLock()
+  private var cache: [String: URL] = [:]
+  private var gates: [String: NSLock] = [:]
+  func gate(_ key: String) -> NSLock { lock.lock(); defer { lock.unlock() }; if let g = gates[key] { return g }; let g = NSLock(); gates[key] = g; return g }
+  func get(_ key: String) -> URL? { lock.lock(); defer { lock.unlock() }; return cache[key] }
+  func set(_ key: String, _ url: URL) { lock.lock(); cache[key] = url; lock.unlock() }
+}
+
+func peopleFrom(_ tracks: [[[Double]]]?, start: Double, end: Double) -> [[Sample]]? {
+  guard let tracks = tracks else { return nil }
+  let people = tracks.map { track in
+    track.compactMap { v -> Sample? in
+      guard v.count >= 5, v[0] >= start, v[0] <= end else { return nil }
+      return Sample(t: v[0], ankleY: v[4], torso: v[3] > 0 ? v[3] : nil, x: v[1], y: v[2])
+    }
+  }
+  guard let best = people.max(by: { $0.count < $1.count }), best.count >= 3 else { return nil }
+  return people
+}
+
+func tracksPayload(_ people: [[Sample]]) -> [[[Double]]] {
+  func r(_ v: Double) -> Double { (v * 1000).rounded() / 1000 }
+  return people.map { $0.map { [r($0.t), r($0.x), r($0.y), r($0.torso ?? 0), r($0.ankleY)] } }
+}
+
+let originalsDir: URL = {
+  let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("icloud-originals", isDirectory: true)
+  try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+  return dir
+}()
+
+func originalCopyURL(for uri: String) -> URL {
+  let hash = SHA256.hash(data: Data(uri.utf8)).map { String(format: "%02x", $0) }.joined()
+  return originalsDir.appendingPathComponent("\(hash.prefix(32)).mov")
+}
+
+final class NativeLog {
+  static let shared = NativeLog()
+  private let lock = NSLock()
+  private var lines: [String] = []
+  func add(_ line: String) { lock.lock(); lines.append(line); if lines.count > 200 { lines.removeFirst(lines.count - 200) }; lock.unlock() }
+  func drain() -> [String] { lock.lock(); defer { lines.removeAll(); lock.unlock() }; return lines }
+}
+
+func ms(since start: Date) -> String { String(format: "%.0fms", Date().timeIntervalSince(start) * 1000) }
+
+func shortId(_ uri: String) -> String { String(uri.suffix(14)) }
+
+func resolveURL(_ uri: String) throws -> URL {
+  guard uri.hasPrefix("ph://") else {
+    guard let url = URL(string: uri) else { throw Exception(name: "InvalidUri", description: uri) }
+    return url
+  }
+  let gate = ResolvedURLs.shared.gate(uri)
+  gate.lock()
+  defer { gate.unlock() }
+  let began = Date()
+  if let cached = ResolvedURLs.shared.get(uri) {
+    if FileManager.default.isReadableFile(atPath: cached.path) { return cached }
+    NativeLog.shared.add("resolve \(shortId(uri)) memory cache unreadable: \(cached.lastPathComponent)")
+  }
+  let kept = originalCopyURL(for: uri)
+  if FileManager.default.isReadableFile(atPath: kept.path) {
+    ResolvedURLs.shared.set(uri, kept)
+    NativeLog.shared.add("resolve \(shortId(uri)) kept copy \(ms(since: began))")
+    return kept
+  }
+  let id = String(uri.dropFirst(5))
+  guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject else {
+    throw Exception(name: "AssetMissing", description: "사진 앱에서 영상을 찾을 수 없어요")
+  }
+  func request(_ version: PHVideoRequestOptionsVersion, network: Bool) -> (URL?, Error?) {
+    let options = PHVideoRequestOptions()
+    options.isNetworkAccessAllowed = network
+    options.deliveryMode = .highQualityFormat
+    options.version = version
+    let done = DispatchSemaphore(value: 0)
+    var found: URL? = nil
+    var failure: Error? = nil
+    PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { avAsset, _, info in
+      found = (avAsset as? AVURLAsset)?.url
+      failure = info?[PHImageErrorKey] as? Error
+      done.signal()
+    }
+    done.wait()
+    return (found, failure)
+  }
+  var (url, error) = request(.current, network: false)
+  if url == nil { (url, _) = request(.original, network: false) }
+  if let local = url {
+    ResolvedURLs.shared.set(uri, local)
+    NativeLog.shared.add("resolve \(shortId(uri)) on device \(ms(since: began))")
+    return local
+  }
+  NativeLog.shared.add("resolve \(shortId(uri)) not on device, downloading")
+  (url, error) = request(.current, network: true)
+  if url == nil, error == nil { (url, error) = request(.original, network: true) }
+  guard let downloaded = url else {
+    NativeLog.shared.add("resolve \(shortId(uri)) download failed \(ms(since: began)): \(error?.localizedDescription ?? "no url")")
+    throw Exception(name: "DownloadFailed", description: "영상을 받지 못했어요\(error.map { ": \($0.localizedDescription)" } ?? "")")
+  }
+  NativeLog.shared.add("resolve \(shortId(uri)) downloaded \(ms(since: began)) at \(downloaded.path)")
+  let copyStart = Date()
+  do {
+    try? FileManager.default.removeItem(at: kept)
+    try FileManager.default.copyItem(at: downloaded, to: kept)
+    ResolvedURLs.shared.set(uri, kept)
+    NativeLog.shared.add("resolve \(shortId(uri)) kept copy saved \(ms(since: copyStart))")
+    return kept
+  } catch {
+    NativeLog.shared.add("resolve \(shortId(uri)) keep copy failed: \(error.localizedDescription)")
+    ResolvedURLs.shared.set(uri, downloaded)
+    return downloaded
+  }
+}
+
+final class VideoPickerDelegate: NSObject, PHPickerViewControllerDelegate {
+  static var active: VideoPickerDelegate? = nil
+  let promise: Promise
+  init(promise: Promise) { self.promise = promise }
+
+  func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+    picker.dismiss(animated: true)
+    let ids = results.compactMap { $0.assetIdentifier }
+    let fetched = PHAsset.fetchAssets(withLocalIdentifiers: ids, options: nil)
+    var byId: [String: PHAsset] = [:]
+    fetched.enumerateObjects { asset, _, _ in byId[asset.localIdentifier] = asset }
+    let items: [[String: Any]] = ids.compactMap { id in
+      guard let asset = byId[id] else { return nil }
+      let name = PHAssetResource.assetResources(for: asset).first?.originalFilename
+      var item: [String: Any] = [
+        "uri": "ph://\(id)",
+        "assetId": id,
+        "duration": asset.duration,
+        "width": asset.pixelWidth,
+        "height": asset.pixelHeight,
+      ]
+      if let name = name { item["fileName"] = name }
+      if let created = asset.creationDate { item["createdAt"] = created.timeIntervalSince1970 * 1000 }
+      return item
+    }
+    promise.resolve(items)
+    VideoPickerDelegate.active = nil
+  }
+}
+
+final class BackgroundRun {
+  static let shared = BackgroundRun()
+  static let prefix = "com.climbdex.app.detect"
+  private let lock = NSLock()
+  private var task: AnyObject? = nil
+  private var pendingId: String? = nil
+  private var expired = false
+  private var baseUnits: Int64 = 0
+  private var totalUnits: Int64 = 1
+  private var wildcardRegistered = false
+
+  var isActive: Bool {
+    lock.lock(); defer { lock.unlock() }
+    return (task != nil || pendingId != nil) && !expired
+  }
+
+  func start(title: String, subtitle: String, totalSeconds: Double) -> Bool {
+    guard #available(iOS 26.0, *) else { return false }
+    lock.lock()
+    if task != nil || pendingId != nil { lock.unlock(); return !expired }
+    expired = false
+    baseUnits = 0
+    totalUnits = max(1, Int64(totalSeconds * 10))
+    let id = "\(BackgroundRun.prefix).\(UUID().uuidString.prefix(8))"
+    pendingId = id
+    lock.unlock()
+
+    let handler: (BGTask) -> Void = { [weak self] bgTask in
+      guard let self = self, let continued = bgTask as? BGContinuedProcessingTask else {
+        bgTask.setTaskCompleted(success: false)
+        return
+      }
+      self.lock.lock()
+      self.task = continued
+      self.pendingId = nil
+      continued.progress.totalUnitCount = self.totalUnits
+      continued.progress.completedUnitCount = self.baseUnits
+      self.lock.unlock()
+      continued.expirationHandler = { [weak self] in
+        guard let self = self else { return }
+        self.lock.lock(); self.expired = true; self.task = nil; self.lock.unlock()
+        continued.setTaskCompleted(success: false)
+      }
+    }
+    var registered = BGTaskScheduler.shared.register(forTaskWithIdentifier: id, using: nil, launchHandler: handler)
+    if !registered {
+      lock.lock()
+      let need = !wildcardRegistered
+      wildcardRegistered = true
+      lock.unlock()
+      registered = need ? BGTaskScheduler.shared.register(forTaskWithIdentifier: "\(BackgroundRun.prefix).*", using: nil, launchHandler: handler) : true
+    }
+    let request = BGContinuedProcessingTaskRequest(identifier: id, title: title, subtitle: subtitle)
+    request.strategy = .queue
+    do {
+      try BGTaskScheduler.shared.submit(request)
+      return true
+    } catch {
+      lock.lock(); pendingId = nil; lock.unlock()
+      return false
+    }
+  }
+
+  func setBase(completedSeconds: Double, subtitle: String?) {
+    lock.lock()
+    baseUnits = Int64(completedSeconds * 10)
+    let current = task
+    let total = totalUnits
+    lock.unlock()
+    guard #available(iOS 26.0, *), let continued = current as? BGContinuedProcessingTask else { return }
+    continued.progress.totalUnitCount = total
+    continued.progress.completedUnitCount = min(total, baseUnits)
+    if let subtitle = subtitle { continued.updateTitle(continued.title, subtitle: subtitle) }
+  }
+
+  func report(videoSeconds: Double) {
+    lock.lock()
+    let current = task
+    let units = min(totalUnits, baseUnits + Int64(videoSeconds * 10))
+    lock.unlock()
+    guard #available(iOS 26.0, *), let continued = current as? BGContinuedProcessingTask else { return }
+    if units > continued.progress.completedUnitCount { continued.progress.completedUnitCount = units }
+  }
+
+  func finish(success: Bool) {
+    lock.lock()
+    let current = task
+    task = nil
+    pendingId = nil
+    expired = false
+    lock.unlock()
+    guard #available(iOS 26.0, *), let continued = current as? BGContinuedProcessingTask else { return }
+    continued.progress.completedUnitCount = continued.progress.totalUnitCount
+    continued.setTaskCompleted(success: success)
+  }
+}
+
+func checkpointURL(for uri: String) -> URL {
+  let hash = SHA256.hash(data: Data(uri.utf8)).map { String(format: "%02x", $0) }.joined()
+  let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("detect-checkpoints", isDirectory: true)
+  try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+  return dir.appendingPathComponent("\(hash.prefix(32)).json")
+}
+
+func interrupted() -> Exception {
+  Exception(name: "Interrupted", description: "앱이 백그라운드로 가서 멈췄어요. 돌아오면 이어서 해요")
+}
+
+func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to: Double? = nil, checkpoint: URL? = nil, cancelKey: String? = nil) throws -> ([[Sample]], Double, Double) {
+  var resumed: Checkpoint? = nil
+  if let checkpoint = checkpoint, let data = try? Data(contentsOf: checkpoint),
+     let saved = try? JSONDecoder().decode(Checkpoint.self, from: data), saved.version == Checkpoint.version {
+    resumed = saved
+  }
   let asset = AVURLAsset(url: url)
   guard let track = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
   let reader = try AVAssetReader(asset: asset)
   if let from = from, let to = to {
     reader.timeRange = CMTimeRange(start: CMTime(seconds: from, preferredTimescale: 600), end: CMTime(seconds: to, preferredTimescale: 600))
+  } else if let resumed = resumed {
+    reader.timeRange = CMTimeRange(start: CMTime(seconds: max(0, resumed.nextT - 0.05), preferredTimescale: 600), end: asset.duration)
   }
   let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
     kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
@@ -193,28 +593,53 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
   let width = Double(track.naturalSize.width)
   let batchSize = 8
   let followRadius = 0.25
+  let maxRadius = 0.4
   let torsoBand = 0.6...1.7
   let trackTimeout = 10.0
 
-  var nextT = from ?? 0.0
-  var nextMotionT = from ?? 0.0
-  var last = 0.0
+  var nextT = resumed?.nextT ?? from ?? 0.0
+  var nextMotionT = resumed?.nextMotionT ?? from ?? 0.0
+  var last = resumed?.last ?? 0.0
   var previous: CVPixelBuffer? = nil
-  var shifts: [Double] = []
-  var tracks: [Track] = []
+  var shifts: [Double] = resumed?.shifts ?? []
+  var tracks: [Track] = resumed?.tracks.map { Track($0) } ?? []
   var batch: [(t: Double, pixel: CVPixelBuffer)] = []
+  var savedAt = nextT
+
+  func save(resumeAt: Double) {
+    guard let checkpoint = checkpoint else { return }
+    let state = Checkpoint(version: Checkpoint.version, nextT: resumeAt, nextMotionT: nextMotionT, last: last, shifts: shifts, tracks: tracks.map { $0.state })
+    if let data = try? JSONEncoder().encode(state) { try? data.write(to: checkpoint, options: .atomic) }
+  }
+
+  func stop() -> Exception {
+    save(resumeAt: batch.first?.t ?? nextT)
+    return interrupted()
+  }
 
   func flush() throws {
     guard !batch.isEmpty else { return }
+    if let key = cancelKey, DetectCancels.shared.has(key) {
+      if let checkpoint = checkpoint { try? FileManager.default.removeItem(at: checkpoint) }
+      DetectCancels.shared.clear(key)
+      throw Exception(name: "Cancelled", description: "삭제된 영상이라 멈췄어요")
+    }
+    if checkpoint != nil, AppActivity.shared.isBackground, !BackgroundRun.shared.isActive { throw stop() }
     var found = [[Candidate]](repeating: [], count: batch.count)
+    var visionFailed = false
     let lock = NSLock()
     DispatchQueue.concurrentPerform(iterations: batch.count) { i in
-      var list = (try? candidates(batch[i].pixel, orient, nil, aspect: aspect, minConfidence: minConfidence)) ?? []
-      if list.isEmpty {
-        list = tiles.flatMap { (try? candidates(batch[i].pixel, orient, $0, aspect: aspect, minConfidence: minConfidence)) ?? [] }
+      do {
+        var list = try candidates(batch[i].pixel, orient, nil, aspect: aspect, minConfidence: minConfidence)
+        if list.isEmpty {
+          list = try tiles.flatMap { try candidates(batch[i].pixel, orient, $0, aspect: aspect, minConfidence: minConfidence) }
+        }
+        lock.lock(); found[i] = list; lock.unlock()
+      } catch {
+        lock.lock(); visionFailed = true; lock.unlock()
       }
-      lock.lock(); found[i] = list; lock.unlock()
     }
+    if visionFailed, checkpoint != nil { throw stop() }
     for i in batch.indices {
       let t = batch[i].t
       var taken = Set<Int>()
@@ -228,7 +653,8 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
         var bestScore = Double.infinity
         for (n, tr) in tracks.enumerated() where !taken.contains(n) && t - tr.lastT <= trackTimeout && torsoBand.contains(c.torso / tr.torso) {
           let dist = ((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y)).squareRoot()
-          let radius = followRadius + 0.1 * (t - tr.lastT)
+          let base = min(followRadius, max(0.08, 3.0 * tr.torso))
+          let radius = min(maxRadius, base + 0.1 * (t - tr.lastT))
           if dist <= radius, dist / radius < bestScore { best = n; bestScore = dist / radius }
         }
         let tr: Track
@@ -245,6 +671,11 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
       }
     }
     batch.removeAll()
+    if checkpoint != nil { BackgroundRun.shared.report(videoSeconds: nextT) }
+    if checkpoint != nil, nextT - savedAt >= 30 {
+      save(resumeAt: nextT)
+      savedAt = nextT
+    }
   }
 
   while let buffer = output.copyNextSampleBuffer() {
@@ -267,13 +698,128 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
     batch.append((t, pixel))
     if batch.count >= batchSize { try flush() }
   }
+  if reader.status == .failed {
+    if checkpoint != nil { throw stop() }
+    throw reader.error ?? NSError(domain: "detect", code: 2, userInfo: [NSLocalizedDescriptionKey: "reader failed"])
+  }
   try flush()
+  if let checkpoint = checkpoint { try? FileManager.default.removeItem(at: checkpoint) }
   return (tracks.map { $0.samples }, last, median(shifts))
 }
 
 func median(_ xs: [Double]) -> Double {
   let s = xs.sorted()
   return s.isEmpty ? 0 : s[s.count / 2]
+}
+
+func dropStatic(_ samples: [Sample], minSpan: Double = 8.0, tolerance: Double = 0.005) -> [Sample] {
+  var keep: [Sample] = []
+  var i = 0
+  while i < samples.count {
+    var j = i
+    while j + 1 < samples.count, abs(samples[j + 1].x - samples[i].x) <= tolerance, abs(samples[j + 1].y - samples[i].y) <= tolerance { j += 1 }
+    if samples[j].t - samples[i].t < minSpan { keep += samples[i...j] }
+    i = j + 1
+  }
+  return keep
+}
+
+func resolveClips(_ people: [[Sample]], _ merged: [(Segment, Int)], lowGap: Double = 3.0) -> (confident: [Segment], low: [Segment]) {
+  var spans: [(seg: Segment, n: Int)] = []
+  do {
+    var reference: [Double] = []
+    for samples in people {
+      for s in samples where merged.contains(where: { s.t >= $0.0.start && s.t <= $0.0.end }) {
+        if let torso = s.torso { reference.append(torso) }
+      }
+    }
+    let ref = median(reference)
+    for (n, samples) in people.enumerated() {
+      var i = 0
+      while i < samples.count {
+        var j = i
+        while j + 1 < samples.count, samples[j + 1].t - samples[j].t <= 3.0 { j += 1 }
+        let start = samples[i].t, end = samples[j].t
+        if end - start >= 8.0 {
+          let covered = merged.reduce(0.0) { $0 + max(0, min(end, $1.0.end) - max(start, $1.0.start)) }
+          let torsos = samples[i...j].compactMap { $0.torso }
+          let sizeOk = ref <= 0 || torsos.isEmpty || (0.6...1.7).contains(median(torsos) / ref)
+          if covered < 0.5 * (end - start), sizeOk { spans.append((Segment(start: start, end: end), n)) }
+        }
+        i = j + 1
+      }
+    }
+  }
+  spans.sort { $0.seg.start < $1.seg.start }
+  var low: [(seg: Segment, first: Int, last: Int, ids: Set<Int>)] = []
+  for item in spans {
+    if var prev = low.last, item.seg.start - prev.seg.end <= lowGap,
+       item.n == prev.last || handoff(people[prev.last], people[item.n], aEnd: prev.seg.end, bStart: item.seg.start) {
+      prev.seg = Segment(start: prev.seg.start, end: max(prev.seg.end, item.seg.end))
+      prev.last = item.n
+      prev.ids.insert(item.n)
+      low[low.count - 1] = prev
+    } else {
+      low.append((item.seg, item.n, item.n, [item.n]))
+    }
+  }
+  var confident = merged
+  var remaining: [Segment] = []
+  for item in low {
+    if let k = confident.firstIndex(where: { item.ids.contains($0.1) && min(item.seg.end, $0.0.end) > max(item.seg.start, $0.0.start) }) {
+      let c = confident[k].0
+      confident[k].0 = Segment(start: min(c.start, item.seg.start), end: max(c.end, item.seg.end))
+    } else {
+      remaining.append(item.seg)
+    }
+  }
+  return (confident.map { $0.0 }, remaining)
+}
+
+func candidateSpans(_ people: [[Sample]], confident: [Segment], minSpan: Double = 8.0, maxGap: Double = 3.0) -> [Segment] {
+  var reference: [Double] = []
+  for samples in people {
+    for s in samples where confident.contains(where: { s.t >= $0.start && s.t <= $0.end }) {
+      if let torso = s.torso { reference.append(torso) }
+    }
+  }
+  let ref = median(reference)
+  var result: [Segment] = []
+  for samples in people {
+    var i = 0
+    while i < samples.count {
+      var j = i
+      while j + 1 < samples.count, samples[j + 1].t - samples[j].t <= maxGap { j += 1 }
+      let start = samples[i].t, end = samples[j].t
+      if end - start >= minSpan {
+        let covered = confident.reduce(0.0) { $0 + max(0, min(end, $1.end) - max(start, $1.start)) }
+        let torsos = samples[i...j].compactMap { $0.torso }
+        let sizeOk = ref <= 0 || torsos.isEmpty || (0.6...1.7).contains(median(torsos) / ref)
+        if covered < 0.5 * (end - start), sizeOk { result.append(Segment(start: start, end: end)) }
+      }
+      i = j + 1
+    }
+  }
+  return result.sorted { $0.start < $1.start }
+}
+
+func handoff(_ a: [Sample], _ b: [Sample], aEnd: Double, bStart: Double) -> Bool {
+  guard let pa = a.last(where: { $0.t <= aEnd + 0.01 }), let pb = b.first(where: { $0.t >= bStart - 0.01 }) else { return false }
+  let gap = max(0, pb.t - pa.t)
+  let dist = ((pa.x - pb.x) * (pa.x - pb.x) + (pa.y - pb.y) * (pa.y - pb.y)).squareRoot()
+  return dist <= min(0.4, 0.25 + 0.1 * gap)
+}
+
+func sameSpot(_ a: [Sample], _ b: [Sample], from: Double, to: Double) -> Bool {
+  var j = 0
+  var dists: [Double] = []
+  for s in a where s.t >= from && s.t <= to {
+    while j < b.count, b[j].t < s.t - 0.15 { j += 1 }
+    if j < b.count, abs(b[j].t - s.t) <= 0.15 {
+      dists.append(((s.x - b[j].x) * (s.x - b[j].x) + (s.y - b[j].y) * (s.y - b[j].y)).squareRoot())
+    }
+  }
+  return dists.count >= 5 && median(dists) < 0.15
 }
 
 struct Params {
@@ -287,6 +833,8 @@ struct Params {
   var torsoBand = 0.5...2.0
   var groundReach = 15.0
   var handheldShift = 0.05
+  var startGround = 4.0
+  var handoffGap = 1.0
 }
 
 func presenceSegments(_ d: [Sample], _ p: Params) -> [Segment] {
@@ -312,7 +860,7 @@ func groundLevel(_ ys: [Double], _ p: Params) -> Double {
   return median(sorted.filter { $0 >= lo && $0 < lo + 2 * p.bin })
 }
 
-func segments(_ d: [Sample], _ p: Params) -> [Segment] {
+func segments(_ d: [Sample], _ p: Params, others: [Sample] = []) -> [Segment] {
   func sameDistance(_ torso: Double?, _ ref: Double) -> Bool {
     guard let torso = torso, ref > 0 else { return true }
     return p.torsoBand.contains(torso / ref)
@@ -328,9 +876,31 @@ func segments(_ d: [Sample], _ p: Params) -> [Segment] {
     let near = d.filter { $0.t >= d[i].t - p.groundReach && $0.t <= d[h].t + p.groundReach && sameDistance($0.torso, refTorso) }
     let ground = groundLevel(near.map { $0.ankleY }, p)
     let rise = d.map { $0.ankleY - ground }
+    var startGround = ground
+    do {
+      let before = d.filter { $0.t < d[i].t }.map { $0.ankleY }
+      let after = d.filter { $0.t > d[h].t }.map { $0.ankleY }
+      let similar = others.filter { sameDistance($0.torso, refTorso) }.map { $0.ankleY }
+      let source = before.count >= 5 ? before : after.count >= 5 ? after : similar.count >= 5 ? similar : []
+      if !source.isEmpty { startGround = min(ground, groundLevel(source, p)) }
+    }
+    let riseStart = d.map { $0.ankleY - startGround }
 
     var k = i
-    while k > 0, d[k].t - d[k - 1].t <= p.maxGap, rise[k - 1] > p.low { k -= 1 }
+    var b = i
+    var groundFrom: Double? = nil
+    while b > 0, d[b].t - d[b - 1].t <= p.maxGap {
+      b -= 1
+      if riseStart[b] > p.low {
+        k = b
+        groundFrom = nil
+      } else if let from = groundFrom {
+        if from - d[b].t >= p.startGround { break }
+      } else {
+        groundFrom = d[b].t
+        if p.startGround <= 0 { break }
+      }
+    }
     let startIdx = k > 0 && d[k].t - d[k - 1].t <= p.maxGap ? k - 1 : k
 
     var j = h
@@ -415,8 +985,8 @@ struct FollowPlan {
   let keyframes: [(t: Double, rect: CGRect)]
 }
 
-func planFollow(url: URL, start: Double, end: Double, minConfidence: Float) throws -> FollowPlan {
-  let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
+func planFollow(url: URL, start: Double, end: Double, minConfidence: Float, tracks: [[[Double]]]? = nil) throws -> FollowPlan {
+  let people = try peopleFrom(tracks, start: start, end: end) ?? sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end).0
   guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
     throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
   }
@@ -424,27 +994,57 @@ func planFollow(url: URL, start: Double, end: Double, minConfidence: Float) thro
   let torso = median(person.compactMap { $0.torso })
   let asset = AVURLAsset(url: url)
   guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
-  let oriented = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-  let frame = CGSize(width: abs(oriented.width), height: abs(oriented.height))
+  let frame = orientedFrame(videoTrack)
   let crop = followCropSize(frame: frame, torso: torso)
   let keyframes = path.points.map { ($0.t, followRect(frame: frame, crop: crop, center: ($0.x, $0.y))) }
   return FollowPlan(frame: frame, crop: crop, path: path, keyframes: keyframes)
 }
 
-func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float) throws {
-  let (people, _, _) = try sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end)
-  guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
-    throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
-  }
-  let path = FollowPath(person, window: 0.75)
-  let torso = median(person.compactMap { $0.torso })
+extension FollowPath {
+  init(center x: Double, _ y: Double) { points = [(0, x, y)] }
+}
 
+func fixedCropSize(frame: CGSize) -> CGSize {
+  var h = frame.height
+  var w = h * 9 / 16
+  if w > frame.width {
+    w = frame.width
+    h = w * 16 / 9
+  }
+  return CGSize(width: w, height: h)
+}
+
+func orientedFrame(_ track: AVAssetTrack) -> CGSize {
+  let oriented = track.naturalSize.applying(track.preferredTransform)
+  return CGSize(width: abs(oriented.width), height: abs(oriented.height))
+}
+
+func planFixed(url: URL) throws -> FollowPlan {
+  let asset = AVURLAsset(url: url)
+  guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
+  let frame = orientedFrame(videoTrack)
+  let crop = fixedCropSize(frame: frame)
+  return FollowPlan(frame: frame, crop: crop, path: FollowPath(center: 0.5, 0.5), keyframes: [(0, followRect(frame: frame, crop: crop, center: (0.5, 0.5)))])
+}
+
+func exportFollow(url: URL, start: Double, end: Double, output: URL, minConfidence: Float, fixed: Bool = false, tracks: [[[Double]]]? = nil) throws {
   let asset = AVURLAsset(url: url)
   guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Exception(name: "NoVideoTrack", description: url.absoluteString) }
   let orient = orientation(for: videoTrack.preferredTransform)
-  let oriented = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-  let frame = CGSize(width: abs(oriented.width), height: abs(oriented.height))
-  let crop = followCropSize(frame: frame, torso: torso)
+  let frame = orientedFrame(videoTrack)
+  let path: FollowPath
+  let crop: CGSize
+  if fixed {
+    path = FollowPath(center: 0.5, 0.5)
+    crop = fixedCropSize(frame: frame)
+  } else {
+    let people = try peopleFrom(tracks, start: start, end: end) ?? sample(url: url, fps: 5, minConfidence: minConfidence, from: start, to: end).0
+    guard let person = people.max(by: { $0.count < $1.count }), person.count >= 3 else {
+      throw Exception(name: "NoPerson", description: "구간 안에서 사람을 못 찾았어요")
+    }
+    path = FollowPath(person, window: 0.75)
+    crop = followCropSize(frame: frame, torso: median(person.compactMap { $0.torso }))
+  }
   let outSize = CGSize(width: 1080, height: 1920)
   let range = CMTimeRange(start: CMTime(seconds: start, preferredTimescale: 600), end: CMTime(seconds: end, preferredTimescale: 600))
 

@@ -1,13 +1,27 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PickedVideo } from '../types';
+import { type DetectProgress, formatRemaining } from '../detectProgress';
+import { ClimbVideo } from '../../modules/climb-video';
+import type { Settings } from '../settings';
 
 type Props = {
   videos: PickedVideo[];
+  progress: DetectProgress | null;
+  settings: Settings;
+  onOpenSettings: () => void;
   onAdd: (videos: PickedVideo[]) => void;
   onRemove: (index: number) => void;
   onClear: () => void;
   onOpen: (index: number) => void;
+  today: { gymName: string; count: number | null } | null;
+  onTodayAdd: () => void;
+  onTodayDismiss: () => void;
+  here: { gymName: string; count: number } | null;
+  onHere: () => void;
+  onHereDismiss: () => void;
 };
 
 function formatSeconds(seconds: number) {
@@ -16,25 +30,47 @@ function formatSeconds(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function statusOf(video: PickedVideo) {
+function statusOf(video: PickedVideo, settings: Settings) {
   if (video.segments === undefined) return '시도 구간 찾는 중';
-  const count = video.clips?.length ?? video.segments.length;
+  const count = video.clips?.length ?? video.segments.length + (settings.includeLow ? (video.candidates?.length ?? 0) : 0);
   const parts = [count === 0 ? '구간 못 찾음' : `구간 ${count}개`];
   if (video.handheld) parts.push('들고 찍음');
   if (video.saved) parts.push(`저장 ${video.saved}개`);
   return parts.join(' · ');
 }
 
-export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOpen }: Props) {
+export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen, today, onTodayAdd, onTodayDismiss, here, onHere, onHereDismiss }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const pick = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['videos'],
-      allowsMultipleSelection: true,
-      selectionLimit: 0,
-    });
-    if (result.canceled) return;
+    if (!permission.granted) return false;
+    if (ClimbVideo.pickVideos) {
+      try {
+        const assets = await ClimbVideo.pickVideos();
+        if (assets.length === 0) return false;
+        onAdd(assets.map((a) => ({ ...a, fileName: a.fileName ?? null })));
+        return true;
+      } catch (e) {
+        Alert.alert('영상을 고르지 못했어요', String((e as Error)?.message ?? e));
+        return false;
+      }
+    }
+    setLoading(true);
+    let result: ImagePicker.ImagePickerResult;
+    try {
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['videos'],
+        allowsMultipleSelection: true,
+        selectionLimit: 0,
+      });
+    } catch (e) {
+      Alert.alert('영상을 불러오지 못했어요', `iPhone 저장 공간이 충분한지 확인해 주세요.\n${String((e as Error)?.message ?? e)}`);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+    if (result.canceled) return false;
     onAdd(
       result.assets.map((a) => ({
         uri: a.uri,
@@ -45,20 +81,64 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
         fileName: a.fileName ?? null,
       })),
     );
+    return true;
+  };
+
+  const pickForToday = async () => {
+    if (await pick()) onTodayDismiss();
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>내 영상</Text>
-        {videos.length > 0 && (
-          <Pressable onPress={onClear} hitSlop={8}>
-            <Text style={styles.clear}>전체 비우기</Text>
+        <View>
+          <Text style={styles.title}>내 영상</Text>
+          {progress && (
+            <Text style={styles.progress}>
+              {progress.done}/{progress.total} 찾는 중 · {formatRemaining(progress.remainingSec)} · {progress.background ? '앱을 나가도 계속돼요' : '화면을 켜 두세요'}
+            </Text>
+          )}
+        </View>
+        <View style={styles.headerRight}>
+          {videos.length > 0 && (
+            <Pressable onPress={onClear} hitSlop={8}>
+              <Text style={styles.clear}>전체 비우기</Text>
+            </Pressable>
+          )}
+          <Pressable onPress={onOpenSettings} hitSlop={8}>
+            <Ionicons name="settings-outline" size={22} color="#333" />
           </Pressable>
-        )}
+        </View>
       </View>
+      {here && (
+        <Pressable style={styles.today} onPress={onHere}>
+          <View style={styles.todayBody}>
+            <Text style={styles.todayTitle} numberOfLines={1}>
+              {here.count > 1 ? `${here.gymName} 외 ${here.count - 1}곳 근처예요` : `${here.gymName}에 있네요`}
+            </Text>
+            <Text style={styles.todayAction}>체크인하고 사진 찍기 →</Text>
+          </View>
+          <Pressable hitSlop={10} onPress={onHereDismiss}>
+            <Ionicons name="close" size={18} color="#888" />
+          </Pressable>
+        </Pressable>
+      )}
+      {today && (
+        <Pressable style={styles.today} onPress={today.count === null ? pickForToday : onTodayAdd}>
+          <View style={styles.todayBody}>
+            <Text style={styles.todayTitle} numberOfLines={1}>
+              {today.count === null ? `오늘 ${today.gymName} 다녀왔네요` : `오늘 ${today.gymName} · 새 영상 ${today.count}개`}
+            </Text>
+            <Text style={styles.todayAction}>{today.count === null ? '찍은 영상 고르기 →' : '시도 구간 찾기 →'}</Text>
+          </View>
+          <Pressable hitSlop={10} onPress={onTodayDismiss}>
+            <Ionicons name="close" size={18} color="#888" />
+          </Pressable>
+        </Pressable>
+      )}
       <FlatList
         style={styles.list}
+        contentContainerStyle={styles.listContent}
         data={videos}
         keyExtractor={(item, index) => `${item.uri}-${index}`}
         ListEmptyComponent={<Text style={styles.empty}>고른 영상이 없어요</Text>}
@@ -73,7 +153,7 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
               </Text>
               <View style={styles.statusRow}>
                 {item.segments === undefined && <ActivityIndicator size="small" color="#666" />}
-                <Text style={styles.rowMeta}>{statusOf(item)}</Text>
+                <Text style={styles.rowMeta}>{statusOf(item, settings)}</Text>
               </View>
               <Text style={styles.rowMeta}>{formatSeconds(item.duration)}</Text>
             </View>
@@ -83,25 +163,42 @@ export default function VideoListScreen({ videos, onAdd, onRemove, onClear, onOp
           </Pressable>
         )}
       />
-      <Pressable style={styles.addButton} onPress={pick}>
-        <Text style={styles.addButtonText}>영상 고르기</Text>
+      <Pressable style={[styles.addButton, loading && styles.addButtonBusy]} onPress={pick} disabled={loading}>
+        {loading ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator color="#fff" />
+            <Text style={styles.addButtonText}>영상 불러오는 중…</Text>
+          </View>
+        ) : (
+          <Text style={styles.addButtonText}>영상 고르기</Text>
+        )}
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
+  container: { flex: 1, paddingTop: 8, paddingBottom: 12 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 16 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   title: { fontSize: 20, fontWeight: '700' },
+  progress: { fontSize: 12, color: '#666', marginTop: 2 },
   list: { flex: 1 },
+  today: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginBottom: 4, padding: 14, borderRadius: 12, backgroundColor: '#f2f2f2' },
+  todayBody: { flex: 1, gap: 4 },
+  todayTitle: { fontSize: 15, fontWeight: '600' },
+  todayAction: { fontSize: 13, color: '#d7263d', fontWeight: '600' },
+  listContent: { paddingHorizontal: 16 },
   addButton: {
     backgroundColor: '#111',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
+    marginHorizontal: 16,
   },
+  addButtonBusy: { opacity: 0.7 },
+  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   empty: { textAlign: 'center', color: '#888', marginTop: 40 },
   row: {

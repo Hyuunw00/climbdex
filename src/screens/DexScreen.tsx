@@ -12,7 +12,7 @@ type Props = {
   onOpenAll: () => void;
   onOpenHistory: () => void;
   onAccount: () => void;
-  account: { name: string; email: string };
+  account: { name: string; email: string } | null;
 };
 
 const COLUMNS = 3;
@@ -80,15 +80,21 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
     <View style={styles.header}>
       <View style={styles.topRow}>
         <Text style={styles.eyebrow}>CLIMBDEX · 대한민국</Text>
-        <Pressable style={styles.profileChip} onPress={onAccount} hitSlop={6}>
-          <View style={styles.chipAvatar}>
-            <Text style={styles.chipInitial}>{(account.name || account.email || '?').slice(0, 1).toUpperCase()}</Text>
-          </View>
-          <Text style={styles.chipName} numberOfLines={1}>
-            {account.name || account.email.split('@')[0]}
-          </Text>
-          <Text style={styles.chipArrow}>›</Text>
-        </Pressable>
+        {account ? (
+          <Pressable style={styles.profileChip} onPress={onAccount} hitSlop={6}>
+            <View style={styles.chipAvatar}>
+              <Text style={styles.chipInitial}>{(account.name || account.email || '?').slice(0, 1).toUpperCase()}</Text>
+            </View>
+            <Text style={styles.chipName} numberOfLines={1}>
+              {account.name || account.email.split('@')[0]}
+            </Text>
+            <Text style={styles.chipArrow}>›</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={onAccount} hitSlop={10}>
+            <Text style={styles.loginText}>로그인</Text>
+          </Pressable>
+        )}
       </View>
       <View style={styles.headerRow}>
         <View>
@@ -155,7 +161,16 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
         data={rows}
         keyExtractor={(row) => row.map((g) => g.id).join('-')}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={mine.length > 0 ? <Text style={styles.listTitle}>내 암장</Text> : null}
+        ListHeaderComponent={
+          !account ? (
+            <Pressable style={styles.guest} onPress={onAccount}>
+              <Text style={styles.guestTitle}>로그인하면 다녀온 암장이 여기 모여요</Text>
+              <Text style={styles.guestHint}>암장에서 방문 등록하고 사진을 남겨 도감을 채워 보세요 ›</Text>
+            </Pressable>
+          ) : mine.length > 0 ? (
+            <Text style={styles.listTitle}>내 암장</Text>
+          ) : null
+        }
         renderItem={({ item: row }) => (
           <View style={styles.row}>
             {row.map((gym) => (
@@ -182,11 +197,15 @@ const styles = StyleSheet.create({
   link: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, height: 38, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.18)' },
   linkText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   linkArrow: { color: 'rgba(255,255,255,0.8)', fontSize: 20 },
+  guest: { marginTop: 16, padding: 14, borderRadius: 12, backgroundColor: '#f6f6f8', gap: 4 },
+  guestTitle: { fontSize: 15, fontWeight: '700', color: '#111' },
+  guestHint: { fontSize: 13, color: '#666' },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   profileChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 4, paddingRight: 8, height: 32, borderRadius: 16, backgroundColor: '#fff', maxWidth: 180 },
   chipAvatar: { width: 24, height: 24, borderRadius: 12, backgroundColor: RED, alignItems: 'center', justifyContent: 'center' },
   chipInitial: { color: '#fff', fontSize: 12, fontWeight: '800' },
   chipName: { color: '#111', fontSize: 13, fontWeight: '700', flexShrink: 1 },
+  loginText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   chipArrow: { color: '#999', fontSize: 18, marginTop: -2 },
   banner: { marginTop: 4, padding: 12, borderRadius: 12, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 10 },
   bannerDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: RED },

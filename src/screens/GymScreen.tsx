@@ -1,11 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { type Candidate, type Gym, distanceMeters, formatNo, nearbyGyms } from '../data/gyms';
 import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters, formatDate, formatDistance } from '../components/dex';
 import { type DexState, dayKey, visitedToday } from '../store/dex';
 import type { PickedVideo } from '../types';
+import { ClimbVideo } from '../../modules/climb-video';
 
 type Props = {
   gym: Gym;
@@ -17,6 +18,7 @@ type Props = {
   onPhoto: (gym: Gym, photoUri: string) => void;
   onOpenVideo: (index: number) => void;
   onShowCard: (gym: Gym) => void;
+  guest?: boolean;
 };
 
 export async function takePhoto(): Promise<string | null> {
@@ -63,19 +65,50 @@ export function choosePhoto(): Promise<PhotoChoice> {
   });
 }
 
-export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo, onShowCard }: Props) {
+export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo, onShowCard, guest }: Props) {
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
   const photo = dex.photos[gym.id];
   const visitDays = new Set(visits.map((v) => dayKey(v.at)));
-  const clips = videos
+  const dayVideos = videos
     .map((video, index) => ({ video, index }))
     .filter(({ video }) => video.createdAt && visitDays.has(dayKey(video.createdAt)));
+  const clips = dayVideos.flatMap(({ video, index }) =>
+    (video.clips ?? []).filter((c) => c.saved).map((clip) => ({ video, index, clip, key: `${video.uri}#${clip.start}-${clip.end}` })),
+  );
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const clipKeys = clips.map((c) => c.key).join('|');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const byVideo = new Map<string, typeof clips>();
+      for (const c of clips) if (!thumbs[c.key]) byVideo.set(c.video.uri, [...(byVideo.get(c.video.uri) ?? []), c]);
+      for (const [uri, list] of byVideo) {
+        try {
+          const uris = await ClimbVideo.thumbnails(uri, list.map((c) => (c.clip.start + c.clip.end) / 2), 200);
+          if (cancelled) return;
+          setThumbs((prev) => {
+            const next = { ...prev };
+            list.forEach((c, i) => {
+              if (uris[i]) next[c.key] = uris[i];
+            });
+            return next;
+          });
+        } catch (e) {
+          console.log('gym clip thumbnails error', String(e));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [clipKeys]);
 
   const changePhoto = () => {
     Alert.alert('도감 사진', undefined, [
       { text: '카메라로 찍기', onPress: async () => { const uri = await takePhoto(); if (uri) onPhoto(gym, uri); } },
       { text: '앨범에서 고르기', onPress: async () => { const uri = await pickPhoto(); if (uri) onPhoto(gym, uri); } },
-      ...clips.filter(({ video }) => video.thumbnail).slice(0, 1).map(({ video }) => ({
+      ...dayVideos.filter(({ video }) => video.thumbnail).slice(0, 1).map(({ video }) => ({
         text: '이 암장 클립 썸네일로',
         onPress: () => onPhoto(gym, video.thumbnail!),
       })),
@@ -87,6 +120,10 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
   const doneToday = visitedToday(dex, gym.id);
 
   const register = async () => {
+    if (guest) {
+      onCheckIn([]);
+      return;
+    }
     setChecking(true);
     const result = await locate(gym);
     setChecking(false);
@@ -171,14 +208,15 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         ))
       )}
 
-      <Text style={styles.sectionTitle}>이 암장에서 자른 클립 {clips.length}개</Text>
+      <Text style={styles.sectionTitle}>이 암장에서 저장한 클립 {clips.length}개</Text>
       {clips.length === 0 ? (
-        <Text style={styles.empty}>방문한 날에 찍은 영상을 고르면 여기 모여요</Text>
+        <Text style={styles.empty}>방문한 날 찍은 영상에서 클립을 저장하면 여기 모여요</Text>
       ) : (
         <View style={styles.clips}>
-          {clips.map(({ video, index }) => (
-            <Pressable key={video.uri} style={styles.clip} onPress={() => onOpenVideo(index)}>
-              {video.thumbnail ? <Image source={{ uri: video.thumbnail }} style={styles.clipImage} /> : null}
+          {clips.map(({ index, clip, key }) => (
+            <Pressable key={key} style={styles.clip} onPress={() => onOpenVideo(index)}>
+              {thumbs[key] ? <Image source={{ uri: thumbs[key] }} style={styles.clipImage} /> : null}
+              <Text style={styles.clipLength}>{Math.round(clip.end - clip.start)}초</Text>
             </Pressable>
           ))}
         </View>
@@ -217,4 +255,5 @@ const styles = StyleSheet.create({
   clips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   clip: { width: 90, height: 120, borderRadius: 8, backgroundColor: '#ddd', overflow: 'hidden' },
   clipImage: { width: '100%', height: '100%' },
+  clipLength: { position: 'absolute', right: 4, bottom: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
 });

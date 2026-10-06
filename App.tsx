@@ -1,18 +1,23 @@
 import { File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, AppState, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ClimbVideo } from './modules/climb-video';
-import type { Candidate, Gym } from './src/data/gyms';
-import { formatDistance } from './src/components/dex';
+import { cleanupPickerCopies, deleteFile } from './src/videoFiles';
+import { DetectQueue, type DetectProgress, keepAwake, notifyDone, prepareNotifications } from './src/detectProgress';
+import { type Candidate, type Gym, nearbyGyms } from './src/data/gyms';
+import { allowedMeters, formatDistance } from './src/components/dex';
+import * as Location from 'expo-location';
 import Celebration from './src/components/Celebration';
 import AllGymsScreen from './src/screens/AllGymsScreen';
 import DexScreen from './src/screens/DexScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import TrimScreen from './src/screens/TrimScreen';
+import { loadSettings, saveSettings, type Settings } from './src/settings';
 import VideoListScreen from './src/screens/VideoListScreen';
 import type { Session } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
@@ -22,6 +27,7 @@ import AuthScreen from './src/screens/AuthScreen';
 import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, visitedToday } from './src/store/dex';
 import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
+import { dismissToday, dismissedToday, newVideosToday, todayGym } from './src/todayVideos';
 
 const store = new File(Paths.document, 'videos.json');
 
@@ -29,19 +35,43 @@ function load(): PickedVideo[] {
   try {
     if (!store.exists) return [];
     const saved: PickedVideo[] = JSON.parse(store.textSync());
-    return saved.filter((v) => new File(v.uri).exists);
+    return saved.filter((v) => !v.uri.startsWith('file:') || new File(v.uri).exists);
   } catch {
     return [];
   }
 }
 
 type Tab = 'videos' | 'dex';
+
+let lastBackgroundAt = 0;
+AppState.addEventListener('change', (state) => {
+  if (state !== 'active') lastBackgroundAt = Date.now();
+});
+
+function waitForActive() {
+  return new Promise<void>((resolve) => {
+    if (AppState.currentState === 'active') return resolve();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        sub.remove();
+        resolve();
+      }
+    });
+  });
+}
 type DexView = 'home' | 'all' | 'history';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('videos');
   const [videos, setVideos] = useState<PickedVideo[]>(load);
   const [editing, setEditing] = useState<number | null>(null);
+  const [settings, setSettings] = useState<Settings>(loadSettings);
+  const [showSettings, setShowSettings] = useState(false);
+  const [authPrompt, setAuthPrompt] = useState(false);
+
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
   const [session, setSession] = useState<Session | null>(null);
   const [dex, setDex] = useState<DexState>(EMPTY_DEX);
   const [dexReady, setDexReady] = useState(false);
@@ -50,10 +80,86 @@ export default function App() {
   const [region, setRegion] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number; rank: number; date?: Date; replay?: boolean } | null>(null);
   const [query, setQuery] = useState('');
+  const queue = useRef(new DetectQueue()).current;
+  const removed = useRef(new Set<string>()).current;
+  const detecting = useRef<string | null>(null);
+  const [progress, setProgress] = useState<DetectProgress | null>(null);
+  const [today, setToday] = useState<{ gym: Gym; videos: PickedVideo[] | null } | null>(null);
+  const [activeAt, setActiveAt] = useState(Date.now());
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setActiveAt(Date.now());
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    const target = todayGym(dex);
+    if (!target || dismissedToday('videos')) return setToday(null);
+    let cancelled = false;
+    const known = new Set(videos.map((v) => v.assetId).filter((id): id is string => !!id));
+    newVideosToday(known)
+      .then((found) => {
+        if (!cancelled && !dismissedToday('videos')) setToday(found && found.length === 0 ? null : { gym: target, videos: found });
+      })
+      .catch((e) => console.log('today videos error', String(e)));
+    return () => {
+      cancelled = true;
+    };
+  }, [dex.visits, videos.length, activeAt]);
+
+  const [here, setHere] = useState<Candidate[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (!permission.granted) return setHere([]);
+        const position =
+          (await Location.getLastKnownPositionAsync({ maxAge: 120000, requiredAccuracy: 100 })) ??
+          (await Promise.race([Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }), new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000))]));
+        if (cancelled) return;
+        setHere(position ? nearbyGyms(position.coords.latitude, position.coords.longitude, allowedMeters(position.coords.accuracy)).slice(0, 5) : []);
+      } catch (e) {
+        console.log('here location error', String(e));
+        if (!cancelled) setHere([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAt]);
+
+  const hereBanner = here.length > 0 && !here.some((c) => visitedToday(dex, c.gym.id)) && !here.some((c) => dismissedToday(`checkin:${c.gym.id}`)) ? here : null;
+
+  const awake = progress !== null && !progress.background;
+  useEffect(() => {
+    keepAwake(awake);
+  }, [awake]);
+
+  const syncProgress = () => {
+    const p = queue.progress;
+    setProgress(p ? { ...p, background: !!ClimbVideo.backgroundRunActive?.() } : null);
+  };
 
   useEffect(() => {
     store.write(JSON.stringify(videos));
   }, [videos]);
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    const timer = setInterval(() => {
+      for (const line of ClimbVideo.drainLogs?.() ?? []) console.log('[native]', line);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    cleanupPickerCopies(videos.map((v) => v.uri));
+    ClimbVideo.cleanupOriginals?.(videos.map((v) => v.uri).filter((u) => u.startsWith('ph://')));
+  }, []);
 
   const userId = session?.user.id ?? null;
 
@@ -143,8 +249,25 @@ export default function App() {
     setVideos((prev) => prev.map((v) => (v.uri === uri ? { ...v, ...changes } : v)));
   };
 
-  const detect = async (targets: PickedVideo[]) => {
+  const detect = async (targets: PickedVideo[], userStarted = false) => {
+    if (targets.length === 0) return;
+    queue.start(targets.map((v) => v.duration));
+    syncProgress();
+    if (userStarted) {
+      try {
+        ClimbVideo.startBackgroundRun?.('시도 구간 찾는 중', `0/${queue.total}`, queue.totalSec);
+      } catch (e) {
+        console.log('background run error', String(e));
+      }
+    }
+    syncProgress();
     for (const video of targets) {
+      if (removed.has(video.uri)) {
+        queue.drop(video.duration);
+        syncProgress();
+        continue;
+      }
+      detecting.current = video.uri;
       if (!video.thumbnail) {
         try {
           const [thumbnail] = await ClimbVideo.thumbnails(video.uri, [Math.min(1, video.duration / 2)], 240);
@@ -159,18 +282,55 @@ export default function App() {
           patch(video.uri, { createdAt: info.creationTime });
         } catch {}
       }
-      const startedAt = Date.now();
       let segments: PickedVideo['segments'] = [];
+      let candidates: PickedVideo['candidates'] = [];
       let handheld = false;
-      try {
-        const result = await ClimbVideo.detect(video.uri);
-        segments = result.segments;
-        handheld = result.handheld;
-      } catch (e) {
-        console.log('detect error', video.fileName, String(e));
+      let tracks: PickedVideo['tracks'];
+      let startedAt = Date.now();
+      let workMs = 0;
+      for (let attempt = 1; attempt <= 20; attempt++) {
+        if (attempt > 1 || !ClimbVideo.backgroundRunActive?.()) await waitForActive();
+        startedAt = Date.now();
+        let interrupted = false;
+        try {
+          const result = await ClimbVideo.detect(video.uri);
+          segments = result.segments;
+          candidates = result.candidates ?? [];
+          handheld = result.handheld;
+          tracks = result.tracks;
+        } catch (e) {
+          const message = String(e);
+          interrupted = !removed.has(video.uri) && !message.includes('Cancelled') && (message.includes('Interrupted') || lastBackgroundAt > startedAt);
+          if (!interrupted) console.log('detect error', video.fileName, message);
+        }
+        workMs += Date.now() - startedAt;
+        if (!interrupted) break;
+        console.log('detect paused by background, resuming', video.fileName, attempt);
       }
+      detecting.current = null;
+      if (removed.has(video.uri)) {
+        console.log('detect cancelled', video.fileName);
+        queue.drop(video.duration);
+        syncProgress();
+        continue;
+      }
+      startedAt = Date.now() - workMs;
       console.log('detect', video.fileName, video.duration.toFixed(1) + 's', Date.now() - startedAt + 'ms', handheld ? 'handheld' : 'fixed', JSON.stringify(segments));
-      patch(video.uri, { segments, handheld });
+      if (candidates.length > 0) console.log('detect low', video.fileName, JSON.stringify(candidates));
+      patch(video.uri, { segments, handheld, candidates, tracks });
+      queue.finishOne(video.duration, Date.now() - startedAt, segments.length + candidates.length);
+      syncProgress();
+      ClimbVideo.updateBackgroundRun?.(queue.totalSec - queue.pendingSec, `${queue.done}/${queue.total}`);
+    }
+    if (queue.progress === null) {
+      if (queue.done > 0) {
+        ClimbVideo.finishBackgroundRun?.(true);
+        notifyDone(queue.done, queue.clips);
+      } else {
+        ClimbVideo.finishBackgroundRun?.(false);
+      }
+      queue.reset();
+      syncProgress();
     }
   };
 
@@ -178,14 +338,22 @@ export default function App() {
     detect(videos.filter((v) => v.segments === undefined));
   }, []);
 
+  const forget = (uri: string) => {
+    removed.add(uri);
+    if (detecting.current === uri) ClimbVideo.cancelDetect?.(uri);
+    deleteFile(uri);
+  };
+
   const add = (picked: PickedVideo[]) => {
     const known = new Set(videos.map((v) => v.assetId).filter(Boolean));
     const added = picked.filter((v) => !v.assetId || !known.has(v.assetId));
     const skipped = picked.length - added.length;
     if (skipped > 0) Alert.alert(`이미 있는 영상 ${skipped}개는 건너뛰었어요`);
     if (added.length === 0) return;
+    for (const v of added) removed.delete(v.uri);
     setVideos((prev) => [...prev, ...added]);
-    detect(added);
+    prepareNotifications();
+    detect(added, true);
   };
 
   const recordVisit = async (target: Gym, photoUri: string | null) => {
@@ -278,17 +446,17 @@ export default function App() {
       );
     });
 
-  const checkIn = async (candidates: Candidate[]) => {
+  const checkIn = async (candidates: Candidate[], open = true) => {
     const target = await pickGym(candidates);
     if (!target) return;
     if (visitedToday(dex, target.id)) {
-      setGym(target);
+      if (open) setGym(target);
       return;
     }
     const choice = await choosePhoto();
     if (!choice) return;
     recordVisit(target, choice.uri);
-    setGym(target);
+    if (open) setGym(target);
   };
 
   const showCard = (target: Gym) => {
@@ -307,42 +475,84 @@ export default function App() {
   let screen;
   if (tab === 'videos') {
     screen =
-      editing === null ? (
-        <VideoListScreen
-          videos={videos}
-          onAdd={add}
-          onRemove={(index) => setVideos((prev) => prev.filter((_, i) => i !== index))}
-          onClear={() => setVideos([])}
-          onOpen={setEditing}
-        />
-      ) : (
+      editing !== null && videos[editing] ? (
         <TrimScreen
+          key={videos[editing].uri}
           video={videos[editing]}
+          settings={settings}
+          index={editing}
+          total={videos.length}
           onBack={() => setEditing(null)}
+          onNavigate={(delta) => setEditing(Math.max(0, Math.min(videos.length - 1, editing + delta)))}
           onUpdate={(changes) => patch(videos[editing].uri, changes)}
         />
+      ) : (
+        <VideoListScreen
+          videos={videos}
+          progress={progress}
+          settings={settings}
+          onOpenSettings={() => setShowSettings(true)}
+          onAdd={add}
+          onRemove={(index) => {
+            const target = videos[index];
+            if (target) forget(target.uri);
+            if (target?.assetId) dismissToday(`asset:${target.assetId}`);
+            setVideos((prev) => prev.filter((_, i) => i !== index));
+          }}
+          onClear={() => {
+            for (const v of videos) forget(v.uri);
+            dismissToday(...videos.flatMap((v) => (v.assetId ? [`asset:${v.assetId}`] : [])));
+            setVideos([]);
+          }}
+          onOpen={setEditing}
+          today={today ? { gymName: today.gym.name, count: today.videos?.length ?? null } : null}
+          onTodayAdd={() => {
+            if (!today?.videos) return;
+            add(today.videos);
+            setToday(null);
+          }}
+          onTodayDismiss={() => {
+            dismissToday('videos');
+            setToday(null);
+          }}
+          here={hereBanner ? { gymName: hereBanner[0].gym.name, count: hereBanner.length } : null}
+          onHere={() => (session ? hereBanner && checkIn(hereBanner, false) : setAuthPrompt(true))}
+          onHereDismiss={() => {
+            if (hereBanner) dismissToday(...hereBanner.map((c) => `checkin:${c.gym.id}`));
+            setHere([]);
+          }}
+        />
       );
-  } else if (!session) {
-    screen = <AuthScreen />;
   } else {
+    const guest = !session;
+    const needLogin = () => setAuthPrompt(true);
     screen = gym ? (
       <GymScreen
         gym={gym}
         dex={dex}
         videos={videos}
         onBack={() => setGym(null)}
-        onCheckIn={checkIn}
+        onCheckIn={guest ? needLogin : checkIn}
         onRemoveVisit={removeVisitEverywhere}
-        onPhoto={setGymPhoto}
+        onPhoto={guest ? needLogin : setGymPhoto}
         onOpenVideo={openVideo}
-        onShowCard={showCard}
+        onShowCard={guest ? needLogin : showCard}
+        guest={guest}
       />
     ) : dexView === 'all' ? (
       <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} />
     ) : dexView === 'history' ? (
       <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} />
     ) : (
-      <DexScreen dex={dex} onOpenGym={setGym} onCheckIn={checkIn} onOpenAll={() => setDexView('all')} onOpenHistory={() => setDexView('history')} onAccount={accountMenu} account={{ name: String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? ''), email: session.user.email ?? '' }} />
+      <DexScreen
+        dex={dex}
+        onOpenGym={setGym}
+        onCheckIn={guest ? needLogin : checkIn}
+        onOpenAll={() => setDexView('all')}
+        onOpenHistory={guest ? needLogin : () => setDexView('history')}
+        onAccount={guest ? needLogin : accountMenu}
+        account={session ? { name: String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? ''), email: session.user.email ?? '' } : null}
+      />
     );
   }
 
@@ -372,6 +582,12 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    {authPrompt && !session && (
+      <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAuthPrompt(false)}>
+        <AuthScreen onClose={() => setAuthPrompt(false)} />
+      </Modal>
+    )}
+    {showSettings && <SettingsScreen settings={settings} onChange={setSettings} onClose={() => setShowSettings(false)} />}
     {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} rank={celebration.rank} date={celebration.date} replay={celebration.replay} onDone={() => setCelebration(null)} />}
     </SafeAreaProvider>
   );

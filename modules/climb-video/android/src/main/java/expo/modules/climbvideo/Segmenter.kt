@@ -1,6 +1,9 @@
 package expo.modules.climbvideo
 
+import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.max
+import kotlin.math.min
 
 data class Sample(val t: Double, val ankleY: Double, val torso: Double, val x: Double, val y: Double, val confidence: Double = 0.0)
 
@@ -16,6 +19,8 @@ data class Params(
   val groundTime: Double = 1.0,
   val torsoBand: ClosedFloatingPointRange<Double> = 0.5..2.0,
   val groundReach: Double = 15.0,
+  val startGround: Double = 4.0,
+  val handoffGap: Double = 1.0,
 )
 
 fun median(xs: List<Double>): Double {
@@ -48,7 +53,7 @@ fun presenceSegments(d: List<Sample>, p: Params): List<Segment> {
   return result
 }
 
-fun segments(d: List<Sample>, p: Params): List<Segment> {
+fun segments(d: List<Sample>, p: Params, others: List<Sample> = emptyList()): List<Segment> {
   fun sameDistance(torso: Double, ref: Double): Boolean {
     if (ref <= 0 || torso <= 0) return true
     return torso / ref in p.torsoBand
@@ -64,9 +69,33 @@ fun segments(d: List<Sample>, p: Params): List<Segment> {
     val near = d.filter { it.t >= d[i].t - p.groundReach && it.t <= d[h].t + p.groundReach && sameDistance(it.torso, refTorso) }
     val ground = groundLevel(near.map { it.ankleY }, p)
     val rise = d.map { it.ankleY - ground }
+    val before = d.filter { it.t < d[i].t }.map { it.ankleY }
+    val after = d.filter { it.t > d[h].t }.map { it.ankleY }
+    val similar = others.filter { sameDistance(it.torso, refTorso) }.map { it.ankleY }
+    val source = when {
+      before.size >= 5 -> before
+      after.size >= 5 -> after
+      similar.size >= 5 -> similar
+      else -> emptyList()
+    }
+    val startGround = if (source.isEmpty()) ground else min(ground, groundLevel(source, p))
+    val riseStart = d.map { it.ankleY - startGround }
 
     var k = i
-    while (k > 0 && d[k].t - d[k - 1].t <= p.maxGap && rise[k - 1] > p.low) k--
+    var b = i
+    var groundFrom: Double? = null
+    while (b > 0 && d[b].t - d[b - 1].t <= p.maxGap) {
+      b--
+      if (riseStart[b] > p.low) {
+        k = b
+        groundFrom = null
+      } else if (groundFrom != null) {
+        if (groundFrom - d[b].t >= p.startGround) break
+      } else {
+        groundFrom = d[b].t
+        if (p.startGround <= 0) break
+      }
+    }
     val startIdx = if (k > 0 && d[k].t - d[k - 1].t <= p.maxGap) k - 1 else k
 
     var j = h
@@ -98,15 +127,132 @@ fun segments(d: List<Sample>, p: Params): List<Segment> {
   return result
 }
 
-fun mergeOverlapping(all: List<Segment>): List<Segment> {
-  val merged = mutableListOf<Segment>()
-  for (seg in all.sortedBy { it.start }) {
+fun sameSpot(a: List<Sample>, b: List<Sample>, from: Double, to: Double): Boolean {
+  var j = 0
+  val dists = mutableListOf<Double>()
+  for (s in a) {
+    if (s.t < from || s.t > to) continue
+    while (j < b.size && b[j].t < s.t - 0.15) j++
+    if (j < b.size && abs(b[j].t - s.t) <= 0.15) dists.add(hypot(s.x - b[j].x, s.y - b[j].y))
+  }
+  if (dists.size < 5) return false
+  return dists.sorted()[dists.size / 2] < 0.15
+}
+
+fun handoff(a: List<Sample>, b: List<Sample>, aEnd: Double, bStart: Double): Boolean {
+  val pa = a.lastOrNull { it.t <= aEnd + 0.01 } ?: return false
+  val pb = b.firstOrNull { it.t >= bStart - 0.01 } ?: return false
+  val gap = max(0.0, pb.t - pa.t)
+  return hypot(pa.x - pb.x, pa.y - pb.y) <= min(0.4, 0.25 + 0.1 * gap)
+}
+
+fun mergeOverlapping(all: List<Pair<Segment, Int>>, people: List<List<Sample>>, handoffGap: Double = Params().handoffGap): List<Segment> =
+  mergeOverlappingP(all, people, handoffGap).map { it.first }
+
+fun mergeOverlappingP(all: List<Pair<Segment, Int>>, people: List<List<Sample>>, handoffGap: Double = Params().handoffGap): List<Pair<Segment, Int>> {
+  val merged = mutableListOf<Pair<Segment, Int>>()
+  for (item in all.sortedBy { it.first.start }) {
     val last = merged.lastOrNull()
-    if (last != null && seg.start <= last.end) {
-      merged[merged.size - 1] = Segment(last.start, max(last.end, seg.end))
+    val overlaps = last != null && item.first.start <= last.first.end
+    val samePerson = last != null && (item.second == last.second ||
+      sameSpot(people[item.second], people[last.second], item.first.start, min(item.first.end, last.first.end)))
+    val handedOff = last != null && !overlaps && item.first.start - last.first.end < handoffGap &&
+      handoff(people[last.second], people[item.second], last.first.end, item.first.start)
+    if (last != null && ((overlaps && samePerson) || handedOff)) {
+      merged[merged.size - 1] = Pair(Segment(last.first.start, max(last.first.end, item.first.end)), last.second)
     } else {
-      merged.add(seg)
+      merged.add(item)
     }
   }
   return merged
+}
+
+private fun medianOf(xs: List<Double>): Double = if (xs.isEmpty()) 0.0 else xs.sorted()[xs.size / 2]
+
+fun candidateSpans(people: List<List<Sample>>, confident: List<Segment>, minSpan: Double = 8.0, maxGap: Double = 3.0): List<Segment> {
+  val reference = people.flatten()
+    .filter { s -> s.torso > 0 && confident.any { s.t >= it.start && s.t <= it.end } }
+    .map { it.torso }
+  val ref = medianOf(reference)
+  val result = mutableListOf<Segment>()
+  for (samples in people) {
+    var i = 0
+    while (i < samples.size) {
+      var j = i
+      while (j + 1 < samples.size && samples[j + 1].t - samples[j].t <= maxGap) j++
+      val start = samples[i].t
+      val end = samples[j].t
+      if (end - start >= minSpan) {
+        val covered = confident.sumOf { max(0.0, min(end, it.end) - max(start, it.start)) }
+        val torsos = samples.subList(i, j + 1).filter { it.torso > 0 }.map { it.torso }
+        val sizeOk = ref <= 0 || torsos.isEmpty() || (medianOf(torsos) / ref) in 0.6..1.7
+        if (covered < 0.5 * (end - start) && sizeOk) result.add(Segment(start, end))
+      }
+      i = j + 1
+    }
+  }
+  return result.sortedBy { it.start }
+}
+
+fun dropStatic(samples: List<Sample>, minSpan: Double = 8.0, tolerance: Double = 0.005): List<Sample> {
+  val keep = mutableListOf<Sample>()
+  var i = 0
+  while (i < samples.size) {
+    var j = i
+    while (j + 1 < samples.size && abs(samples[j + 1].x - samples[i].x) <= tolerance && abs(samples[j + 1].y - samples[i].y) <= tolerance) j++
+    if (samples[j].t - samples[i].t < minSpan) keep.addAll(samples.subList(i, j + 1))
+    i = j + 1
+  }
+  return keep
+}
+
+private data class LowSpan(var seg: Segment, val first: Int, var last: Int, val ids: MutableSet<Int>)
+
+fun resolveClips(people: List<List<Sample>>, merged: List<Pair<Segment, Int>>, lowGap: Double = 3.0): Pair<List<Segment>, List<Segment>> {
+  val confidentSegs = merged.map { it.first }
+  val reference = people.flatten()
+    .filter { s -> s.torso > 0 && confidentSegs.any { s.t >= it.start && s.t <= it.end } }
+    .map { it.torso }
+  val ref = medianOf(reference)
+  val spans = mutableListOf<Pair<Segment, Int>>()
+  people.forEachIndexed { n, samples ->
+    var i = 0
+    while (i < samples.size) {
+      var j = i
+      while (j + 1 < samples.size && samples[j + 1].t - samples[j].t <= 3.0) j++
+      val start = samples[i].t
+      val end = samples[j].t
+      if (end - start >= 8.0) {
+        val covered = confidentSegs.sumOf { max(0.0, min(end, it.end) - max(start, it.start)) }
+        val torsos = samples.subList(i, j + 1).filter { it.torso > 0 }.map { it.torso }
+        val sizeOk = ref <= 0 || torsos.isEmpty() || (medianOf(torsos) / ref) in 0.6..1.7
+        if (covered < 0.5 * (end - start) && sizeOk) spans.add(Pair(Segment(start, end), n))
+      }
+      i = j + 1
+    }
+  }
+  val low = mutableListOf<LowSpan>()
+  for ((seg, n) in spans.sortedBy { it.first.start }) {
+    val prev = low.lastOrNull()
+    if (prev != null && seg.start - prev.seg.end <= lowGap &&
+      (n == prev.last || handoff(people[prev.last], people[n], prev.seg.end, seg.start))) {
+      prev.seg = Segment(prev.seg.start, max(prev.seg.end, seg.end))
+      prev.last = n
+      prev.ids.add(n)
+    } else {
+      low.add(LowSpan(seg, n, n, mutableSetOf(n)))
+    }
+  }
+  val confident = merged.toMutableList()
+  val remaining = mutableListOf<Segment>()
+  for (item in low) {
+    val k = confident.indexOfFirst { item.ids.contains(it.second) && min(item.seg.end, it.first.end) > max(item.seg.start, it.first.start) }
+    if (k >= 0) {
+      val c = confident[k].first
+      confident[k] = Pair(Segment(min(c.start, item.seg.start), max(c.end, item.seg.end)), confident[k].second)
+    } else {
+      remaining.add(item.seg)
+    }
+  }
+  return Pair(confident.map { it.first }, remaining)
 }

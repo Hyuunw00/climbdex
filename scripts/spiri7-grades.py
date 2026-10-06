@@ -94,6 +94,19 @@ for gid,o in old.items():
     else:
         o=dict(o); o['note']=o['note'].split(' spiri7(')[0]+f" spiri7(기록 {n['recordCount']}건)과 {agree}."; final[gid]=o
 for gid,n in new.items(): final.setdefault(gid,n)
+SMALL_CHAINS={'챌린져','손세동','킹콩','레드포인트','타기'}
+def brand(name): return re.split(r'\s|클라이밍|클라임',name)[0]
+sig=lambda e: json.dumps([[t['label'],t['vMin'],t['vMax']] for t in e['tapes']],ensure_ascii=False)
+chains=collections.defaultdict(collections.Counter)
+for e in final.values():
+    if e['sourceType']=='spiri7' and e['tapes'][0]['v'] is not None: chains[brand(e['name'])][sig(e)]+=1
+for x in gyms:
+    b=brand(x['name'])
+    if x['id'] in final or b not in chains or len(b)<2: continue
+    top,n=chains[b].most_common(1)[0]
+    if (n<3 and b not in SMALL_CHAINS) or n<sum(chains[b].values())*0.8: continue
+    src=next(e for e in final.values() if brand(e['name'])==b and sig(e)==top)
+    final[x['id']]={'gymId':x['id'],'name':x['name'],'tapes':[dict(t) for t in src['tapes']],'sourceType':'inferred-from-brand','sourceUrl':src['sourceUrl'],'confidence':'low','recordCount':0,'note':f"같은 브랜드 {n}곳이 같은 표를 써서 복사({src['name']} 기준)."}
 out={'generatedAt':g['generatedAt'],'gyms':sorted(final.values(),key=lambda r:r['name']),'unmatchedCommunityRows':g['unmatchedCommunityRows']}
 json.dump(out,open(f'{R}/grades.json','w'),ensure_ascii=False,indent=1)
 

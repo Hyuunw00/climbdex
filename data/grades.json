@@ -4484,6 +4484,45 @@
    "note": "커뮤니티 비교표(디시 암벽등반갤). spiri7(기록 0건)과 순서 차이."
   },
   {
+   "gymId": "1827043506",
+   "name": "레드포인트클라이밍",
+   "tapes": [
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": 0.25,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 1.5,
+     "vMin": 1,
+     "vMax": 2
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 3.5,
+     "vMin": 3,
+     "vMax": 4
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/레드포인트 클라이밍센터",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 1곳이 같은 표를 써서 복사(레드포인트클라이밍센터 기준)."
+  },
+  {
    "gymId": "789377286",
    "name": "레드포인트클라이밍센터",
    "tapes": [
@@ -4805,6 +4844,186 @@
    "note": "spiri7 실력 분포 표, 기록 737건."
   },
   {
+   "gymId": "1176420694",
+   "name": "몽키즈 강서마곡점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
+   "gymId": "1324097805",
+   "name": "몽키즈 위례점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
+   "gymId": "923647637",
+   "name": "몽키즈 클라이밍",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
    "gymId": "1107340927",
    "name": "몽키즈 클라이밍 영등포점",
    "tapes": [
@@ -4863,6 +5082,66 @@
    "confidence": "low",
    "recordCount": 0,
    "note": "spiri7 실력 분포 표, 기록 0건."
+  },
+  {
+   "gymId": "1928631583",
+   "name": "몽키즈클라이밍 고양화정점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
   },
   {
    "gymId": "1993300418",
@@ -4985,6 +5264,126 @@
    "note": "spiri7 실력 분포 표, 기록 0건."
   },
   {
+   "gymId": "278485068",
+   "name": "몽키즈클라이밍 목동점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
+   "gymId": "536949958",
+   "name": "몽키즈클라이밍 부천중동점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
    "gymId": "1225322806",
    "name": "몽키즈클라이밍 북가좌점",
    "tapes": [
@@ -5043,6 +5442,126 @@
    "confidence": "low",
    "recordCount": 1,
    "note": "spiri7 실력 분포 표, 기록 1건."
+  },
+  {
+   "gymId": "180386579",
+   "name": "몽키즈클라이밍 수원호매실점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
+   "gymId": "1215148523",
+   "name": "몽키즈클라이밍 수지성복점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
   },
   {
    "gymId": "2083530053",
@@ -5165,6 +5684,126 @@
    "note": "spiri7 실력 분포 표, 기록 0건."
   },
   {
+   "gymId": "415193341",
+   "name": "몽키즈클라이밍 안양평촌점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
+   "gymId": "1996317911",
+   "name": "몽키즈클라이밍 양주옥정점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
    "gymId": "2115393134",
    "name": "몽키즈클라이밍 용인역북점",
    "tapes": [
@@ -5223,6 +5862,66 @@
    "confidence": "low",
    "recordCount": 0,
    "note": "spiri7 실력 분포 표, 기록 0건."
+  },
+  {
+   "gymId": "1397375901",
+   "name": "몽키즈클라이밍 인천아라점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
   },
   {
    "gymId": "1959034574",
@@ -5345,6 +6044,66 @@
    "note": "spiri7 실력 분포 표, 기록 4건."
   },
   {
+   "gymId": "1524394778",
+   "name": "몽키즈클라이밍 태전점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
+  },
+  {
    "gymId": "140829074",
    "name": "몽키즈클라이밍 파주운정점",
    "tapes": [
@@ -5403,6 +6162,66 @@
    "confidence": "low",
    "recordCount": 3,
    "note": "spiri7 실력 분포 표, 기록 3건."
+  },
+  {
+   "gymId": "392095407",
+   "name": "몽키즈클라이밍 하남미사점",
+   "tapes": [
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": -1.0,
+     "vMin": -1,
+     "vMax": -1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "회색",
+     "color": "#95a5a6",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/몽키즈클라이밍 홈플러스 영등포점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 10곳이 같은 표를 써서 복사(몽키즈 클라이밍 영등포점 기준)."
   },
   {
    "gymId": "2026125484",
@@ -8075,6 +8894,66 @@
    "confidence": "medium",
    "recordCount": 514,
    "note": "spiri7 실력 분포 표, 기록 514건."
+  },
+  {
+   "gymId": "1938364829",
+   "name": "손세동클라이밍 칠곡점",
+   "tapes": [
+    {
+     "label": "하늘",
+     "color": "#5dade2",
+     "v": -0.75,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "흰색",
+     "color": "#f5f5f5",
+     "v": 0.25,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "주황",
+     "color": "#f39c12",
+     "v": 2.5,
+     "vMin": 2,
+     "vMax": 3
+    },
+    {
+     "label": "핑크",
+     "color": "#ff6fb5",
+     "v": 4.5,
+     "vMin": 4,
+     "vMax": 5
+    },
+    {
+     "label": "갈색",
+     "color": "#8d6e63",
+     "v": 6.0,
+     "vMin": 6,
+     "vMax": 6
+    },
+    {
+     "label": "검정",
+     "color": "#111111",
+     "v": 7.5,
+     "vMin": 7,
+     "vMax": 8
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/손세동 클라이밍 두류점",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 1곳이 같은 표를 써서 복사(손세동클라이밍 대구두류점 기준)."
   },
   {
    "gymId": "20907214",
@@ -14560,6 +15439,66 @@
    "note": "spiri7 실력 분포 표, 기록 49건."
   },
   {
+   "gymId": "1641882688",
+   "name": "킹콩클라이밍",
+   "tapes": [
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": -0.5,
+     "vMin": -1,
+     "vMax": 0
+    },
+    {
+     "label": "주황",
+     "color": "#f39c12",
+     "v": 0.0,
+     "vMin": 0,
+     "vMax": 0
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "남색",
+     "color": "#1f3a93",
+     "v": 3.5,
+     "vMin": 3,
+     "vMax": 4
+    },
+    {
+     "label": "핑크",
+     "color": "#ff6fb5",
+     "v": 5.0,
+     "vMin": 5,
+     "vMax": 5
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/킹콩클라이밍 수원",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 1곳이 같은 표를 써서 복사(킹콩클라이밍 기준)."
+  },
+  {
    "gymId": "526179818",
    "name": "킹클라이밍",
    "tapes": [
@@ -14618,6 +15557,52 @@
    "confidence": "low",
    "recordCount": 0,
    "note": "spiri7 실력 분포 표, 기록 0건."
+  },
+  {
+   "gymId": "18454125",
+   "name": "타기 실내암벽등반",
+   "tapes": [
+    {
+     "label": "빨강",
+     "color": "#e74c3c",
+     "v": 0.5,
+     "vMin": 0,
+     "vMax": 1
+    },
+    {
+     "label": "파랑",
+     "color": "#2e86de",
+     "v": 1.0,
+     "vMin": 1,
+     "vMax": 1
+    },
+    {
+     "label": "초록",
+     "color": "#27ae60",
+     "v": 2.0,
+     "vMin": 2,
+     "vMax": 2
+    },
+    {
+     "label": "연두",
+     "color": "#8bc34a",
+     "v": 3.0,
+     "vMin": 3,
+     "vMax": 3
+    },
+    {
+     "label": "노랑",
+     "color": "#f4d03f",
+     "v": 4.0,
+     "vMin": 4,
+     "vMax": 4
+    }
+   ],
+   "sourceType": "inferred-from-brand",
+   "sourceUrl": "https://spiri7.com/gym/타기클라이밍센터",
+   "confidence": "low",
+   "recordCount": 0,
+   "note": "같은 브랜드 1곳이 같은 표를 써서 복사(타기클라이밍센터 기준)."
   },
   {
    "gymId": "11484319",

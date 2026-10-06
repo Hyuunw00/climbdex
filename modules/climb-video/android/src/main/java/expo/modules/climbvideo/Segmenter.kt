@@ -246,7 +246,10 @@ fun resolveClips(people: List<List<Sample>>, merged: List<Pair<Segment, Int>>, l
   val confident = merged.toMutableList()
   val remaining = mutableListOf<Segment>()
   for (item in low) {
-    val k = confident.indexOfFirst { item.ids.contains(it.second) && min(item.seg.end, it.first.end) > max(item.seg.start, it.first.start) }
+    val k = confident.indexOfFirst {
+      (item.ids.contains(it.second) || (item.seg.start >= it.first.start && item.seg.start - it.first.end <= 1.0 && handoff(people[it.second], people[item.first], it.first.end, item.seg.start))) &&
+        (min(item.seg.end, it.first.end) > max(item.seg.start, it.first.start) || item.seg.start >= it.first.end)
+    }
     if (k >= 0) {
       val c = confident[k].first
       confident[k] = Pair(Segment(min(c.start, item.seg.start), max(c.end, item.seg.end)), confident[k].second)

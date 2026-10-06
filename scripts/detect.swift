@@ -61,9 +61,16 @@ final class Track {
   var x: Double
   var y: Double
   var torso: Double
+  var torsos: [Double]
   var lastT: Double
   var samples: [Sample] = []
-  init(_ c: Candidate, t: Double) { x = c.x; y = c.y; torso = c.torso; lastT = t }
+  init(_ c: Candidate, t: Double) { x = c.x; y = c.y; torso = c.torso; torsos = [c.torso]; lastT = t }
+  var torsoMedian: Double { median(torsos) }
+  func update(_ c: Candidate, t: Double) {
+    x = c.x; y = c.y; torso = c.torso; lastT = t
+    torsos.append(c.torso)
+    if torsos.count > 5 { torsos.removeFirst() }
+  }
 }
 
 var shiftLog: [(Double, Double)] = []
@@ -135,7 +142,7 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
       for c in unique {
         var best: Int? = nil
         var bestScore = Double.infinity
-        for (n, tr) in tracks.enumerated() where !taken.contains(n) && t - tr.lastT <= trackTimeout && torsoBand.contains(c.torso / tr.torso) {
+        for (n, tr) in tracks.enumerated() where !taken.contains(n) && t - tr.lastT <= trackTimeout && (torsoBand.contains(c.torso / tr.torso) || torsoBand.contains(c.torso / tr.torsoMedian)) {
           let dist = ((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y)).squareRoot()
           let base = radiusK > 0 ? min(followRadius, max(0.08, radiusK * tr.torso)) : followRadius
           let radius = min(maxRadius, base + 0.1 * (t - tr.lastT))
@@ -150,7 +157,7 @@ func sample(url: URL, fps: Double, minConfidence: Float, from: Double? = nil, to
           tracks.append(tr)
           taken.insert(tracks.count - 1)
         }
-        tr.x = c.x; tr.y = c.y; tr.torso = c.torso; tr.lastT = t
+        tr.update(c, t: t)
         tr.samples.append(Sample(t: t, ankleY: c.ankleY, torso: c.torso, x: c.x, y: c.y))
       }
     }
@@ -284,7 +291,7 @@ func finalClips(_ people: [[Sample]], _ merged: [(Segment, Int)], a: Bool, b: Bo
   if a {
     var keep: [(seg: Segment, first: Int, last: Int, ids: Set<Int>)] = []
     for item in low {
-      if let k = confident.firstIndex(where: { item.ids.contains($0.1) && min(item.seg.end, $0.0.end) > max(item.seg.start, $0.0.start) }) {
+      if let k = confident.firstIndex(where: { (item.ids.contains($0.1) || (item.seg.start >= $0.0.start && item.seg.start - $0.0.end <= 1.0 && handoff(people[$0.1], people[item.first], aEnd: $0.0.end, bStart: item.seg.start))) && (min(item.seg.end, $0.0.end) > max(item.seg.start, $0.0.start) || item.seg.start >= $0.0.end) }) {
         let c = confident[k].0
         confident[k].0 = Segment(start: min(c.start, item.seg.start), end: max(c.end, item.seg.end))
       } else {

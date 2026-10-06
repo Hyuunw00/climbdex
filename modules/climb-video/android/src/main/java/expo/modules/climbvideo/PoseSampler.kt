@@ -26,8 +26,17 @@ class Track(c: Candidate, t: Double) {
   var x = c.x
   var y = c.y
   var torso = c.torso
+  val torsos = mutableListOf(c.torso)
   var lastT = t
   val samples = mutableListOf<Sample>()
+
+  val torsoMedian: Double get() = torsos.sorted()[(torsos.size - 1) / 2]
+
+  fun update(c: Candidate, t: Double) {
+    x = c.x; y = c.y; torso = c.torso; lastT = t
+    torsos.add(c.torso)
+    if (torsos.size > 5) torsos.removeAt(0)
+  }
 
   fun toJson(): JSONObject {
     val list = JSONArray()
@@ -177,14 +186,14 @@ class PoseSampler(private val context: Context) {
             var best: Int? = null
             var bestScore = Double.MAX_VALUE
             tracks.forEachIndexed { n, tr ->
-              if (n in taken || t - tr.lastT > trackTimeout || c.torso / tr.torso !in torsoBand) return@forEachIndexed
+              if (n in taken || t - tr.lastT > trackTimeout || (c.torso / tr.torso !in torsoBand && c.torso / tr.torsoMedian !in torsoBand)) return@forEachIndexed
               val dist = sqrt((c.x - tr.x) * (c.x - tr.x) + (c.y - tr.y) * (c.y - tr.y))
               val base = min(followRadius, max(0.08, 3.0 * tr.torso))
               val radius = min(0.4, base + 0.1 * (t - tr.lastT))
               if (dist <= radius && dist / radius < bestScore) { best = n; bestScore = dist / radius }
             }
             val tr = if (best != null) tracks[best!!].also { taken.add(best!!) } else Track(c, t).also { tracks.add(it); taken.add(tracks.size - 1) }
-            tr.x = c.x; tr.y = c.y; tr.torso = c.torso; tr.lastT = t
+            tr.update(c, t)
             tr.samples.add(Sample(t, c.ankleY, c.torso, c.x, c.y, c.confidence))
           }
         }

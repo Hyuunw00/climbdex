@@ -1,5 +1,17 @@
 # STATUS
 
+## 마지막에 한 일 (2026-10-06, 회사 맥)
+- 주말 노트북 커밋(18개) 머지. 충돌은 App.tsx import 한 줄과 STATUS.md 세션 기록뿐. 머지 커밋 `aa85d8b`, 미푸시
+- **회사 맥 Xcode 26 전환**. 노트북 코드가 iOS 26 API(`BGContinuedProcessingTask`)를 써서 Xcode 16.2로는 컴파일 불가. macOS 15.5→15.8.1, `/Applications/Xcode-26.3.app` 추가(16.2 `Xcode.app`은 유지, 회사 앱용). Sequoia에서 되는 마지막 Xcode가 26.3(26.4+는 macOS 26 필요). 전환은 `sudo xcode-select -s /Applications/Xcode-26.3.app`, 회사 앱은 `… -s /Applications/Xcode.app`
+- `npx expo prebuild`(clean 없이) → pod install → 아이폰 디버그 빌드 설치, Metro 연결 확인. 디스크 정리로 DerivedData·옛 DeviceSupport·npm/CocoaPods 캐시 35GB 비움
+
+## 막힌 것 / 함정 (2026-10-06)
+- **Xcode 26.3 + 런타임**: 실기기 빌드도 iOS 플랫폼 런타임이 있어야 함("iOS 26.2 is not installed"). `xcodebuild -downloadPlatform iOS`로 받은 26.3.1은 actool이 안 받아 빌드 실패("No simulator runtime version from [...] available to use with iphonesimulator SDK 23C57"). **Xcode 앱을 열어 첫 실행 구성 요소 창(또는 Settings → Components)에서 iOS 26.2를 받으면 됨**. 그 뒤 같은 26.3.1 이름으로 등록되지만 빌드 통과
+- **prebuild 뒤 iOS 빌드 전 두 가지**: (1) `ios/climbdex/climbdex.entitlements`에서 `aps-environment` 삭제(expo-notifications가 넣는 푸시 권한, 개인 팀 불가, 노트북 10-03 기록과 동일), (2) 프로파일 없으면 expo CLI가 자동 생성 옵션을 안 넘기므로 `ios/`에서 `xcodebuild -workspace climbdex.xcworkspace -scheme climbdex -configuration Debug -destination 'platform=iOS,id=00008110-0011056C1428401E' -allowProvisioningUpdates -allowProvisioningDeviceRegistration build` 한 번. 설치는 `xcrun devicectl device install app --device … <DerivedData>/Build/Products/Debug-iphoneos/climbdex.app`
+- 안드로이드 `android/app/build.gradle`의 릴리스 서명 블록은 clean 없는 prebuild에선 유지됨(확인)
+- 안드로이드 에뮬레이터 디버그 빌드는 주말 네이티브 변경(expo-notifications·keep-awake·모듈) 반영 전. 다음 안드로이드 확인 때 재빌드 필요
+- 시뮬레이터 런타임 iOS 26.3.1이 두 번 받아져 25GB 차지(`/System/Library/AssetsV2/com_apple_MobileAsset_iOSSimulatorRuntime`). 정리는 `xcrun simctl runtime list` 후 `delete`
+
 ## 마지막에 한 일 (2026-10-04, 개인 노트북)
 - **임시 앱 아이콘**(사용자 결정: 정체성이 바뀔 수 있어 Expo 기본 아이콘만 피함). 검정 배경 + 흰 크림프 홀드(위쪽 립 선, 볼트 구멍). `assets/`의 icon·android-icon 셋·splash-icon·favicon 교체, app.json `android.adaptiveIcon` 연결(전엔 안 쓰였음). 생성은 Swift 스크립트(세션 scratchpad, 저장 안 함). 다음 빌드부터 반영, iOS는 `prebuild` 필요할 수 있음
 - 소개 릴스 1편(자르기 기능) 업로드 완료. 2편은 따라가기 비포/애프터

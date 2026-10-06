@@ -14,6 +14,7 @@
 - 자동 검출은 초안, 확정은 사용자가 조절 바로 한다
 - 암장 데이터에는 종류 칸(실내·자연암벽·리드·해외)만 두고 기능은 만들지 않는다
 - 앱 문구에서 "체크인"이라 쓰지 않는다. 첫 방문은 "도감에 등록", 다시 간 날은 "방문 등록"
+- 앱 문구에서 "띠"라고 쓰지 않는다. 홀드 색과 헷갈리지 않게 "색"도 피하고 "난이도"로 쓴다(암장 페이지 "난이도 표", 트림 화면 "난이도"). 코드 이름(`tapes`)은 그대로
 
 ## 세션 규칙
 - 이 레포는 두 기기(회사 맥·개인 노트북)에서 번갈아 작업한다. 세션 컨텍스트가 공유되지 않으므로 결정 사항은 대화가 아니라 `docs/`에 남긴다
@@ -28,5 +29,6 @@
 - 검출 로직을 바꾼 뒤엔 앱에서 "전체 비우기" 후 다시 골라야 함. 검출 결과가 영상 목록과 함께 저장돼 옛 결과가 남음
 - 시뮬레이터 테스트 영상 넣기: ASCII 경로로 복사 후 `xcrun simctl addmedia <UDID> <file>`
 - 안드로이드: `npx expo run:android` (에뮬레이터 Pixel_7 먼저 띄움). 에뮬레이터에 영상 넣기: `adb push <file> /sdcard/Movies/` 후 `MEDIA_SCANNER_SCAN_FILE` 브로드캐스트. Metro는 `adb reverse tcp:8081 tcp:8081`
+- Supabase 스키마·시드 적용: `.env`의 `SUPABASE_DB_URL`(세션 풀러 `aws-0-ap-northeast-2`, 직접 연결은 IPv6 전용이라 안 붙음)로 `set -a; . ./.env; set +a; psql "$SUPABASE_DB_URL" -f supabase/schema.sql`. `.env`는 기기마다 따로
 - `gyms.json`을 `collect-gyms.mjs --offline`으로 다시 만들면 `types` 칸이 비므로 바로 `python3 scripts/spiri7-grades.py`를 이어서 돌린다
 - 네이티브 로직은 `scripts/detect.swift`가 원본. iOS 모듈은 그 본문을 복사해 만들고, Android는 `Segmenter.kt`에 같은 규칙을 손으로 옮김. 규칙을 바꾸면 세 군데 같이

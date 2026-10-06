@@ -71,7 +71,7 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
   return (
     <View>
       <View style={styles.titleRow}>
-        <Text style={styles.sectionTitle}>띠 난이도</Text>
+        <Text style={styles.sectionTitle}>난이도 표</Text>
         {data?.set && (
           <Text style={styles.source}>
             {voteTotal > 0 ? `추정 · 투표 ${voteTotal}` : '추정'}
@@ -86,9 +86,9 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
         <Text style={styles.empty}>불러오는 중…</Text>
       ) : !data.set ? (
         <View style={styles.emptyBox}>
-          <Text style={styles.empty}>아직 띠 순서가 없어요</Text>
+          <Text style={styles.empty}>아직 난이도 순서가 없어요</Text>
           <Pressable style={styles.secondary} onPress={() => requireMember(() => setOrdering(true))}>
-            <Text style={styles.secondaryText}>띠 순서 알려 주세요</Text>
+            <Text style={styles.secondaryText}>난이도 순서 알려 주세요</Text>
           </Pressable>
         </View>
       ) : (
@@ -104,7 +104,7 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
               </Pressable>
             ))}
           </View>
-          <Text style={styles.hint}>위로 갈수록 어려워요 · 띠를 누르면 투표할 수 있어요</Text>
+          <Text style={styles.hint}>위로 갈수록 어려워요 · 누르면 투표할 수 있어요</Text>
           <Pressable onPress={() => (userId ? setReporting(true) : onNeedAuth())}>
             <Text style={styles.report}>표가 틀렸나요? 신고하기</Text>
           </Pressable>
@@ -188,7 +188,7 @@ export function VoteSheet({ tape, mine, onClose, onSubmit, onRemove, skipLabel, 
     else setPicked({ min: picked.min, max: v });
   };
   return (
-    <Sheet title={`${tape.label} 띠는 몇 V?`} onClose={onClose}>
+    <Sheet title={`${tape.label} 난이도는 몇 V?`} onClose={onClose}>
       <View style={styles.voteHead}>
         <Swatch color={tape.color} size={36} />
         <Text style={styles.voteCurrent}>지금 표시: {formatRange(tape.vMin, tape.vMax)} · 투표 {tape.votes}</Text>
@@ -230,7 +230,7 @@ function ReportSheet({ tapes, onClose, onSubmit }: { tapes: Tape[]; onClose: () 
   return (
     <Sheet title="표가 틀렸나요?" onClose={onClose}>
       <View style={styles.segment}>
-        {([['order', '띠 순서·색이 달라요'], ['v', 'V등급이 달라요']] as const).map(([k, text]) => (
+        {([['order', '난이도 순서가 달라요'], ['v', 'V등급이 달라요']] as const).map(([k, text]) => (
           <Pressable key={k} style={[styles.segmentItem, kind === k && styles.segmentOn]} onPress={() => setKind(k)}>
             <Text style={[styles.segmentText, kind === k && styles.segmentTextOn]}>{text}</Text>
           </Pressable>
@@ -238,7 +238,7 @@ function ReportSheet({ tapes, onClose, onSubmit }: { tapes: Tape[]; onClose: () 
       </View>
       {tapes.length > 0 && (
         <>
-          <Text style={styles.label}>어느 띠인가요? (선택)</Text>
+          <Text style={styles.label}>어느 난이도인가요? (선택)</Text>
           <View style={styles.palette}>
             {tapes.map((t) => (
               <Pressable key={t.label} style={[styles.paletteItem, label === t.label && styles.paletteOn]} onPress={() => setLabel(label === t.label ? null : t.label)}>
@@ -269,8 +269,8 @@ export function OrderSheet({ onClose, onSubmit, skipLabel, onSkip }: { onClose: 
   const toggle = (p: { label: string; color: string }) =>
     setPicked(picked.some((x) => x.label === p.label) ? picked.filter((x) => x.label !== p.label) : [...picked, p]);
   return (
-    <Sheet title="띠 순서 알려 주세요" onClose={onClose}>
-      <Text style={styles.hint}>가장 쉬운 띠부터 차례로 눌러 주세요. 다시 누르면 빠져요</Text>
+    <Sheet title="난이도 순서 알려 주세요" onClose={onClose}>
+      <Text style={styles.hint}>가장 쉬운 난이도부터 차례로 눌러 주세요. 다시 누르면 빠져요</Text>
       <View style={styles.palette}>
         {PALETTE.map((p) => {
           const order = picked.findIndex((x) => x.label === p.label);
@@ -285,14 +285,14 @@ export function OrderSheet({ onClose, onSubmit, skipLabel, onSkip }: { onClose: 
       </View>
       <Text style={styles.label}>쉬운 순서 →</Text>
       <View style={styles.orderRow}>
-        {picked.length === 0 ? <Text style={styles.empty}>아직 고른 띠가 없어요</Text> : picked.map((p) => <Swatch key={p.label} color={p.color} size={24} />)}
+        {picked.length === 0 ? <Text style={styles.empty}>아직 고른 난이도가 없어요</Text> : picked.map((p) => <Swatch key={p.label} color={p.color} size={24} />)}
       </View>
       <Pressable
         style={[styles.primary, picked.length < 2 && styles.disabled]}
         disabled={picked.length < 2}
         onPress={() => onSubmit(picked.map((p) => ({ label: p.label, color: p.color, v: null, vMin: null, vMax: null })))}
       >
-        <Text style={styles.primaryText}>{picked.length}개 띠로 저장</Text>
+        <Text style={styles.primaryText}>{picked.length}단계로 저장</Text>
       </Pressable>
       {skipLabel && (
         <Pressable onPress={onSkip ?? onClose} style={styles.textButton}>

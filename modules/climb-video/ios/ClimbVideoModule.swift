@@ -40,6 +40,17 @@ public class ClimbVideoModule: Module {
       return output.absoluteString
     }
 
+    AsyncFunction("saveClip") { (uri: String) async throws -> String in
+      let url = try resolveURL(uri)
+      var created: String?
+      try await PHPhotoLibrary.shared().performChanges {
+        let request = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+        request?.creationDate = Date()
+        created = request?.placeholderForCreatedAsset?.localIdentifier
+      }
+      return created ?? ""
+    }
+
     AsyncFunction("thumbnails") { (uri: String, times: [Double], width: Double) throws -> [String] in
       let thumbStart = Date()
       defer { NativeLog.shared.add("thumbnails \(shortId(uri)) x\(times.count) \(ms(since: thumbStart))") }

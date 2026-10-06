@@ -12,6 +12,7 @@ export type FollowPlan = {
 
 declare class ClimbVideoModule extends NativeModule {
   trim(uri: string, start: number, end: number): Promise<string>;
+  saveClip?(uri: string): Promise<string>;
   followPath(uri: string, start: number, end: number, tracks?: Track[]): Promise<FollowPlan>;
   exportFollow(uri: string, start: number, end: number, tracks?: Track[]): Promise<string>;
   exportCrop(uri: string, start: number, end: number): Promise<string>;

@@ -12,7 +12,8 @@ import { clipsOf } from '../clips';
 import { deleteFile } from '../videoFiles';
 import type { Settings } from '../settings';
 import type { DexState } from '../store/dex';
-import { type GymCandidate, judgeSend, pushSends, resolveGyms } from '../store/sends';
+import { type GymCandidate, judgeSend, resolveGyms } from '../store/sends';
+import { deliverSends } from '../store/outbox';
 import { OrderSheet, VoteSheet } from '../components/TapeSection';
 import { PALETTE, type Tape, type TapeData, type TapeSummary, castVote, fetchTapes, saveTapeSet, summarize } from '../store/tapes';
 
@@ -342,14 +343,18 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           return { gymId: choice.gym.id, basis: choice.basis, clip: c, label: c.tape ?? null, sent: c.sent ?? true, vMin: tape?.vMin ?? own?.min ?? null, vMax: tape?.vMax ?? own?.max ?? null };
         });
         sent = records.filter((r) => r.sent).length;
-        try {
-          await pushSends(userId, video, records);
-          if (order) await saveTapeSet(userId, choice.gym.id, order);
-          if (vote) await castVote(userId, choice.gym.id, vote.label, vote.min, vote.max);
-          if (order || vote) loadTapes(choice.gym.id);
-        } catch (e) {
-          console.log('record push error', String(e));
-          Alert.alert('기록을 서버에 남기지 못했어요', '클립은 저장됐어요. 네트워크를 확인하고 암장 페이지에서 다시 투표해 주세요');
+        const delivered = await deliverSends(userId, video, records);
+        if (delivered && (order || vote)) {
+          try {
+            if (order) await saveTapeSet(userId, choice.gym.id, order);
+            if (vote) await castVote(userId, choice.gym.id, vote.label, vote.min, vote.max);
+            loadTapes(choice.gym.id);
+          } catch (e) {
+            console.log('tape push error', String(e));
+            Alert.alert('투표를 남기지 못했어요', '클립은 저장됐어요. 네트워크가 연결되면 암장 페이지에서 다시 해 주세요');
+          }
+        } else if (order || vote) {
+          Alert.alert('투표를 남기지 못했어요', '클립은 저장됐어요. 네트워크가 연결되면 암장 페이지에서 다시 해 주세요');
         }
       }
       Alert.alert('저장했어요', `클립 ${done}개를 사진 앱에 넣었어요` + (recording ? ` · 등반 기록 ${done}개(완등 ${sent})` : ''));

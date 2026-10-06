@@ -27,7 +27,8 @@ import AuthScreen from './src/screens/AuthScreen';
 import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, dayKey, visitedToday } from './src/store/dex';
 import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
-import { pushVideoSummary, resolveGyms } from './src/store/sends';
+import { resolveGyms } from './src/store/sends';
+import { deliverSummary, flushOutbox } from './src/store/outbox';
 import { dismissToday, dismissedToday } from './src/todayVideos';
 
 const store = new File(Paths.document, 'videos.json');
@@ -174,7 +175,7 @@ export default function App() {
       if (event === 'SIGNED_OUT') ensureSession();
     });
     const active = AppState.addEventListener('change', (state) => {
-      if (state === 'active') ensureSession();
+      if (state === 'active') ensureSession().then(() => flushOutbox());
     });
     return () => {
       sub.subscription.unsubscribe();
@@ -235,6 +236,10 @@ export default function App() {
   useEffect(() => {
     if (userId) retryMerge();
   }, [userId]);
+
+  useEffect(() => {
+    if (ownerId) flushOutbox();
+  }, [ownerId]);
 
   useEffect(() => {
     if (userId && dexReady) saveCache(userId, dex);
@@ -342,7 +347,7 @@ export default function App() {
       if (uid) {
         const done: PickedVideo = { ...video, ...meta, segments, candidates, handheld };
         const gyms = resolveGyms(done, latest.current.dex);
-        pushVideoSummary(uid, done, gyms.length === 1 ? gyms[0] : null, Date.now() - startedAt).catch((e) => console.log('video summary error', String(e)));
+        deliverSummary(uid, done, gyms.length === 1 ? gyms[0] : null, Date.now() - startedAt);
       }
       if (segments.length > 0) {
         try {

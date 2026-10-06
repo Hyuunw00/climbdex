@@ -114,7 +114,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       const found = resolveGyms(current, dex);
       console.log('record gym', video.fileName, JSON.stringify({ createdAt: current.createdAt, pickedAt: current.pickedAt, location: current.location, visits: dex.visits.map((v) => [v.gymId, v.at]), found: found.map((c) => [c.gym.name, c.basis]) }));
       setCandidates(found);
-      setChoice(found.find((c) => c.gym.id === clips[0]?.gymId) ?? found[0] ?? null);
+      setChoice(found.find((c) => c.gym.id === clips[0]?.gymId) ?? (found.length === 1 ? found[0] : null));
     })();
     return () => {
       cancelled = true;
@@ -269,19 +269,17 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     player.play();
   };
 
-  const recording = !!(userId && choice && !noRecord);
+  const recording = !!(userId && candidates.length > 0 && !noRecord);
   const unsaved = clips.filter((c) => !c.saved).length;
+  const needGym = recording && !choice;
+  const needTape = recording && !clip.tape;
+  const needTapeAll = recording && clips.some((c) => !c.saved && !c.tape);
 
   const pickRecordGym = () => {
-    Alert.alert(
-      '완등 기록',
-      clips.length > 1 ? `${current + 1}번 구간 · ${clip.tape ?? '띠 미선택'}` : undefined,
-      [
-        ...candidates.filter((c) => c.gym.id !== choice?.gym.id).map((c) => ({ text: c.gym.name, onPress: () => setChoice(c) })),
-        { text: '기록 안 함', style: 'destructive' as const, onPress: () => setNoRecord(true) },
-        { text: '닫기', style: 'cancel' as const },
-      ],
-    );
+    Alert.alert('어느 암장이에요?', undefined, [
+      ...candidates.filter((c) => c.gym.id !== choice?.gym.id).map((c) => ({ text: c.gym.name, onPress: () => setChoice(c) })),
+      { text: '닫기', style: 'cancel' as const },
+    ]);
   };
 
   const save = async (targets: Clip[]) => {
@@ -290,41 +288,21 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       Alert.alert('사진 앱 저장 권한이 필요해요');
       return;
     }
-    if (recording) {
-      const missing = targets.find((c) => !c.tape);
-      if (missing) {
-        Alert.alert('띠 색을 골라 주세요', clips.length > 1 ? `${clips.indexOf(missing) + 1}번 구간의 띠가 아직 없어요` : '이 시도의 띠 색을 고르면 완등 기록이 남아요');
-        return;
-      }
-    }
-    if (recording && choice && userId && tapes !== undefined && !tapes?.set) {
-      const order = await new Promise<Tape[] | null | undefined>((resolve) => setOrderFor({ resolve }));
+    if (recording && (!choice || targets.some((c) => !c.tape))) return;
+    let order: Tape[] | null = null;
+    let vote: { label: string; v: number } | null = null;
+    if (recording && choice && tapes !== undefined && !tapes?.set) {
+      const answer = await new Promise<Tape[] | null | undefined>((resolve) => setOrderFor({ resolve }));
       setOrderFor(null);
-      if (order === undefined) return;
-      if (order) {
-        try {
-          await pushSends(userId, video, targets.map((c) => ({ gymId: choice.gym.id, basis: choice.basis, clip: c, label: c.tape!, sent: c.sent ?? true })));
-          await saveTapeSet(userId, choice.gym.id, order);
-          loadTapes(choice.gym.id);
-        } catch (e) {
-          console.log('order save error', String(e));
-        }
-      }
-    }
-    if (recording && choice && tapes?.set && targets[0].tape) {
+      if (answer === undefined) return;
+      order = answer;
+    } else if (recording && choice && tapes?.set && targets[0].tape) {
       const tape = summarize(tapes, userId).find((t) => t.label === targets[0].tape);
       if (tape && !tape.voted) {
-        const v = await new Promise<number | null | undefined>((resolve) => setVoteFor({ tape, resolve }));
+        const answer = await new Promise<number | null | undefined>((resolve) => setVoteFor({ tape, resolve }));
         setVoteFor(null);
-        if (v === undefined) return;
-        if (v !== null && userId) {
-          try {
-            await castVote(userId, choice.gym.id, tape.label, v, v);
-            loadTapes(choice.gym.id);
-          } catch (e) {
-            console.log('vote error', String(e));
-          }
-        }
+        if (answer === undefined) return;
+        if (answer !== null) vote = { label: tape.label, v: answer };
       }
     }
     let done = 0;
@@ -334,7 +312,8 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         const outUri = follow
           ? await ClimbVideo.exportFollow(video.uri, target.start, target.end, video.tracks)
           : await ClimbVideo.trim(video.uri, target.start, target.end);
-        await MediaLibrary.saveToLibraryAsync(outUri);
+        if (ClimbVideo.saveClip) await ClimbVideo.saveClip(outUri);
+        else await MediaLibrary.saveToLibraryAsync(outUri);
         deleteFile(outUri);
         done += 1;
       }
@@ -347,8 +326,12 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         sent = records.filter((r) => r.sent).length;
         try {
           await pushSends(userId, video, records);
+          if (order) await saveTapeSet(userId, choice.gym.id, order);
+          if (vote) await castVote(userId, choice.gym.id, vote.label, vote.v, vote.v);
+          if (order || vote) loadTapes(choice.gym.id);
         } catch (e) {
-          console.log('sends push error', String(e));
+          console.log('record push error', String(e));
+          Alert.alert('기록을 서버에 남기지 못했어요', '클립은 저장됐어요. 네트워크를 확인하고 암장 페이지에서 다시 투표해 주세요');
         }
       }
       Alert.alert('저장했어요', `클립 ${done}개를 사진 앱에 넣었어요` + (recording ? ` · 완등 ${sent}개 기록` : ''));
@@ -462,17 +445,32 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         </View>
         <Switch value={follow} onValueChange={setFollow} trackColor={{ true: '#111' }} />
       </View>
-      {userId && choice && noRecord && (
-        <Pressable onPress={() => setNoRecord(false)} hitSlop={6} style={styles.recordOff}>
-          <Text style={styles.recordLink}>완등 기록 안 남김 · 다시 켜기</Text>
+      {userId && candidates.length > 0 && noRecord && (
+        <Pressable onPress={() => setNoRecord(false)} hitSlop={6} style={[styles.record, styles.recordOff]}>
+          <Text style={styles.recordMuted}>완등 기록 안 남김 · 다시 켜기</Text>
         </Pressable>
+      )}
+      {recording && !choice && (
+        <View style={styles.record}>
+          <Text style={styles.label}>어느 암장이에요?</Text>
+          <View style={styles.pills}>
+            {candidates.map((c) => (
+              <Pressable key={c.gym.id} style={styles.pill} onPress={() => setChoice(c)}>
+                <Text style={styles.pillText}>{c.gym.name}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Pressable onPress={() => setNoRecord(true)} hitSlop={6} style={styles.recordFoot}>
+            <Text style={styles.recordMuted}>기록 안 함</Text>
+          </Pressable>
+        </View>
       )}
       {recording && choice && (
         <View style={styles.record}>
           <View style={styles.recordHead}>
-            <Pressable onPress={pickRecordGym} hitSlop={6} style={styles.recordGymButton}>
+            <Pressable onPress={pickRecordGym} hitSlop={6} style={styles.recordGymButton} disabled={candidates.length < 2}>
               <Text style={styles.recordGym}>{choice.gym.name}</Text>
-              <Ionicons name="chevron-down" size={16} color="#666" />
+              {candidates.length > 1 && <Ionicons name="chevron-down" size={16} color="#666" />}
             </Pressable>
             <View style={styles.sentSwitch}>
               {([[true, '완등'], [false, '낙하']] as const).map(([v, text]) => (
@@ -495,6 +493,9 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
               ))}
             </ScrollView>
           )}
+          <Pressable onPress={() => setNoRecord(true)} hitSlop={6} style={styles.recordFoot}>
+            <Text style={styles.recordMuted}>기록 안 함</Text>
+          </Pressable>
         </View>
       )}
       {video.saved ? <Text style={styles.savedNote}>이 영상에서 저장한 클립 {video.saved}개</Text> : null}
@@ -505,16 +506,16 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           <Text style={styles.secondaryText}>{playing ? '일시정지' : '재생'}</Text>
         </Pressable>
         <Pressable
-          style={[styles.primary, saving !== null && styles.disabled, clip.saved && styles.primarySaved]}
+          style={[styles.primary, (saving !== null || needGym || needTape) && styles.disabled, clip.saved && styles.primarySaved]}
           onPress={() => (clip.saved ? Alert.alert('이미 저장한 구간이에요', undefined, [{ text: '취소', style: 'cancel' }, { text: '다시 저장', onPress: () => save([clip]) }]) : save([clip]))}
-          disabled={saving !== null}
+          disabled={saving !== null || needGym || needTape}
         >
-          <Text style={styles.primaryText}>{saving ?? (clip.saved ? `${current + 1}번 저장됨 ✓` : `${current + 1}번 저장`)}</Text>
+          <Text style={styles.primaryText}>{saving ?? (needGym ? '암장을 골라 주세요' : needTape ? '띠를 골라 주세요' : clip.saved ? `${current + 1}번 저장됨 ✓` : `${current + 1}번 저장`)}</Text>
         </Pressable>
       </View>
       {clips.length > 1 && (
-        <Pressable onPress={() => save(clips.filter((c) => !c.saved))} disabled={saving !== null || unsaved === 0} hitSlop={6} style={styles.allLink}>
-          <Text style={[styles.allLinkText, (saving !== null || unsaved === 0) && styles.disabled]}>
+        <Pressable onPress={() => save(clips.filter((c) => !c.saved))} disabled={saving !== null || unsaved === 0 || needGym || needTapeAll} hitSlop={6} style={styles.allLink}>
+          <Text style={[styles.allLinkText, (saving !== null || unsaved === 0 || needGym || needTapeAll) && styles.disabled]}>
             {unsaved === 0 ? '모든 구간 저장됨 ✓' : unsaved === clips.length ? `모든 구간 저장 (${clips.length}개)` : `남은 구간 저장 (${unsaved}개)`}
           </Text>
         </Pressable>
@@ -587,7 +588,12 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.5 },
   savedNote: { fontSize: 13, color: '#888', textAlign: 'center' },
   record: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: '#f7f7f9' },
-  recordOff: { alignSelf: 'center', paddingVertical: 4 },
+  recordOff: { alignItems: 'center' },
+  recordFoot: { alignSelf: 'flex-end' },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  pill: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd' },
+  pillText: { fontSize: 14, color: '#111' },
+  recordMuted: { fontSize: 12, color: '#999' },
   recordHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   recordGymButton: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   recordGym: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
@@ -602,5 +608,5 @@ const styles = StyleSheet.create({
   tapeChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#fff', borderWidth: 2, borderColor: 'transparent' },
   tapeChipOn: { borderColor: '#d7263d' },
   tapeChipText: { fontSize: 13 },
-  swatch: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' },
+  swatch: { width: 22, height: 12, borderRadius: 3, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' },
 });

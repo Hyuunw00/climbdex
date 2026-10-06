@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { type ReactNode, useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RED } from './dex';
 import {
   PALETTE, type Tape, type TapeData, type TapeSummary, V_MAX, V_MIN,
@@ -17,8 +17,8 @@ type Props = {
 
 const V_OPTIONS = Array.from({ length: V_MAX - V_MIN + 1 }, (_, i) => V_MIN + i);
 
-function Swatch({ color, size = 28 }: { color: string | null; size?: number }) {
-  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color ?? '#ddd', borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' }} />;
+export function Swatch({ color, size = 28 }: { color: string | null; size?: number }) {
+  return <View style={{ width: size * 1.6, height: size * 0.6, borderRadius: 3, backgroundColor: color ?? '#ddd', borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' }} />;
 }
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
@@ -93,17 +93,18 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
         </View>
       ) : (
         <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-            {summary.map((t) => (
-              <Pressable key={t.label} style={[styles.chip, t.voted && styles.chipVoted]} onPress={() => requireMember(() => setVoting(t))}>
-                <Swatch color={t.color} />
-                <Text style={styles.chipLabel}>{t.label}</Text>
-                <Text style={styles.chipV}>{formatRange(t.vMin, t.vMax)}</Text>
-                {t.votes > 0 && <Text style={styles.chipVotes}>투표 {t.votes}</Text>}
+          <View style={styles.board}>
+            {[...summary].reverse().map((t) => (
+              <Pressable key={t.label} style={[styles.row, t.voted && styles.rowVoted]} onPress={() => requireMember(() => setVoting(t))}>
+                <View style={[styles.bar, { backgroundColor: t.color ?? '#ddd' }]}>
+                  <Text style={[styles.barLabel, isDark(t.color) && styles.barLabelLight]}>{t.label}</Text>
+                </View>
+                <Text style={styles.rowV}>{formatRange(t.vMin, t.vMax)}</Text>
+                <Text style={styles.rowVotes}>{t.votes > 0 ? `투표 ${t.votes}` : ''}</Text>
               </Pressable>
             ))}
-          </ScrollView>
-          <Text style={styles.hint}>띠를 누르면 투표할 수 있어요</Text>
+          </View>
+          <Text style={styles.hint}>위로 갈수록 어려워요 · 띠를 누르면 투표할 수 있어요</Text>
           <Pressable onPress={() => (userId ? setReporting(true) : onNeedAuth())}>
             <Text style={styles.report}>표가 틀렸나요? 신고하기</Text>
           </Pressable>
@@ -302,18 +303,28 @@ export function OrderSheet({ onClose, onSubmit, skipLabel, onSkip }: { onClose: 
   );
 }
 
+function isDark(color: string | null) {
+  if (!color || color.length < 7) return false;
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b < 140;
+}
+
 const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 16 },
   sectionTitle: { fontSize: 15, fontWeight: '600' },
   source: { fontSize: 12, color: '#999' },
   empty: { color: '#999', fontSize: 13 },
   emptyBox: { gap: 8, alignItems: 'flex-start' },
-  chips: { gap: 10, paddingVertical: 8 },
-  chip: { alignItems: 'center', gap: 3, paddingVertical: 8, paddingHorizontal: 8, borderRadius: 12, backgroundColor: '#f4f4f6', minWidth: 64, borderWidth: 2, borderColor: 'transparent' },
-  chipVoted: { borderColor: RED },
-  chipLabel: { fontSize: 12, color: '#333' },
-  chipV: { fontSize: 14, fontWeight: '700' },
-  chipVotes: { fontSize: 10, color: '#999' },
+  board: { gap: 4, paddingVertical: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 6, borderWidth: 2, borderColor: 'transparent', paddingRight: 6 },
+  rowVoted: { borderColor: RED },
+  bar: { width: 120, height: 26, borderRadius: 3, justifyContent: 'center', paddingHorizontal: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
+  barLabel: { fontSize: 12, fontWeight: '600', color: '#111' },
+  barLabelLight: { color: '#fff' },
+  rowV: { fontSize: 14, fontWeight: '700', minWidth: 56 },
+  rowVotes: { fontSize: 12, color: '#999' },
   hint: { fontSize: 12, color: '#999' },
   report: { fontSize: 13, color: '#0a58ca', paddingVertical: 6 },
   secondary: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, backgroundColor: '#111' },

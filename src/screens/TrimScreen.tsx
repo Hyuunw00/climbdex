@@ -448,6 +448,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       {userId && candidates.length > 0 && noRecord && (
         <Pressable onPress={() => setNoRecord(false)} hitSlop={6} style={[styles.record, styles.recordOff]}>
           <Text style={styles.recordMuted}>완등 기록 안 남김 · 다시 켜기</Text>
+          <Text style={styles.recordMuted}>기록을 남기면 내 완등 기록이 쌓여요</Text>
         </Pressable>
       )}
       {recording && !choice && (
@@ -588,7 +589,7 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.5 },
   savedNote: { fontSize: 13, color: '#888', textAlign: 'center' },
   record: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: '#f7f7f9' },
-  recordOff: { alignItems: 'center' },
+  recordOff: { alignItems: 'center', gap: 4 },
   recordFoot: { alignSelf: 'flex-end' },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   pill: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd' },

@@ -1,0 +1,3303 @@
+{
+ "note": "spiri7에는 있는데 data/gyms.json(카카오 529곳)에 없는 실내 암장. 같은 자리 다른 이름은 sameLocationDifferentName",
+ "gyms": [
+  {
+   "sid": 437,
+   "name": "클라이밍파크 성수",
+   "address": "서울 성동구 연무장13길 7",
+   "lat": 37.54231,
+   "lng": 127.058122,
+   "hits": 8891,
+   "recordCount": 5271,
+   "hasV": true
+  },
+  {
+   "sid": 145,
+   "name": "더클라임 B 홍대점",
+   "address": "서울 마포구 양화로 125 경남관광빌딩 2층",
+   "lat": 37.554709,
+   "lng": 126.920273,
+   "hits": 3508,
+   "recordCount": 3596,
+   "hasV": true
+  },
+  {
+   "sid": 618,
+   "name": "더클라임 신사점",
+   "address": "서울 강남구 압구정로2길 6",
+   "lat": 37.521086,
+   "lng": 127.019138,
+   "hits": 1630,
+   "recordCount": 3219,
+   "hasV": true
+  },
+  {
+   "sid": 180,
+   "name": "웨이브락 클라이밍 광안리점",
+   "address": "부산 수영구 장대골로 41",
+   "lat": 35.159244,
+   "lng": 129.109023,
+   "hits": 891,
+   "recordCount": 2256,
+   "hasV": true
+  },
+  {
+   "sid": 137,
+   "name": "볼더프렌즈 클라이밍",
+   "address": "서울 마포구 홍익로 25",
+   "lat": 37.554323,
+   "lng": 126.922038,
+   "hits": 2423,
+   "recordCount": 2184,
+   "hasV": true
+  },
+  {
+   "sid": 194,
+   "name": "클라임바운스 수원점",
+   "address": "경기 수원시 영통구 덕영대로 1566",
+   "lat": 37.245123,
+   "lng": 127.061899,
+   "hits": 3328,
+   "recordCount": 2062,
+   "hasV": true
+  },
+  {
+   "sid": 236,
+   "name": "클라임데이즈",
+   "address": "경기 안양시 만안구 덕천로152번길 25",
+   "lat": 37.392656,
+   "lng": 126.938222,
+   "hits": 1930,
+   "recordCount": 1991,
+   "hasV": true
+  },
+  {
+   "sid": 442,
+   "name": "온플릭 클라이밍 삼성점",
+   "address": "서울 강남구 테헤란로 505",
+   "lat": 37.50758,
+   "lng": 127.057444,
+   "hits": 3357,
+   "recordCount": 1910,
+   "hasV": true
+  },
+  {
+   "sid": 166,
+   "name": "더클라임 서울대점",
+   "address": "서울 관악구 남부순환로 1801",
+   "lat": 37.481815,
+   "lng": 126.950377,
+   "hits": 1082,
+   "recordCount": 1734,
+   "hasV": true
+  },
+  {
+   "sid": 174,
+   "name": "서울숲클라이밍 뚝섬점",
+   "address": "서울 성동구 성수일로 19",
+   "lat": 37.542325,
+   "lng": 127.048594,
+   "hits": 1937,
+   "recordCount": 1680,
+   "hasV": true
+  },
+  {
+   "sid": 689,
+   "name": "베이스캠프 클라이밍 둔산점",
+   "address": "대전 서구 대덕대로 243 3층",
+   "lat": 36.354598,
+   "lng": 127.379058,
+   "hits": 1401,
+   "recordCount": 1563,
+   "hasV": true
+  },
+  {
+   "sid": 206,
+   "name": "베이스캠프 클라이밍 유성점",
+   "address": "대전 유성구 온천로 52 4층",
+   "lat": 36.35482,
+   "lng": 127.343326,
+   "hits": 1055,
+   "recordCount": 1507,
+   "hasV": true
+  },
+  {
+   "sid": 195,
+   "name": "뀨클라임",
+   "address": "경기 수원시 영통구 청명남로34번길 12",
+   "lat": 37.252231,
+   "lng": 127.076154,
+   "hits": 1532,
+   "recordCount": 1327,
+   "hasV": true
+  },
+  {
+   "sid": 609,
+   "name": "마운틴그라운드 클라이밍",
+   "address": "경기 화성시 동탄대로5길 15",
+   "lat": 37.166169,
+   "lng": 127.106033,
+   "hits": 1511,
+   "recordCount": 1224,
+   "hasV": true
+  },
+  {
+   "sid": 332,
+   "name": "락랜드",
+   "address": "서울 강북구 도봉로 315",
+   "lat": 37.63693,
+   "lng": 127.023271,
+   "hits": 2245,
+   "recordCount": 1073,
+   "hasV": true
+  },
+  {
+   "sid": 234,
+   "name": "클라임잇 구로점",
+   "address": "서울 구로구 구로중앙로 215",
+   "lat": 37.504918,
+   "lng": 126.877135,
+   "hits": 1234,
+   "recordCount": 968,
+   "hasV": true
+  },
+  {
+   "sid": 157,
+   "name": "더플라스틱 클라이밍 문래점",
+   "address": "서울 영등포구 도림로 423 1층 ",
+   "lat": 37.513631,
+   "lng": 126.895704,
+   "hits": 1052,
+   "recordCount": 803,
+   "hasV": true
+  },
+  {
+   "sid": 252,
+   "name": "스튜디오 볼더",
+   "address": "서울 구로구 디지털로33길 11",
+   "lat": 37.485706,
+   "lng": 126.895513,
+   "hits": 1311,
+   "recordCount": 781,
+   "hasV": true
+  },
+  {
+   "sid": 596,
+   "name": "볼더하이웨이 클라이밍짐",
+   "address": "서울 강남구 논현로86길 20",
+   "lat": 37.499869,
+   "lng": 127.039176,
+   "hits": 1986,
+   "recordCount": 725,
+   "hasV": true
+  },
+  {
+   "sid": 318,
+   "name": "클라이밍파크 한티",
+   "address": "서울 강남구 선릉로 324",
+   "lat": 37.498528,
+   "lng": 127.052088,
+   "hits": 1092,
+   "recordCount": 713,
+   "hasV": true
+  },
+  {
+   "sid": 325,
+   "name": "치즈 클라이밍",
+   "address": "서울 용산구 원효로 134",
+   "lat": 37.533675,
+   "lng": 126.958206,
+   "hits": 1384,
+   "recordCount": 711,
+   "hasV": true
+  },
+  {
+   "sid": 241,
+   "name": "언더독 클라임",
+   "address": "경기 수원시 팔달구 권광로207번길 39",
+   "lat": 37.266422,
+   "lng": 127.031218,
+   "hits": 1007,
+   "recordCount": 696,
+   "hasV": true
+  },
+  {
+   "sid": 328,
+   "name": "무중력 클라이밍",
+   "address": "서울 강남구 논현로 563",
+   "lat": 37.506329,
+   "lng": 127.034024,
+   "hits": 1933,
+   "recordCount": 606,
+   "hasV": true
+  },
+  {
+   "sid": 1177,
+   "name": "그래비티 클라이밍 수원역점",
+   "address": "경기 수원시 팔달구 갓매산로 31 홍익스포츠프라자 2층",
+   "lat": 37.267255,
+   "lng": 127.005093,
+   "hits": 978,
+   "recordCount": 596,
+   "hasV": true
+  },
+  {
+   "sid": 173,
+   "name": "V10클라이밍 하남미사점",
+   "address": "경기 하남시 미사강변동로 81",
+   "lat": 37.562252,
+   "lng": 127.19272,
+   "hits": 841,
+   "recordCount": 552,
+   "hasV": true
+  },
+  {
+   "sid": 177,
+   "name": "훅클라이밍 성수점",
+   "address": "서울 성동구 성수일로12길 34",
+   "lat": 37.547556,
+   "lng": 127.054449,
+   "hits": 952,
+   "recordCount": 519,
+   "hasV": true
+  },
+  {
+   "sid": 240,
+   "name": "볼더팝 클라이밍",
+   "address": "경기 군포시 공단로104번길 11",
+   "lat": 37.354619,
+   "lng": 126.951087,
+   "hits": 767,
+   "recordCount": 505,
+   "hasV": true
+  },
+  {
+   "sid": 825,
+   "name": "볼더그라운드",
+   "address": "서울 마포구 잔다리로 31 B1층",
+   "lat": 37.551214,
+   "lng": 126.919676,
+   "hits": 652,
+   "recordCount": 465,
+   "hasV": true
+  },
+  {
+   "sid": 185,
+   "name": "락트리 클라이밍 강남",
+   "address": "서울 강남구 강남대로118길 12",
+   "lat": 37.506311,
+   "lng": 127.024755,
+   "hits": 1564,
+   "recordCount": 452,
+   "hasV": true
+  },
+  {
+   "sid": 440,
+   "name": "클라임바운스 이천점",
+   "address": "경기 이천시 부발읍 경충대로2050번길 59-76",
+   "lat": 37.251766,
+   "lng": 127.493318,
+   "hits": 437,
+   "recordCount": 388,
+   "hasV": true
+  },
+  {
+   "sid": 1380,
+   "name": "캐치스톤 클라이밍 부천시청점",
+   "address": "경기 부천시 원미구 석천로 171",
+   "lat": null,
+   "lng": null,
+   "hits": 592,
+   "recordCount": 364,
+   "hasV": true
+  },
+  {
+   "sid": 1410,
+   "name": "포에버클라이밍",
+   "address": "경기 수원시 영통구 영통로174번길 5",
+   "lat": 37.243302,
+   "lng": 127.055739,
+   "hits": 514,
+   "recordCount": 287,
+   "hasV": true
+  },
+  {
+   "sid": 263,
+   "name": "뉴비클라이밍 경북대점",
+   "address": "대구 동구 경대로 48",
+   "lat": 35.885089,
+   "lng": 128.614984,
+   "hits": 433,
+   "recordCount": 276,
+   "hasV": true
+  },
+  {
+   "sid": 155,
+   "name": "정지현클라이밍짐",
+   "address": "서울 관악구 봉천로 462 은일빌딩 7층",
+   "lat": 37.481997,
+   "lng": 126.951149,
+   "hits": 1318,
+   "recordCount": 269,
+   "hasV": true
+  },
+  {
+   "sid": 171,
+   "name": "V10클라이밍 장한평점",
+   "address": "서울 동대문구 장한로2길 63",
+   "lat": 37.561795,
+   "lng": 127.068768,
+   "hits": 660,
+   "recordCount": 253,
+   "hasV": true
+  },
+  {
+   "sid": 1066,
+   "name": "클라임 어스 장한평점",
+   "address": "서울 동대문구 장한로2길 63",
+   "lat": 37.561841,
+   "lng": 127.068807,
+   "hits": 299,
+   "recordCount": 239,
+   "hasV": true
+  },
+  {
+   "sid": 207,
+   "name": "노루클라이밍",
+   "address": "경북 경산시 청운로 24",
+   "lat": 35.837355,
+   "lng": 128.753696,
+   "hits": 438,
+   "recordCount": 231,
+   "hasV": true
+  },
+  {
+   "sid": 498,
+   "name": "핸드워크 클라이밍 전대점",
+   "address": "광주 북구 면앙로6번길 68",
+   "lat": 35.177221,
+   "lng": 126.913335,
+   "hits": 332,
+   "recordCount": 224,
+   "hasV": true
+  },
+  {
+   "sid": 184,
+   "name": "락스타 클라이밍",
+   "address": "서울 송파구 백제고분로 435",
+   "lat": 37.509794,
+   "lng": 127.11151,
+   "hits": 542,
+   "recordCount": 221,
+   "hasV": true
+  },
+  {
+   "sid": 254,
+   "name": "디스커버리 클라임스퀘어 구래점",
+   "address": "경기 김포시 김포한강8로 410 스타프라자 902호",
+   "lat": 37.642918,
+   "lng": 126.623606,
+   "hits": 250,
+   "recordCount": 200,
+   "hasV": true
+  },
+  {
+   "sid": 353,
+   "name": "B-pump Tokyo Akihabara 비펌프 도쿄 아키하바라",
+   "address": "1 Chome-1-8 Yushima, Bunkyo City, Tokyo 113-0034 일본",
+   "lat": 35.699852,
+   "lng": 139.768022,
+   "hits": 576,
+   "recordCount": 158,
+   "hasV": true
+  },
+  {
+   "sid": 228,
+   "name": "에어즈락 클라이밍 위례점",
+   "address": "서울 송파구 위례광장로 188",
+   "lat": 37.481073,
+   "lng": 127.142434,
+   "hits": 394,
+   "recordCount": 149,
+   "hasV": true
+  },
+  {
+   "sid": 178,
+   "name": "죠스 클라이밍",
+   "address": "부산 동래구 사직로 48",
+   "lat": 35.195842,
+   "lng": 129.060372,
+   "hits": 207,
+   "recordCount": 145,
+   "hasV": true
+  },
+  {
+   "sid": 771,
+   "name": "클라임크루",
+   "address": "경기 양주시 평화로 1575-6",
+   "lat": 37.830222,
+   "lng": 127.05282,
+   "hits": 212,
+   "recordCount": 114,
+   "hasV": true
+  },
+  {
+   "sid": 1017,
+   "name": "우디클라이밍",
+   "address": "경북 김천시 혁신2로 16 2층",
+   "lat": 36.115877,
+   "lng": 128.183704,
+   "hits": 297,
+   "recordCount": 81,
+   "hasV": true
+  },
+  {
+   "sid": 673,
+   "name": "공주숲 클라이밍짐",
+   "address": "충남 공주시 한적2길 29 신관동 노브랜드 3층",
+   "lat": 36.476924,
+   "lng": 127.140013,
+   "hits": 110,
+   "recordCount": 78,
+   "hasV": true
+  },
+  {
+   "sid": 172,
+   "name": "V10클라이밍 천호본점",
+   "address": "서울 강동구 올림픽로 588 귀뚜라미빌딩 B1",
+   "lat": 37.533971,
+   "lng": 127.122214,
+   "hits": 189,
+   "recordCount": 73,
+   "hasV": true
+  },
+  {
+   "sid": 170,
+   "name": "손상원 클라이밍짐 잠실점",
+   "address": "서울 송파구 백제고분로 224",
+   "lat": 37.503157,
+   "lng": 127.091312,
+   "hits": 469,
+   "recordCount": 65,
+   "hasV": true
+  },
+  {
+   "sid": 1166,
+   "name": "클라임 하우스",
+   "address": "강원 춘천시 지석로 85 8층 802호",
+   "lat": 37.85105,
+   "lng": 127.74477,
+   "hits": 137,
+   "recordCount": 62,
+   "hasV": true
+  },
+  {
+   "sid": 413,
+   "name": "더패스클라이밍짐 제주",
+   "address": "제주특별자치도 제주시 서광로 264",
+   "lat": 33.499688,
+   "lng": 126.524759,
+   "hits": 309,
+   "recordCount": 61,
+   "hasV": true
+  },
+  {
+   "sid": 329,
+   "name": "매드짐 광명클라이밍센터",
+   "address": "경기 광명시 범안로 1008",
+   "lat": 37.459972,
+   "lng": 126.87574,
+   "hits": 734,
+   "recordCount": 57,
+   "hasV": true
+  },
+  {
+   "sid": 190,
+   "name": "두클라이밍",
+   "address": "부산 남구 용소로19번길 10",
+   "lat": 35.135697,
+   "lng": 129.101379,
+   "hits": 207,
+   "recordCount": 53,
+   "hasV": true
+  },
+  {
+   "sid": 503,
+   "name": "D Bouldering Namba 오사카",
+   "address": "일본 〒542-0075 Osaka, Chuo Ward, Nanbasennichimae, 12−35, Swing Yoshimoto Building, 4F",
+   "lat": 34.664955,
+   "lng": 135.50266,
+   "hits": 153,
+   "recordCount": 52,
+   "hasV": true
+  },
+  {
+   "sid": 352,
+   "name": "B-pump ogikubo 비펌프 오기쿠보",
+   "address": "일본 〒167-0043 Tokyo, Suginami City, Kamiogi, 1 Chome−10−12 3F",
+   "lat": 35.704852,
+   "lng": 139.618692,
+   "hits": 383,
+   "recordCount": 51,
+   "hasV": true
+  },
+  {
+   "sid": 425,
+   "name": "프리월클라이밍짐",
+   "address": "경기 화성시 동탄원천로 338",
+   "lat": 37.217134,
+   "lng": 127.058636,
+   "hits": 181,
+   "recordCount": 40,
+   "hasV": true
+  },
+  {
+   "sid": 496,
+   "name": "락오디세이 동의대점",
+   "address": "부산 부산진구 가야대로563번길 31",
+   "lat": 35.155688,
+   "lng": 129.032947,
+   "hits": 136,
+   "recordCount": 38,
+   "hasV": true
+  },
+  {
+   "sid": 197,
+   "name": "어거스트 클라이밍 가산",
+   "address": "서울 금천구 디지털로 121",
+   "lat": 37.476087,
+   "lng": 126.880104,
+   "hits": 180,
+   "recordCount": 36,
+   "hasV": true
+  },
+  {
+   "sid": 188,
+   "name": "순천 몬타렉스",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 77,
+   "recordCount": 32,
+   "hasV": true
+  },
+  {
+   "sid": 1158,
+   "name": "원베일리 인바이트",
+   "address": "서울 서초구 반포대로 333 지하3층",
+   "lat": 37.506318,
+   "lng": 127.000005,
+   "hits": 84,
+   "recordCount": 31,
+   "hasV": true
+  },
+  {
+   "sid": 803,
+   "name": "ELEMENT Boulders Essen",
+   "address": "Haedenkampstraße 73, 45143 Essen, 독일",
+   "lat": 51.455821,
+   "lng": 6.986628,
+   "hits": 26,
+   "recordCount": 28,
+   "hasV": true
+  },
+  {
+   "sid": 816,
+   "name": "핸드워크 클라이밍 봉선점",
+   "address": "광주 남구 제석로 79 4층",
+   "lat": 35.121316,
+   "lng": 126.907007,
+   "hits": 109,
+   "recordCount": 27,
+   "hasV": true
+  },
+  {
+   "sid": 153,
+   "name": "타잔101 클라이밍 압구정점",
+   "address": "서울 강남구 압구정로28길 11 B1",
+   "lat": 37.525803,
+   "lng": 127.027843,
+   "hits": 354,
+   "recordCount": 26,
+   "hasV": true
+  },
+  {
+   "sid": 416,
+   "name": "Stone Goat Climb Gym",
+   "address": "36/3 Sukhumvit 69 Alley, Phra Khanong Nuea, Watthana, Bangkok 10110 태국",
+   "lat": 13.716776,
+   "lng": 100.593,
+   "hits": 53,
+   "recordCount": 25,
+   "hasV": true
+  },
+  {
+   "sid": 1122,
+   "name": "Cliffs of Id",
+   "address": "2537 S Fairfax Ave, Culver City, CA 90232 미국",
+   "lat": 34.03394,
+   "lng": -118.370558,
+   "hits": 23,
+   "recordCount": 21,
+   "hasV": true
+  },
+  {
+   "sid": 347,
+   "name": "테크노클라이밍짐",
+   "address": "대전 유성구 테크노4로 57",
+   "lat": 36.42892,
+   "lng": 127.392171,
+   "hits": 113,
+   "recordCount": 19,
+   "hasV": true
+  },
+  {
+   "sid": 715,
+   "name": "La boulders",
+   "address": "1375 E 6th St #8, Los Angeles, CA 90021 미국",
+   "lat": 34.039128,
+   "lng": -118.234388,
+   "hits": 12,
+   "recordCount": 15,
+   "hasV": true
+  },
+  {
+   "sid": 256,
+   "name": "메트로락 클라이밍",
+   "address": "인천 중구 하늘중앙로195번길 20",
+   "lat": 37.489096,
+   "lng": 126.561454,
+   "hits": 68,
+   "recordCount": 14,
+   "hasV": true
+  },
+  {
+   "sid": 415,
+   "name": "The Hive Bouldering Gym vancouver",
+   "address": "520 Industrial Ave, Vancouver, BC V6A 2P3 캐나다",
+   "lat": 49.268747,
+   "lng": -123.092699,
+   "hits": 40,
+   "recordCount": 14,
+   "hasV": true
+  },
+  {
+   "sid": 1099,
+   "name": "Sender One LAX",
+   "address": "11220 Hindry Ave, Los Angeles, CA 90045 미국",
+   "lat": 33.932512,
+   "lng": -118.371966,
+   "hits": 4,
+   "recordCount": 14,
+   "hasV": true
+  },
+  {
+   "sid": 193,
+   "name": "브로스 클라이밍",
+   "address": "부산 부산진구 전포대로199번길 19",
+   "lat": 35.15428,
+   "lng": 129.064052,
+   "hits": 95,
+   "recordCount": 13,
+   "hasV": true
+  },
+  {
+   "sid": 1123,
+   "name": "빛가람클라이밍",
+   "address": "전남 나주시 우정로 72",
+   "lat": 35.023198,
+   "lng": 126.786854,
+   "hits": 141,
+   "recordCount": 12,
+   "hasV": true
+  },
+  {
+   "sid": 697,
+   "name": "9 Degrees WATERLOO",
+   "address": "21 Danks St, Waterloo NSW 2017 오스트레일리아",
+   "lat": -33.897911,
+   "lng": 151.211932,
+   "hits": 49,
+   "recordCount": 11,
+   "hasV": true
+  },
+  {
+   "sid": 1020,
+   "name": "Urban Climb Newstead",
+   "address": "5 Morse St, Newstead QLD 4006 오스트레일리아",
+   "lat": -27.455179,
+   "lng": 153.04076,
+   "hits": 12,
+   "recordCount": 11,
+   "hasV": true
+  },
+  {
+   "sid": 150,
+   "name": "비블럭 강남점",
+   "address": "서울 강남구 논현로 563 언주타워 지하 1층 비블럭 클라이밍",
+   "lat": 37.506331,
+   "lng": 127.034068,
+   "hits": 277,
+   "recordCount": 10,
+   "hasV": true
+  },
+  {
+   "sid": 514,
+   "name": "조규복클라이밍센터 금곡점",
+   "address": "경기 남양주시 석실로 696",
+   "lat": 37.624208,
+   "lng": 127.203406,
+   "hits": 80,
+   "recordCount": 10,
+   "hasV": true
+  },
+  {
+   "sid": 683,
+   "name": "비엣클라임 Viet Climb",
+   "address": "2 Ng. 76 An Dương, Yên Phụ, Tây Hồ, Hà Nội 100000 베트남",
+   "lat": 21.055001,
+   "lng": 105.839921,
+   "hits": 54,
+   "recordCount": 10,
+   "hasV": true
+  },
+  {
+   "sid": 722,
+   "name": "Hiclimb",
+   "address": "825 Ilaniwai St, Honolulu, HI 96813 미국",
+   "lat": 21.298795,
+   "lng": -157.856062,
+   "hits": 12,
+   "recordCount": 10,
+   "hasV": true
+  },
+  {
+   "sid": 728,
+   "name": "Boulder Movement Bugis Singapore",
+   "address": "201 Victoria St, #05 - 07, 싱가포르 188067",
+   "lat": 1.299544,
+   "lng": 103.85471,
+   "hits": 23,
+   "recordCount": 10,
+   "hasV": true
+  },
+  {
+   "sid": 830,
+   "name": "NOBOROCK 시부야 Shibuya Bouldering GYM",
+   "address": "일본 〒150-0031 Tokyo, Shibuya City, Sakuragaokacho, 9−1 ビアンクォードビル B1",
+   "lat": 35.655176,
+   "lng": 139.707674,
+   "hits": 30,
+   "recordCount": 10,
+   "hasV": true
+  },
+  {
+   "sid": 391,
+   "name": "클럽스파이더 클라이밍",
+   "address": "부산 중구 대영로 224",
+   "lat": 35.111816,
+   "lng": 129.035267,
+   "hits": 119,
+   "recordCount": 9,
+   "hasV": true
+  },
+  {
+   "sid": 698,
+   "name": "Balance climbing gym",
+   "address": "131/1,141/1 Belle Tower Rama 9, Room no. BS001A-BS001B, Rama IX Rd, Huai Khwang, Bangkok 10310 태국",
+   "lat": 13.759646,
+   "lng": 100.569804,
+   "hits": 25,
+   "recordCount": 9,
+   "hasV": true
+  },
+  {
+   "sid": 834,
+   "name": "Gravity Research",
+   "address": "일본 〒530-0011 Osaka, Kita Ward, Ofukacho, 3−1 グランフロント大阪ナレッジキャピタル 6F",
+   "lat": 34.707031,
+   "lng": 135.496701,
+   "hits": 23,
+   "recordCount": 9,
+   "hasV": true
+  },
+  {
+   "sid": 703,
+   "name": "Vital Climbing Gym Brooklyn",
+   "address": "221 N 14th St, Brooklyn, NY 11249 미국",
+   "lat": 40.722778,
+   "lng": -73.954709,
+   "hits": 28,
+   "recordCount": 8,
+   "hasV": true
+  },
+  {
+   "sid": 390,
+   "name": "타이거볼더클라이밍짐",
+   "address": "경기 부천시 부흥로307번길 52",
+   "lat": 37.496804,
+   "lng": 126.776504,
+   "hits": 159,
+   "recordCount": 7,
+   "hasV": true
+  },
+  {
+   "sid": 613,
+   "name": "고릴라클라이밍",
+   "address": "충남 서산시 서해로 3443",
+   "lat": 36.77205,
+   "lng": 126.460139,
+   "hits": 80,
+   "recordCount": 7,
+   "hasV": true
+  },
+  {
+   "sid": 916,
+   "name": "MegaSTONE Climbing Gym",
+   "address": "No. 5號, Lane 56, Zhongzheng Rd, Xinzhuang District, New Taipei City, 대만 242",
+   "lat": 25.041176,
+   "lng": 121.461734,
+   "hits": 31,
+   "recordCount": 7,
+   "hasV": true
+  },
+  {
+   "sid": 154,
+   "name": "게이트원 클라이밍",
+   "address": "서울 서초구 서초대로26길 3",
+   "lat": 37.487639,
+   "lng": 126.994531,
+   "hits": 64,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 343,
+   "name": "대전 청소년위캔센터",
+   "address": "대전 동구 대전천동로 508",
+   "lat": 36.326915,
+   "lng": 127.433029,
+   "hits": 84,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 435,
+   "name": "큐브클라이밍짐",
+   "address": "인천 부평구 부평문화로 64",
+   "lat": 37.493892,
+   "lng": 126.723426,
+   "hits": 92,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 640,
+   "name": "NOMAD Bouldering Gym",
+   "address": "Unit 7/12 Chester St, Annandale NSW 2038 오스트레일리아",
+   "lat": -33.885119,
+   "lng": 151.174806,
+   "hits": 18,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 1120,
+   "name": "Project Send",
+   "address": "8 Raffles Ave., #02-29 Esplanade Mall, 싱가포르 039802",
+   "lat": 1.289409,
+   "lng": 103.856318,
+   "hits": 28,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 1121,
+   "name": "Sender One Playa Vista",
+   "address": "12775 W Millennium Suite 4-140A, Los Angeles, CA 90094 미국",
+   "lat": 33.976928,
+   "lng": 33.976928,
+   "hits": 12,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 1135,
+   "name": "Climb Up Paris Porte dItalie",
+   "address": "18 Av. de la Prte d'Italie, 75013 Paris, 프랑스",
+   "lat": 48.81706,
+   "lng": 2.359817,
+   "hits": 26,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 1234,
+   "name": "The Hive Surrey - Climbing and Fitness",
+   "address": "11125 124 St #101-B, Surrey, BC V3V 4V2 캐나다",
+   "lat": 49.205244,
+   "lng": -122.880306,
+   "hits": 22,
+   "recordCount": 6,
+   "hasV": true
+  },
+  {
+   "sid": 890,
+   "name": "Gravity Research Sapporo",
+   "address": "일본 〒060-0032 Hokkaido, Sapporo, Chuo Ward, Kita 2 Johigashi, 4 Chome, サッポロ ファクトリー 1 条 館 1F",
+   "lat": 43.064299,
+   "lng": 141.363157,
+   "hits": 14,
+   "recordCount": 5,
+   "hasV": true
+  },
+  {
+   "sid": 718,
+   "name": "Whipper Snapper Gym",
+   "address": "1 Chome-5-26 Shinhassamu 5 Jo, Teine Ward, Sapporo, Hokkaido 006-0805 일본",
+   "lat": 43.111734,
+   "lng": 141.280297,
+   "hits": 17,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 863,
+   "name": "Camp4 산리툰",
+   "address": "중국 CN 北京市 朝阳区 白家庄路 3 3号白家庄商务中心A座1层108 邮政编码: 100020",
+   "lat": 39.927153,
+   "lng": 116.456646,
+   "hits": 9,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 887,
+   "name": "Saigon Climbing Center 사이공",
+   "address": "42A Hẻm 168 Nguyễn Gia Trí, Phường 25, Bình Thạnh, Thành phố Hồ Chí Minh 70000 베트남",
+   "lat": 10.806618,
+   "lng": 106.720246,
+   "hits": 13,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 944,
+   "name": "Rocky Bouldering Gym Ryogoku",
+   "address": "1 Chome-9-7 Honjo, Sumida City, Tokyo 130-0004 일본",
+   "lat": 35.702598,
+   "lng": 139.798489,
+   "hits": 29,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 1034,
+   "name": "Urban Climb Milton",
+   "address": "17 Roy St, Milton QLD 4064 오스트레일리아",
+   "lat": -27.473184,
+   "lng": 153.000046,
+   "hits": 11,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 1132,
+   "name": "Hollywood Boulders",
+   "address": "1107 N Bronson Ave, Los Angeles, CA 90038 미국",
+   "lat": 34.091282,
+   "lng": -118.318181,
+   "hits": 7,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 1198,
+   "name": "YDP오름실내암벽장",
+   "address": "서울 영등포구 도신로60길 5",
+   "lat": 37.51151,
+   "lng": 126.917283,
+   "hits": 228,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 1250,
+   "name": "Arch Rock Climbing Hanoi",
+   "address": "Khách Sạn Công Đoàn, 98 Đ. Tô Ngọc Vân, Quảng An, Tây Hồ, Hà Nội 100000 베트남",
+   "lat": 21.067165,
+   "lng": 105.82053,
+   "hits": 6,
+   "recordCount": 4,
+   "hasV": true
+  },
+  {
+   "sid": 319,
+   "name": "클라임이모션",
+   "address": "서울 강남구 논현로76길 27",
+   "lat": 37.497739,
+   "lng": 127.040982,
+   "hits": 143,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 354,
+   "name": "B-pump yokohama 비펌프 요코하마",
+   "address": "일본 〒220-0023 Kanagawa, Yokohama, Nishi Ward, Hiranuma, 1 Chome−8−1 Ｂ－Ｐｕｍｐ",
+   "lat": 35.459025,
+   "lng": 139.620895,
+   "hits": 178,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 481,
+   "name": "M클라이밍센터",
+   "address": "대구 달서구 이곡동로 33 5층  M클라아밍센터",
+   "lat": 35.854208,
+   "lng": 128.51134,
+   "hits": 57,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 549,
+   "name": "청주오르다클라이밍센터",
+   "address": "충북 청주시 흥덕구 복대로 185",
+   "lat": 36.633063,
+   "lng": 127.44057,
+   "hits": 121,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 582,
+   "name": "황우치해변",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 144,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 744,
+   "name": "Blockfabrik",
+   "address": "Schlossgasse 10-12, 1050 Wien, 오스트리아",
+   "lat": 48.190823,
+   "lng": 16.36175,
+   "hits": 19,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 756,
+   "name": "Climbing Bum",
+   "address": "2 Chome-1-70 Morinomiyachuo, Chuo Ward, Osaka, 540-0003 일본",
+   "lat": 34.680986,
+   "lng": 135.531201,
+   "hits": 20,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 767,
+   "name": "Aldgate City Bouldering",
+   "address": "33 Aldgate High St, London EC3N 1AL 영국",
+   "lat": 51.514424,
+   "lng": -0.07461,
+   "hits": 17,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 775,
+   "name": "Arkose Strasbourg Saint Denis",
+   "address": "21 Rue d'Enghien, 75010 Paris, 프랑스",
+   "lat": 48.872439,
+   "lng": 2.353653,
+   "hits": 14,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 802,
+   "name": "Einstein duesseldorf",
+   "address": "Lierenfelder Str. 49, 40231 Düsseldorf, 독일",
+   "lat": 51.21331,
+   "lng": 6.821698,
+   "hits": 12,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 838,
+   "name": "Vertical Rock",
+   "address": "10225 Nokesville Rd, Manassas, VA 20110 미국",
+   "lat": 38.760332,
+   "lng": -77.492412,
+   "hits": 10,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 857,
+   "name": "9 Degrees Alexandria",
+   "address": "Building 3/85 O'Riordan St, Alexandria NSW 2015 오스트레일리아",
+   "lat": -33.918527,
+   "lng": 151.191636,
+   "hits": 19,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 868,
+   "name": "ROCKMATE Ogaya",
+   "address": "6 Chome-1-1 Ogaya, Otsu, Shiga 520-2144 일본",
+   "lat": 34.994605,
+   "lng": 135.911344,
+   "hits": 18,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 886,
+   "name": "Bouldering gym roca",
+   "address": "일본 〒541-0056 Osaka, Chuo Ward, Kyutaromachi, 3 Chome−1−22 階段を上がって5階へ Osk Building, 5階",
+   "lat": 34.681576,
+   "lng": 135.502925,
+   "hits": 23,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 929,
+   "name": "Boulderwelt Frankfurt",
+   "address": "August-Schanz-Straße 50, 60433 Frankfurt am Main, 독일",
+   "lat": 50.164353,
+   "lng": 8.686736,
+   "hits": 19,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 963,
+   "name": "T-UP Climbing Gym-Nangang",
+   "address": "No. 147號, Section 2, Nangang Rd, Nangang District, Taipei City, 대만 115",
+   "lat": 25.054488,
+   "lng": 121.596635,
+   "hits": 25,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 994,
+   "name": "발리 클라이밍 Bali Climbing",
+   "address": "Canggu, Kuta Utara, Badung Regency, Bali, 인도네시아",
+   "lat": -8.654212,
+   "lng": 115.129948,
+   "hits": 43,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1022,
+   "name": "ATTIC Climbing",
+   "address": "일본 〒802-0063 Fukuoka, Kitakyushu, Kokurakita Ward, Wakafujicho, 7−30 2F",
+   "lat": 33.858544,
+   "lng": 130.887123,
+   "hits": 29,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1050,
+   "name": "Campus Climbing",
+   "address": "1/F, 600 Jordan, Jade Suites Podium, Canton Rd, Yau Ma Tei, 홍콩",
+   "lat": 22.308101,
+   "lng": 114.168681,
+   "hits": 13,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1082,
+   "name": "비피볼더스 Beefy Boulders Hanoi",
+   "address": "3 Ng. 55 P. Tứ Liên, Tứ Liên, Tây Hồ, Hà Nội 100000 베트남",
+   "lat": 21.064579,
+   "lng": 105.833837,
+   "hits": 9,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1119,
+   "name": "Base Camp Tokyo Kinshicho",
+   "address": "2 Chome-10-12 Mori, Koto City, Tokyo 135-0001 일본",
+   "lat": 35.692894,
+   "lng": 139.817066,
+   "hits": 51,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1129,
+   "name": "The Post climbing",
+   "address": "1100 N Fair Oaks Ave, Pasadena, CA 91103 미국",
+   "lat": 34.164936,
+   "lng": -118.150285,
+   "hits": 8,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1196,
+   "name": "Monk Climbing Gym",
+   "address": "Jl. Raya Andong No.89, Peliatan, Kecamatan Ubud, Kabupaten Gianyar, Bali 80571 인도네시아",
+   "lat": -8.502491,
+   "lng": 115.272522,
+   "hits": 23,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 1261,
+   "name": "Boulder Lab Clayton",
+   "address": "1418A Centre Rd, Clayton South VIC 3169 오스트레일리아",
+   "lat": -37.929782,
+   "lng": 145.128031,
+   "hits": 20,
+   "recordCount": 3,
+   "hasV": true
+  },
+  {
+   "sid": 338,
+   "name": "클라이맥스",
+   "address": "부산 강서구 명지국제8로 269",
+   "lat": 35.098119,
+   "lng": 128.922423,
+   "hits": 62,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 395,
+   "name": "안산 클라이밍",
+   "address": "경기 안산시 단원구 다리간로 14 신우빌딩",
+   "lat": 37.314769,
+   "lng": 126.82335,
+   "hits": 95,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 497,
+   "name": "락오디세이 하단점",
+   "address": "부산 사하구 낙동대로 498",
+   "lat": 35.108832,
+   "lng": 128.967147,
+   "hits": 83,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 551,
+   "name": "클라임패밀리 수완점",
+   "address": "광주 광산구 임방울대로 507",
+   "lat": 35.204912,
+   "lng": 126.819439,
+   "hits": 70,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 647,
+   "name": "Crescent Wall",
+   "address": "101 Đ Tôn Dật Tiên, Tân Phú, Quận 7, Thành phố Hồ Chí Minh 70000 베트남",
+   "lat": 10.729016,
+   "lng": 106.718932,
+   "hits": 17,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 684,
+   "name": "Refuge climbing center",
+   "address": "6283 S Valley View Blvd Suite C, Las Vegas, NV 89118 미국",
+   "lat": 36.076884,
+   "lng": -115.192268,
+   "hits": 17,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 752,
+   "name": "98 Gravity Climbing Lisbon",
+   "address": "Av. Severiano Falcão 3B, 2685-379 Prior Velho, 포르투갈",
+   "lat": 38.784711,
+   "lng": -9.124716,
+   "hits": 7,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 757,
+   "name": "Vital Climbing Gym Upper East",
+   "address": "1506 Lexington Ave, New York, NY 10029 미국",
+   "lat": 40.787359,
+   "lng": -73.94821,
+   "hits": 10,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 809,
+   "name": "다낭 클라이밍짐 Danang Climbing Gym",
+   "address": "119b Mai Am, Thuận Phước, Hải Châu, Đà Nẵng 550000 베트남",
+   "lat": 16.084234,
+   "lng": 108.21868,
+   "hits": 98,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 923,
+   "name": "쿠오레 나카가와 Climbing Gym Cuore Nakagawa",
+   "address": "4 Chome-17 Yagamicho, Nakagawa Ward, Nagoya, Aichi 445-0071 일본",
+   "lat": 35.139473,
+   "lng": 136.879641,
+   "hits": 10,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 953,
+   "name": "Hoa Hoa Bouldering Gym",
+   "address": "2-chōme-17-2 Higashihie, Hakata Ward, Fukuoka, 812-0007 일본",
+   "lat": 33.589993,
+   "lng": 130.430892,
+   "hits": 72,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 973,
+   "name": "Klimb Boulder Gym Bali",
+   "address": "Jl. Raya Babakan Canggu No.30, Canggu, Kec. Kuta Utara, Kabupaten Badung, Bali 80351 인도네시아",
+   "lat": -8.629186,
+   "lng": 115.15141,
+   "hits": 39,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 983,
+   "name": "Eagle Eye Climbing Gym",
+   "address": "Thaphra, Phet Kasem Rd, Khwaeng Wat Tha Phra, Bangkok Yai, Bangkok 10600 태국",
+   "lat": 13.728468,
+   "lng": 100.471293,
+   "hits": 36,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1054,
+   "name": "Skywalk Climbing",
+   "address": "42A Hẻm 168 Nguyễn Gia Trí, Phường 25, Bình Thạnh, Thành phố Hồ Chí Minh 70000 베트남",
+   "lat": 10.806871,
+   "lng": 106.719731,
+   "hits": 21,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1141,
+   "name": "D Bouldering Toyosaki 오키나와",
+   "address": "일본 〒901-0225 Okinawa, Tomigusuku, Toyosaki, 3-35 3F 3140区画 イーアス沖縄",
+   "lat": 26.157738,
+   "lng": 127.650745,
+   "hits": 48,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1146,
+   "name": "GOAT climing gym",
+   "address": "77 River St, Hackensack, NJ 07601 미국",
+   "lat": 40.880464,
+   "lng": -74.041923,
+   "hits": 15,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1151,
+   "name": "Bloc District Barcelona",
+   "address": "Carrer de Zamora, 96-106, Sant Martí, 08018 Barcelona, 스페인",
+   "lat": 41.397473,
+   "lng": 2.188712,
+   "hits": 25,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1185,
+   "name": "Angelo State University Climbing Gym",
+   "address": "2601 W Ave N, San Angelo, TX 76909 미국",
+   "lat": 31.438763,
+   "lng": -100.459804,
+   "hits": 9,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1189,
+   "name": "Indoclimb Lippo Mall Kemang",
+   "address": "Lippo Mall Kemang, Jl. Pangeran Antasari No.36 2nd Floor, RT.11/RW.5, Bangka, Kec. Mampang Prpt., Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12150 인도네시아",
+   "lat": -6.260254,
+   "lng": 106.812122,
+   "hits": 17,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1192,
+   "name": "T-UP Climbing Minde",
+   "address": "112 대만 Taipei City, Beitou District, Wenlin N Rd, 222號b1",
+   "lat": 25.108366,
+   "lng": 121.514192,
+   "hits": 8,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1208,
+   "name": "knot Bouldering House",
+   "address": "1 Chome-35-13 Nagono, Nishi Ward, Nagoya, Aichi 451-0042 일본",
+   "lat": 35.176104,
+   "lng": 136.892065,
+   "hits": 13,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1219,
+   "name": "The Castle Climbing Centre",
+   "address": "Green Lanes, London N4 2HA 영국",
+   "lat": 51.565535,
+   "lng": -0.091274,
+   "hits": 12,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1233,
+   "name": "The Hive Climbing and Fitness",
+   "address": "960 Lorimer Blvd #7, Winnipeg, MB R3P 1G1 캐나다",
+   "lat": 49.846284,
+   "lng": -97.197236,
+   "hits": 20,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1239,
+   "name": "Class 5 Climbing",
+   "address": "20120 Hawthorne Blvd, Torrance, CA 90503 미국",
+   "lat": 33.849005,
+   "lng": -118.351499,
+   "hits": 12,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1241,
+   "name": "Boulderwelt Munich East",
+   "address": "Hanne-Hiob-Straße 4, 81671 München, 독일",
+   "lat": 48.125864,
+   "lng": 11.611048,
+   "hits": 32,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 1262,
+   "name": "Project Climbing",
+   "address": "1418A Centre Rd, Clayton South VIC 3169 오스트레일리아",
+   "lat": -37.928858,
+   "lng": 145.128351,
+   "hits": 6,
+   "recordCount": 2,
+   "hasV": true
+  },
+  {
+   "sid": 366,
+   "name": "수지클라이밍",
+   "address": "경기 용인시 수지구 포은대로 499",
+   "lat": 37.325893,
+   "lng": 127.105598,
+   "hits": 124,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 591,
+   "name": "Green Arrow asakusa",
+   "address": "1 Chome-23-30 Azumabashi, Sumida City, Tokyo 130-0001 일본",
+   "lat": 35.709496,
+   "lng": 139.800827,
+   "hits": 24,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 694,
+   "name": "New Orleans Boulder Lounge",
+   "address": "2360 St Claude Ave, New Orleans, LA 70117 미국",
+   "lat": 29.96864,
+   "lng": -90.05273,
+   "hits": 12,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 710,
+   "name": "Brooklyn Boulders Queensbridge",
+   "address": "23-10 41st Ave, Queens, NY 11101 미국",
+   "lat": 40.752621,
+   "lng": -73.940113,
+   "hits": 18,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 717,
+   "name": "Central Rock Chelsea",
+   "address": "537 W 27th St, New York, NY 10001 미국",
+   "lat": 40.751269,
+   "lng": -74.003984,
+   "hits": 15,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 724,
+   "name": "Grottoclimbing",
+   "address": "4460 Alvarado Canyon Rd, San Diego, CA 92120 미국",
+   "lat": 32.780484,
+   "lng": -117.098124,
+   "hits": 17,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 844,
+   "name": "Steel Peak",
+   "address": "231 Trade Valley Drive Unit D-F, Woodbridge, ON L4H 3N6 캐나다",
+   "lat": 43.792111,
+   "lng": -79.660318,
+   "hits": 6,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 847,
+   "name": "monkeyspot duisburg",
+   "address": "Neuenhofstraße 91, 47055 Duisburg, 독일",
+   "lat": 51.393192,
+   "lng": 6.753742,
+   "hits": 9,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 849,
+   "name": "Monk boulderinggym Amsterdam",
+   "address": "Aambeeldstraat 26, 1021 KB Amsterdam, 네덜란드",
+   "lat": 52.384938,
+   "lng": 4.933938,
+   "hits": 14,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 859,
+   "name": "9 Degrees Parramatta",
+   "address": "unit 11/38-46 South St, Rydalmere NSW 2116 오스트레일리아",
+   "lat": -33.815644,
+   "lng": 151.039787,
+   "hits": 8,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 924,
+   "name": "쿠오레 이마이케 Climbing Gym Cuore Imaike",
+   "address": "1 Chome-6-4 Imaike, Chikusa Ward, Nagoya, Aichi 464-0850 일본",
+   "lat": 35.169516,
+   "lng": 136.935345,
+   "hits": 11,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 925,
+   "name": "Einstein Duisburg",
+   "address": "Essenberger Str. 85, 47059 Duisburg, 독일",
+   "lat": 51.43201,
+   "lng": 6.744254,
+   "hits": 4,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 930,
+   "name": "경동클라이밍센터",
+   "address": "서울 성북구 보문로29길 49",
+   "lat": 37.585872,
+   "lng": 127.014537,
+   "hits": 87,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 935,
+   "name": "climb central",
+   "address": "#B1-01 Kallang Wave Mall, 1 Stadium Place, 싱가포르 397628",
+   "lat": 1.302826,
+   "lng": 103.874197,
+   "hits": 8,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 951,
+   "name": "Urban apes Basement Berlin",
+   "address": "Stresemannstraße 72, 10963 Berlin, 독일",
+   "lat": 52.503816,
+   "lng": 13.384685,
+   "hits": 5,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 962,
+   "name": "T-UP Climbing-Zhonghe",
+   "address": "No. 41號, Liyan St, Zhonghe District, New Taipei City, 대만 23557",
+   "lat": 25.006511,
+   "lng": 121.486392,
+   "hits": 13,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 982,
+   "name": "Northern Rocks",
+   "address": "Unit 17/101-111 Diana Drive, Wairau Valley, Auckland 0627 뉴질랜드",
+   "lat": -36.775789,
+   "lng": 174.733089,
+   "hits": 14,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 984,
+   "name": "Climbingspot Impact",
+   "address": "8 Chome-5-33, Kurume, Fukuoka 839-0809 일본",
+   "lat": 33.325423,
+   "lng": 130.55077,
+   "hits": 8,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1011,
+   "name": "Keep Climbing",
+   "address": "Wayson Commercial Building, Unit6, 2/F, No. 28 Connaught Rd W, Sheung Wan, 홍콩",
+   "lat": 22.287809,
+   "lng": 114.148911,
+   "hits": 7,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1043,
+   "name": "Climb Central Funan",
+   "address": "107 North Bridge Rd, #B2-19/21 Funan, 싱가포르 179105",
+   "lat": 1.291417,
+   "lng": 103.849887,
+   "hits": 17,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1049,
+   "name": "Alpine Outpost",
+   "address": "60 M. 5 Canal Road, Tambon Su Thep, Mueang Chiang Mai District, Chiang Mai 50200 태국",
+   "lat": 18.769636,
+   "lng": 98.950979,
+   "hits": 22,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1071,
+   "name": "Climb Up Aubervilliers",
+   "address": "111 Av. Victor Hugo Accès par le, 1 Quai Lucien Lefranc, 93300 Aubervilliers, 프랑스",
+   "lat": 48.907425,
+   "lng": 2.375287,
+   "hits": 8,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1095,
+   "name": "Alta Climbing and Fitness",
+   "address": "3193 S Ranch House Ct, Gilbert, AZ 85295 미국",
+   "lat": 33.289705,
+   "lng": 111.692964,
+   "hits": 11,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1124,
+   "name": "Falkors",
+   "address": "Ūnijas iela 14, Vidzemes priekšpilsēta, Rīga, LV-1084 라트비아",
+   "lat": 56.968609,
+   "lng": 24.166613,
+   "hits": 19,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1127,
+   "name": "Verdigo Boulders",
+   "address": "266 E Magnolia Blvd, Burbank, CA 91502 미국",
+   "lat": 34.184153,
+   "lng": -118.309987,
+   "hits": 6,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1130,
+   "name": "Pacific Pipe",
+   "address": "2140 Mandela Pkwy, Oakland, CA 94607 미국",
+   "lat": 37.815769,
+   "lng": -122.288778,
+   "hits": 10,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1131,
+   "name": "Diablo Rock Gym",
+   "address": "1220 Diamond Way # 140, Concord, CA 94520 미국",
+   "lat": 37.964833,
+   "lng": -122.053076,
+   "hits": 3,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1133,
+   "name": "Hangar 18 Orange",
+   "address": "1547 W Struck Ave Suite A, Orange, CA 92867 미국",
+   "lat": 33.806711,
+   "lng": -117.869062,
+   "hits": 9,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1137,
+   "name": "Central Rock Gym-Randholp",
+   "address": "445 High St, Randolph, MA 02368 미국",
+   "lat": 42.199666,
+   "lng": -71.066619,
+   "hits": 10,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1140,
+   "name": "Base Camp Tokyo Edogawabashi",
+   "address": "2 Chome-5-23 Suido, Bunkyo City, Tokyo 112-0005 일본",
+   "lat": 35.709636,
+   "lng": 139.73738,
+   "hits": 16,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1145,
+   "name": "Oslo Klatresenter AS",
+   "address": "Olaf Helsets vei 5, 0694 Oslo, 노르웨이",
+   "lat": 59.867772,
+   "lng": 10.841587,
+   "hits": 7,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1161,
+   "name": "Sorlandet Klatresenter",
+   "address": "Odderøyveien 40, 4610 Kristiansand, 노르웨이",
+   "lat": 58.137661,
+   "lng": 8.000043,
+   "hits": 6,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1164,
+   "name": "Solution climbing",
+   "address": "마카오Av. da Ponte da Amizade, 196號地下A0座",
+   "lat": 22.21307,
+   "lng": 113.556356,
+   "hits": 5,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1178,
+   "name": "The Player Climbingym",
+   "address": "홍콩 Lai Chi Kok, Lai King Hill Rd, 272號荔灣花園6B舖",
+   "lat": 22.342804,
+   "lng": 114.136224,
+   "hits": 4,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1179,
+   "name": "Fish and Bird",
+   "address": "7 Chome-4-12 Toyo, 江東区 Koto City, Tokyo 135-0016 일본",
+   "lat": 35.67655,
+   "lng": 139.819262,
+   "hits": 10,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1204,
+   "name": "Elys Boulderloft",
+   "address": "Elsässerstrasse 215a, 4056 Basel, 스위스",
+   "lat": 47.57492,
+   "lng": 7.575025,
+   "hits": 14,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1205,
+   "name": "ROCKMATE matsuiyamate",
+   "address": "일본 〒610-0356 Kyoto, Kyotanabe, Yamatechuo, ３−2 ブランチ松井山手 ２Ｆ",
+   "lat": 34.834376,
+   "lng": 135.726322,
+   "hits": 19,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1230,
+   "name": "Rock garden kobe",
+   "address": "일본 〒650-0042 Hyogo, Kobe, Chuo Ward, Hatobacho, 6−8 篠崎倉庫国産倉庫 1F",
+   "lat": 34.684732,
+   "lng": 135.185705,
+   "hits": 9,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1237,
+   "name": "Natural climb valencia",
+   "address": "C/ dels Campaners, 6, Patraix, 46014 Valencia, 스페인",
+   "lat": 39.45596,
+   "lng": -0.39772,
+   "hits": 4,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1245,
+   "name": "Boulder World Paragon",
+   "address": "290 Orchard Rd, #06-25/26 Paragon Shopping Centre, 싱가포르 238859",
+   "lat": 1.303911,
+   "lng": 103.835567,
+   "hits": 13,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1252,
+   "name": "Boulderkeskus Pasila",
+   "address": "Veturitallinkuja 4, 00520 Helsinki, 핀란드",
+   "lat": 60.195845,
+   "lng": 24.932416,
+   "hits": 7,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1255,
+   "name": "Philadelphia Rock Gyms - Wyncote",
+   "address": "827 Glenside Ave, Wyncote, PA 19095 미국",
+   "lat": 40.097814,
+   "lng": -75.144417,
+   "hits": 7,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1326,
+   "name": "Alpine Indoor Climbing Currumbin",
+   "address": "1 Stewart Rd, Currumbin Waters QLD 4223 오스트레일리아",
+   "lat": -28.144784,
+   "lng": 153.477702,
+   "hits": 18,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1329,
+   "name": "9 degrees Morningside",
+   "address": "3/500 Lytton Rd, Morningside QLD 4170",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1330,
+   "name": "Alpine Indoor climbing Robina",
+   "address": "86 Robina Town Centre Dr, Robina QLD 4230 오스트레일리아",
+   "lat": null,
+   "lng": null,
+   "hits": 17,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 1534,
+   "name": "N bouldering",
+   "address": "24/F, Success Commercial Building, 245-251 Hennessy Rd, Wan Chai, 홍콩",
+   "lat": 22.278635,
+   "lng": 114.17613,
+   "hits": 14,
+   "recordCount": 1,
+   "hasV": true
+  },
+  {
+   "sid": 182,
+   "name": "피플락 클라이밍",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 50,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 342,
+   "name": "점프클라이밍짐 장기동",
+   "address": "대구 달서구 장기로 256",
+   "lat": 35.843769,
+   "lng": 128.532322,
+   "hits": 51,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 356,
+   "name": "클라이밍88",
+   "address": "서울 강서구 공항대로 376",
+   "lat": 37.556843,
+   "lng": 126.847191,
+   "hits": 194,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 380,
+   "name": "TCC 더코아클라이밍",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 29,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 399,
+   "name": "클럽클라이밍",
+   "address": "경기 안산시 단원구 고잔로 76",
+   "lat": 37.31884,
+   "lng": 126.834876,
+   "hits": 81,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 414,
+   "name": "Ascent Indoor Climbing",
+   "address": "Eden Mall, Al Gazira, St, Sheikh Zayed City, Giza Governorate 12588 이집트",
+   "lat": 30.024935,
+   "lng": 30.990002,
+   "hits": 22,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 701,
+   "name": "진안-삭제예정",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 719,
+   "name": "Signal Climbing Gym",
+   "address": "12 Chome-1-41 Nishimachiminami, Nishi Ward, Sapporo, Hokkaido 063-0062 일본",
+   "lat": 43.081519,
+   "lng": 141.283168,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 720,
+   "name": "NAC Sapporo climbing gym",
+   "address": "1 Chome-1, Shiroishi Ward, 札幌市白石区 Hokkaido 003-0003 일본",
+   "lat": 43.05389,
+   "lng": 141.38303,
+   "hits": 16,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 721,
+   "name": "Rainbow Cliff - Sport Climbing Gym",
+   "address": "2 Chome-3-26 Higashisapporo 2 Jo, Shiroishi Ward, Sapporo, Hokkaido 003-0002 일본",
+   "lat": 43.051035,
+   "lng": 141.384262,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 737,
+   "name": "스마트클라이밍짐",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 18,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 743,
+   "name": "Edelweiss-Center",
+   "address": "Walfischgasse 12/2, 1010 Wien, 오스트리아",
+   "lat": 48.203479,
+   "lng": 16.375469,
+   "hits": 14,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 828,
+   "name": "stonegoat climbing",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 858,
+   "name": "9 Degrees Lane Cove",
+   "address": "1A/21 Mars Rd, Lane Cove West NSW 2066 오스트레일리아",
+   "lat": -33.80799,
+   "lng": 151.150576,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 879,
+   "name": "CRANK Indoor Climbing",
+   "address": "537 Kessels Rd, Macgregor QLD 4109 오스트레일리아",
+   "lat": -27.56193,
+   "lng": 153.071765,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 884,
+   "name": "부경대학교 클라이밍존",
+   "address": "부산 남구 용소로 45 부경대학교대연캠퍼스",
+   "lat": 35.1327,
+   "lng": 127,
+   "hits": 21,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 891,
+   "name": "교토 클라이밍파크 로셰",
+   "address": "3 Chome-323 Ginzacho, Fushimi Ward, Kyoto, 612-8089 일본",
+   "lat": 34.935495,
+   "lng": 135.764009,
+   "hits": 40,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 900,
+   "name": "BlocHaus Canberra",
+   "address": "2, 2/1 Dairy Rd, Fyshwick ACT 2609 오스트레일리아",
+   "lat": -35.322718,
+   "lng": 149.167906,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 901,
+   "name": "Climb Up",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 908,
+   "name": "Yanshi Panyan 시산취점",
+   "address": "建材城中路金隅智造工场S1-W号楼底商",
+   "lat": 40.056051,
+   "lng": 116.358138,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 909,
+   "name": "Climb On Bouldering",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 912,
+   "name": "하아클라이밍",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 919,
+   "name": "Guam Sports Climbing Center",
+   "address": "280 Bello Rd, Barrigada, 96913 괌",
+   "lat": 13.501162,
+   "lng": 144.824992,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 922,
+   "name": "The Wall Bouldering Gym",
+   "address": "3 Chome-17-19 Nishitsukiguma, Hakata Ward, Fukuoka, 812-0857 일본",
+   "lat": 33.569862,
+   "lng": 130.455576,
+   "hits": 19,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 945,
+   "name": "The Stone Session",
+   "address": "1 Chome-23-18 Mukojima, Sumida City, Tokyo 131-0033 일본",
+   "lat": 35.71033,
+   "lng": 139.806991,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 958,
+   "name": "Climb On Gym",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 2,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 964,
+   "name": "T-UP Climbing Gym-A19",
+   "address": "320 대만 Taoyuan City, Zhongli District, Section 2, Gaotie S Rd, 352號4樓",
+   "lat": 25.011022,
+   "lng": 121.214824,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 971,
+   "name": "포카라클라이밍",
+   "address": "Climbing 20th Street, Lakeside, Pokhara 33700 네팔",
+   "lat": 28.222287,
+   "lng": 83.962642,
+   "hits": 16,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 975,
+   "name": "ADSUMMUM",
+   "address": "490 Nakasujicho, Nakagyo Ward, Kyoto, 604-8047 일본",
+   "lat": 35.006562,
+   "lng": 135.767312,
+   "hits": 19,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 978,
+   "name": "Mono Climbing Studio",
+   "address": "3 Chome-27-27 Naka, Hakata Ward, Fukuoka, 812-0893 일본",
+   "lat": 33.567816,
+   "lng": 130.441941,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 988,
+   "name": "Climbing Style Club",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 996,
+   "name": "더 월 볼더링 짐",
+   "address": "3 Chome-17-19 Nishitsukiguma, Hakata Ward, Fukuoka, 812-0857 일본",
+   "lat": 33.569298,
+   "lng": 130.455588,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 997,
+   "name": "다낭클라이밍짐",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 29,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1005,
+   "name": "Climbing on bouldering",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1079,
+   "name": "Bouldering Wall",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1105,
+   "name": "ABL 클라이밍컵",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1128,
+   "name": "춘천 딥워터 솔로잉",
+   "address": "강원 춘천시 송암동 297",
+   "lat": 37.855446,
+   "lng": 127.687174,
+   "hits": 147,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1191,
+   "name": "T-UP Climbing Gym-Xindian",
+   "address": "231 대만 New Taipei City, Xindian District, Section 3, Zhongxing Rd, 70號7樓",
+   "lat": 24.978021,
+   "lng": 121.546463,
+   "hits": 24,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 1195,
+   "name": "마두청소년수련관",
+   "address": "경기 고양시 일산동구 일산로 220 마두청소년수련관",
+   "lat": 37.655987,
+   "lng": 126.789572,
+   "hits": 21,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1202,
+   "name": "Island Rock",
+   "address": "60 Skyline Dr, Plainview, NY 11803 미국",
+   "lat": 40.788397,
+   "lng": -73.465442,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 1203,
+   "name": "Neverest climbing",
+   "address": "31.252108477795243",
+   "lat": 31.252108,
+   "lng": 121.44282,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1221,
+   "name": "삼성전자 R5",
+   "address": "경기 수원시 영통구 삼성로 129 삼성전자공업단지",
+   "lat": 37.255602,
+   "lng": 127.050988,
+   "hits": 44,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1235,
+   "name": "클라이밍 스페이스볼더",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1249,
+   "name": "Rock On Boulder Gym",
+   "address": "2F, Ayala Malls, Central Bloc, Cebu City, 6000 Cebu, 필리핀",
+   "lat": 10.330782,
+   "lng": 123.906516,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1259,
+   "name": "Beta Park",
+   "address": "47 Forster St, Invermay TAS 7248 오스트레일리아",
+   "lat": -41.425374,
+   "lng": 147.132429,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": true
+  },
+  {
+   "sid": 1281,
+   "name": "B-pump",
+   "address": "일본 도쿄 아키하바라",
+   "lat": null,
+   "lng": null,
+   "hits": 23,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1292,
+   "name": "Rock Mill Climbing",
+   "address": "677 Carroll St, Akron, OH 44304 미국",
+   "lat": 41.075652,
+   "lng": -81.496427,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1309,
+   "name": "project climbing centre",
+   "address": "Chilliwack",
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1322,
+   "name": "rock it",
+   "address": "roma",
+   "lat": null,
+   "lng": null,
+   "hits": 3,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1323,
+   "name": "sao rock",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1334,
+   "name": "오창스포츠아일랜드",
+   "address": "충북 청주시 청원구 오창읍 과학산업3로 222 지하 2층",
+   "lat": null,
+   "lng": null,
+   "hits": 165,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1338,
+   "name": "alien bloc",
+   "address": "영국 스코틀랜드 에든버러 ",
+   "lat": null,
+   "lng": null,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1340,
+   "name": "다정동 복컴",
+   "address": "세종시",
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1356,
+   "name": "Hudson Boulders",
+   "address": "Albany",
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1358,
+   "name": "Arkose Chevaleret",
+   "address": "181 Rue du Chevaleret, 75013 Paris",
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1360,
+   "name": "알레 클라이밍",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1370,
+   "name": "Flow",
+   "address": "Sunshine Coast",
+   "lat": null,
+   "lng": null,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1372,
+   "name": "Rock it bouldering",
+   "address": "4/6 Elmsleigh Rd, Derwent Park TAS 7009",
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1377,
+   "name": "오프더월클라이밍",
+   "address": "서울 용산구 이태원로 190 지하 2층",
+   "lat": null,
+   "lng": null,
+   "hits": 215,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1381,
+   "name": "봄내체육관",
+   "address": "춘천시 평화로 25",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1384,
+   "name": "Climbing Studio BRAVE",
+   "address": "일본 마쓰야마시",
+   "lat": null,
+   "lng": null,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1385,
+   "name": "The Hive North Shore and Hive Yoga",
+   "address": "2270 Dollarton Hwy #140, North Vancouver, BC V7H 1A8, Canada",
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1386,
+   "name": "UrbanClimb Westend",
+   "address": "2/220 Montague Rd, West End QLD 4101 오스트레일리아",
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1392,
+   "name": "볼더링 난바",
+   "address": "〒542-0075 Osaka, Chuo Ward, Nanbasennichimae, 12−35 スイングよしもとビル 3・4階",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1399,
+   "name": "Stronghold UK",
+   "address": "First Floor, The Archives Unit 10 High Cross Centre, Fountayne Rd, London N15 4BE 영국",
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1400,
+   "name": "Icp",
+   "address": "1/435 St Pauls Terrace, Fortitude Valley QLD 4006 오스트레일리아",
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1402,
+   "name": "BlocHaus Bouldering Marrickville",
+   "address": "시드니",
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1404,
+   "name": "Boulder gym owl",
+   "address": "다카마스",
+   "lat": null,
+   "lng": null,
+   "hits": 5,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1406,
+   "name": "온사이트클라이밍 강남",
+   "address": "삼성역",
+   "lat": null,
+   "lng": null,
+   "hits": 17,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1412,
+   "name": "City bouldering stratford",
+   "address": "234 High St, London E15 2JA 영국",
+   "lat": null,
+   "lng": null,
+   "hits": 3,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1413,
+   "name": "Yonder",
+   "address": "6 Hooker's Rd, London E17 6DP 영국",
+   "lat": null,
+   "lng": null,
+   "hits": 4,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1423,
+   "name": "클라임맥스",
+   "address": "충남 천안시 동남구 신방동 768-40",
+   "lat": null,
+   "lng": null,
+   "hits": 75,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1429,
+   "name": "웨이브락",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 43,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1432,
+   "name": "Mosaic Boulders",
+   "address": "2369 Telegraph Ave, Berkeley, CA 94704 미국",
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1433,
+   "name": "corner bouldering gum",
+   "address": "대만",
+   "lat": null,
+   "lng": null,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1434,
+   "name": "Corner climbing gym",
+   "address": "대만",
+   "lat": null,
+   "lng": null,
+   "hits": 3,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1435,
+   "name": "Main wall climbing gym",
+   "address": "Chiang mai, Thailand",
+   "lat": null,
+   "lng": null,
+   "hits": 3,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1440,
+   "name": "Agility boulders",
+   "address": "1404 38th Ave, Capitola, CA 95010 ",
+   "lat": null,
+   "lng": null,
+   "hits": 1,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1444,
+   "name": "Coastal climbing",
+   "address": "Charleston",
+   "lat": null,
+   "lng": null,
+   "hits": 3,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1449,
+   "name": "dapro indoor climbing",
+   "address": "Taichung",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1451,
+   "name": "Central Rock Gym",
+   "address": "6918 Gunn Hwy, Tampa, FL 33625",
+   "lat": null,
+   "lng": null,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1464,
+   "name": "Rock out climbing",
+   "address": "2716, 2001 98 Palms Blvd #5, Destin, FL 32541 미국",
+   "lat": null,
+   "lng": null,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1476,
+   "name": "Gravity Boulder",
+   "address": "Budapest, Lövőház u. 2-6, 1024 헝가리",
+   "lat": null,
+   "lng": null,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1482,
+   "name": "Peradra Climbing Gym",
+   "address": "일본 〒231-0001 Kanagawa, Yokohama, Naka Ward, Shinko, 2 Chome−2−1 横浜ワールドポーターズ５階",
+   "lat": 35.45402,
+   "lng": 139.639004,
+   "hits": 27,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1494,
+   "name": "Boulder Planet",
+   "address": "자카르타, 인도네시아",
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1495,
+   "name": "비클",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1497,
+   "name": "더클라이밍 문래",
+   "address": "문래점",
+   "lat": null,
+   "lng": null,
+   "hits": 40,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1504,
+   "name": "BANJAT Bouldering",
+   "address": "4 Chome-5-14 Onaka, Nago, Okinawa 905-0017",
+   "lat": null,
+   "lng": null,
+   "hits": 11,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1523,
+   "name": "beyond the wall climbing",
+   "address": "hillsboro",
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1529,
+   "name": "서울볼더스 선유도점",
+   "address": "양평로28마길 7 3층",
+   "lat": null,
+   "lng": null,
+   "hits": 73,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1535,
+   "name": "Main Wall",
+   "address": "181 Rachadamnoen Rd, Phra Sing, Amphoe Mueang Chiang Mai, Chiang Mai 50200 태국",
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1538,
+   "name": "First Ascent Block 37",
+   "address": "Chicago",
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1539,
+   "name": "Blochaus",
+   "address": "2/359 Plummer St, Port Melbourne VIC 3207 오스트레일리아",
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1545,
+   "name": "KI - Kletterzentrum Innsbruck",
+   "address": "인스부르크",
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1546,
+   "name": "Go Bould Climbing Gym",
+   "address": "R8GG+8M, Chalong, Mueang Phuket District, Phuket 83100 태국",
+   "lat": null,
+   "lng": null,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1547,
+   "name": "Camp5 Climbing Gym",
+   "address": "MUT-1 3rd Floor Sungai Wang Mall, Jln Sultan Ismail, Bukit Bintang, 59200 Kuala Lumpur, 말레이시아",
+   "lat": null,
+   "lng": null,
+   "hits": 12,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1548,
+   "name": "클라임투게더 수원",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 153,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1551,
+   "name": "Climbing District Bastille",
+   "address": "37 Av. Ledru Rollin, 75012 Paris, 프랑스",
+   "lat": null,
+   "lng": null,
+   "hits": 11,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1553,
+   "name": "Overtime Bouldering Gym",
+   "address": "G-13, Blok B, Permas City, Kawasan Perdagangan Permas Utara, Jalan Permas Utara, Permas Jaya, 81750 Masai, Johor, 말레이시아",
+   "lat": null,
+   "lng": null,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1559,
+   "name": "Arena Boulder",
+   "address": "Av. Montevideo 606, Montevideo, Gustavo A. Madero, 07730 Ciudad de México, CDMX, 멕시코",
+   "lat": null,
+   "lng": null,
+   "hits": 8,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1566,
+   "name": "그래비티 리서치 우메다점",
+   "address": "일본 오사카시 우메다",
+   "lat": null,
+   "lng": null,
+   "hits": 23,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1568,
+   "name": "오슬로 클라이밍센터",
+   "address": "오슬로",
+   "lat": null,
+   "lng": null,
+   "hits": 12,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1572,
+   "name": "마운틴그라운드 흥덕점",
+   "address": "흥덕1로 13 흥덕IT밸리 컴플렉스동 지하1층 P183호",
+   "lat": null,
+   "lng": null,
+   "hits": 66,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1575,
+   "name": "케이클라이밍",
+   "address": "충남 천안시 서북구 직산읍 봉주로 54 지하 1층",
+   "lat": null,
+   "lng": null,
+   "hits": 20,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1578,
+   "name": "The Blue Monkey Climbing Bar Restaurant",
+   "address": "Bamboo St, Krong Siem Reap, 캄보디아",
+   "lat": 13.348417,
+   "lng": 103.85649,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1580,
+   "name": "Akala Climb Sakaemachi",
+   "address": "Sapporo",
+   "lat": null,
+   "lng": null,
+   "hits": 20,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1581,
+   "name": "Chiko Family Boulder Climbing Gym",
+   "address": "ផ្លូវ គុក ចាស់, Krong Siem Reap, 캄보디아",
+   "lat": 13.347444,
+   "lng": 103.885932,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1586,
+   "name": "diehalle aachen",
+   "address": "Aachen, Germany",
+   "lat": null,
+   "lng": null,
+   "hits": 9,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1613,
+   "name": "HUDY Boulder Karlin",
+   "address": "체코 프라하",
+   "lat": null,
+   "lng": null,
+   "hits": 6,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1614,
+   "name": "The Bouldering Hive Makati",
+   "address": "Circuit Makati, Ayala Malls, Upper Ground Level, Circuit Lane, Makati, 1207 필리핀",
+   "lat": null,
+   "lng": null,
+   "hits": 20,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1624,
+   "name": "일본 아이떼 클라이밍",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1631,
+   "name": "대전 볼더스팟",
+   "address": null,
+   "lat": null,
+   "lng": null,
+   "hits": 11,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1655,
+   "name": "D볼더링난바",
+   "address": "오사카",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1663,
+   "name": "Core climbing",
+   "address": "122 Eastlake St, Carrara QLD 4211",
+   "lat": null,
+   "lng": null,
+   "hits": 15,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1675,
+   "name": "Benchmark",
+   "address": "上海市虹口区四川北路939号滨港商业中心4楼1423单元",
+   "lat": null,
+   "lng": null,
+   "hits": 10,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1677,
+   "name": "Central Rock Gym - Fenway",
+   "address": "Boston Fenway",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1694,
+   "name": "Boulderhal Luchthaven",
+   "address": "Anthony Fokkerweg 75, 1059 CP Amsterdam, 네덜란드",
+   "lat": null,
+   "lng": null,
+   "hits": 7,
+   "recordCount": 0,
+   "hasV": false
+  },
+  {
+   "sid": 1700,
+   "name": "BlocHaus Climbing",
+   "address": "Unit 1, 34 Wood St, Openshaw, Manchester M11 2FB 영국",
+   "lat": null,
+   "lng": null,
+   "hits": 13,
+   "recordCount": 0,
+   "hasV": false
+  }
+ ],
+ "sameLocationDifferentName": [
+  {
+   "spiri7": "권영세 클라이밍센터",
+   "ours": "플래시볼더스 클라이밍",
+   "dist": 7,
+   "sid": 140
+  },
+  {
+   "spiri7": "손상원 클라이밍짐 잠실점",
+   "ours": "클라임투더문",
+   "dist": 3,
+   "sid": 170
+  },
+  {
+   "spiri7": "서울숲클라이밍 뚝섬점",
+   "ours": "그루트클라이밍",
+   "dist": 3,
+   "sid": 174
+  },
+  {
+   "spiri7": "락스타 클라이밍",
+   "ours": "더탑실내암벽 송파점",
+   "dist": 74,
+   "sid": 184
+  },
+  {
+   "spiri7": "락트리 클라이밍 강남",
+   "ours": "클라이밍파크 신논현점",
+   "dist": 242,
+   "sid": 185
+  },
+  {
+   "spiri7": "뀨클라임",
+   "ours": "슈퍼비 클라이밍",
+   "dist": 79,
+   "sid": 195
+  },
+  {
+   "spiri7": "베이스캠프 클라이밍 유성점",
+   "ours": "클라이밍짐 리드 유성점",
+   "dist": 253,
+   "sid": 206
+  },
+  {
+   "spiri7": "스튜디오 볼더",
+   "ours": "서울숲클라이밍 구로점",
+   "dist": 125,
+   "sid": 252
+  },
+  {
+   "spiri7": "메트로락 클라이밍",
+   "ours": "비블럭클라이밍 영종하늘도시점",
+   "dist": 34,
+   "sid": 256
+  },
+  {
+   "spiri7": "연경체육공원인공암벽장",
+   "ours": "연경도약대암장",
+   "dist": 171,
+   "sid": 303
+  },
+  {
+   "spiri7": "클라임이모션",
+   "ours": "역삼클라이밍랩",
+   "dist": 56,
+   "sid": 319
+  },
+  {
+   "spiri7": "더패스클라이밍짐 제주",
+   "ours": "제주클라이밍스쿨",
+   "dist": 296,
+   "sid": 413
+  },
+  {
+   "spiri7": "프리월클라이밍짐",
+   "ours": "문클라임",
+   "dist": 0,
+   "sid": 425
+  },
+  {
+   "spiri7": "덕천생활체육공원",
+   "ours": "락클라이밍짐",
+   "dist": 287,
+   "sid": 464
+  },
+  {
+   "spiri7": "M클라이밍센터",
+   "ours": "초크업 더 볼더",
+   "dist": 148,
+   "sid": 481
+  },
+  {
+   "spiri7": "락오디세이 하단점",
+   "ours": "오터클라이밍",
+   "dist": 1,
+   "sid": 497
+  },
+  {
+   "spiri7": "클라임패밀리 수완점",
+   "ours": "그랩잇 클라이밍",
+   "dist": 2,
+   "sid": 551
+  },
+  {
+   "spiri7": "볼더하이웨이 클라이밍짐",
+   "ours": "역삼클라이밍랩",
+   "dist": 231,
+   "sid": 596
+  },
+  {
+   "spiri7": "고릴라클라이밍",
+   "ours": "엣지워크클라이밍",
+   "dist": 2,
+   "sid": 613
+  },
+  {
+   "spiri7": "그레이클라이밍짐",
+   "ours": "몽키즈클라이밍 고양화정점",
+   "dist": 219,
+   "sid": 688
+  },
+  {
+   "spiri7": "마두청소년수련관",
+   "ours": "몽키즈클라이밍 일산마두점",
+   "dist": 287,
+   "sid": 1195
+  }
+ ]
+}

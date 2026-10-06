@@ -1,14 +1,16 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { type Candidate, type Gym, distanceMeters, formatNo, nearbyGyms } from '../data/gyms';
 import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters, formatDate, formatDistance } from '../components/dex';
 import { type DexState, dayKey, visitedToday } from '../store/dex';
 import TapeSection from '../components/TapeSection';
+import ClipPlayer from '../components/ClipPlayer';
 import { useRefreshControl } from '../components/refresh';
 import type { PickedVideo } from '../types';
 import { ClimbVideo } from '../../modules/climb-video';
+import { type GymSend, fetchGymSends, sameAttempt, updateSendRange, videoKey } from '../store/sends';
 
 type Props = {
   gym: Gym;
@@ -18,7 +20,6 @@ type Props = {
   onCheckIn: (candidates: Candidate[]) => void;
   onRemoveVisit: (id: string) => void;
   onPhoto: (gym: Gym, photoUri: string) => void;
-  onOpenVideo: (index: number) => void;
   onShowCard: (gym: Gym) => void;
   onNeedAuth: () => void;
   userId: string | null;
@@ -70,7 +71,7 @@ export function choosePhoto(): Promise<PhotoChoice> {
   });
 }
 
-export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo, onShowCard, onNeedAuth, userId, onRefresh, guest }: Props) {
+export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onShowCard, onNeedAuth, userId, onRefresh, guest }: Props) {
   const [tapeRefresh, setTapeRefresh] = useState(0);
   const refreshControl = useRefreshControl(onRefresh && (async () => { setTapeRefresh((n) => n + 1); await onRefresh(); }));
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
@@ -79,21 +80,57 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
   const dayVideos = videos
     .map((video, index) => ({ video, index }))
     .filter(({ video }) => video.createdAt && visitDays.has(dayKey(video.createdAt)));
-  const clips = dayVideos.flatMap(({ video, index }) =>
-    (video.clips ?? []).filter((c) => c.saved).map((clip) => ({ video, index, clip, key: `${video.uri}#${clip.start}-${clip.end}` })),
-  );
+  const [sends, setSends] = useState<GymSend[]>([]);
+  const savedKey = videos.map((v) => `${v.uri}:${(v.clips ?? []).filter((c) => c.saved).length}`).join('|');
+  useEffect(() => {
+    if (!userId) return setSends([]);
+    let cancelled = false;
+    fetchGymSends(userId, gym.id)
+      .then((rows) => {
+        if (!cancelled) setSends(rows);
+      })
+      .catch((e) => console.log('gym sends error', String(e)));
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, gym.id, savedKey]);
+  const clips = [
+    ...sends.map((s) => ({
+      key: `${s.videoKey}#${s.clipId}`,
+      uri: Platform.OS === 'ios' ? `ph://${s.videoKey}` : s.videoKey,
+      start: s.start,
+      end: s.end,
+      label: s.label as string | undefined,
+      sent: s.sent,
+      at: s.at as string | number | undefined,
+      record: { videoKey: s.videoKey, clipId: s.clipId } as { videoKey: string; clipId: string } | null,
+    })),
+    ...videos.flatMap((video) => {
+      const onVisitDay = !!video.createdAt && visitDays.has(dayKey(video.createdAt));
+      return (video.clips ?? [])
+        .filter((c) => c.saved && (c.gymId ? c.gymId === gym.id : onVisitDay) && !sends.some((s) => s.videoKey === videoKey(video) && sameAttempt(c, s.start, s.end)))
+        .map((c) => ({ key: `${video.uri}#${c.start}-${c.end}`, uri: video.uri, start: c.start, end: c.end, label: c.tape, sent: c.sent ?? true, at: video.createdAt as string | number | undefined, record: null }));
+    }),
+  ];
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const [missing, setMissing] = useState<Record<string, boolean>>({});
+  const [playing, setPlaying] = useState<number | null>(null);
+  const clipTitle = (c: (typeof clips)[number]) => {
+    const date = c.at ? new Date(c.at) : null;
+    return [c.label, c.sent ? '완등' : '추락', date ? `${date.getMonth() + 1}월 ${date.getDate()}일` : null].filter(Boolean).join(' · ');
+  };
   const clipKeys = clips.map((c) => c.key).join('|');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const byVideo = new Map<string, typeof clips>();
-      for (const c of clips) if (!thumbs[c.key]) byVideo.set(c.video.uri, [...(byVideo.get(c.video.uri) ?? []), c]);
+      for (const c of clips) if (!thumbs[c.key]) byVideo.set(c.uri, [...(byVideo.get(c.uri) ?? []), c]);
       for (const [uri, list] of byVideo) {
         try {
-          const uris = await ClimbVideo.thumbnails(uri, list.map((c) => (c.clip.start + c.clip.end) / 2), 200);
+          const uris = await ClimbVideo.thumbnails(uri, list.map((c) => (c.start + c.end) / 2), 200);
           if (cancelled) return;
+          setMissing((prev) => ({ ...prev, ...Object.fromEntries(list.map((c) => [c.key, false])) }));
           setThumbs((prev) => {
             const next = { ...prev };
             list.forEach((c, i) => {
@@ -103,6 +140,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
           });
         } catch (e) {
           console.log('gym clip thumbnails error', String(e));
+          if (!cancelled) setMissing((prev) => ({ ...prev, ...Object.fromEntries(list.map((c) => [c.key, true])) }));
         }
       }
     })();
@@ -196,7 +234,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
       <Text style={styles.hint}>{doneToday ? '방문은 하루 한 번 기록돼요' : `암장 ${CHECKIN_METERS}m 안에서만 등록돼요 · 사진은 선택`}</Text>
 
       {(gym.types.length === 0 || gym.types.includes('볼더링')) && (
-        <TapeSection gymId={gym.id} userId={userId} checkedIn={visits.length > 0} onNeedAuth={onNeedAuth} refreshKey={tapeRefresh} />
+        <TapeSection gymId={gym.id} userId={userId} checkedIn={visits.length > 0 || sends.length > 0} onNeedAuth={onNeedAuth} refreshKey={tapeRefresh} />
       )}
 
       <Text style={styles.sectionTitle}>방문 {visits.length}회</Text>
@@ -221,16 +259,31 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
 
       <Text style={styles.sectionTitle}>이 암장에서 저장한 클립 {clips.length}개</Text>
       {clips.length === 0 ? (
-        <Text style={styles.empty}>방문한 날 찍은 영상에서 클립을 저장하면 여기 모여요</Text>
+        <Text style={styles.empty}>이 암장에서 찍은 영상으로 클립을 저장하면 여기 모여요</Text>
       ) : (
         <View style={styles.clips}>
-          {clips.map(({ index, clip, key }) => (
-            <Pressable key={key} style={styles.clip} onPress={() => onOpenVideo(index)}>
-              {thumbs[key] ? <Image source={{ uri: thumbs[key] }} style={styles.clipImage} /> : null}
-              <Text style={styles.clipLength}>{Math.round(clip.end - clip.start)}초</Text>
+          {clips.map((c, i) => (
+            <Pressable key={c.key} style={styles.clip} onPress={() => (missing[c.key] ? Alert.alert('원본 영상이 없어요', '사진 앱에서 원본을 지우면 기록만 남아요') : setPlaying(i))}>
+              {thumbs[c.key] ? <Image source={{ uri: thumbs[c.key] }} style={styles.clipImage} /> : null}
+              {missing[c.key] ? <Text style={styles.clipMissing}>원본 없음</Text> : null}
+              {c.label ? <Text style={styles.clipLabel}>{c.sent ? c.label : `${c.label} · 추락`}</Text> : null}
+              <Text style={styles.clipLength}>{Math.round(c.end - c.start)}초</Text>
             </Pressable>
           ))}
         </View>
+      )}
+      {playing !== null && (
+        <ClipPlayer
+          items={clips.map((c) => ({ key: c.key, uri: c.uri, start: c.start, end: c.end, title: clipTitle(c), editable: !!c.record }))}
+          initial={playing}
+          onClose={() => setPlaying(null)}
+          onSaved={async (key, start, end) => {
+            const record = clips.find((c) => c.key === key)?.record;
+            if (!record || !userId) return;
+            await updateSendRange(userId, record.videoKey, record.clipId, start, end);
+            setSends(await fetchGymSends(userId, gym.id));
+          }}
+        />
       )}
     </ScrollView>
   );
@@ -266,5 +319,7 @@ const styles = StyleSheet.create({
   clips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   clip: { width: 90, height: 120, borderRadius: 8, backgroundColor: '#ddd', overflow: 'hidden' },
   clipImage: { width: '100%', height: '100%' },
+  clipMissing: { position: 'absolute', top: 50, left: 0, right: 0, textAlign: 'center', color: '#888', fontSize: 11, fontWeight: '600' },
+  clipLabel: { position: 'absolute', left: 4, top: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
   clipLength: { position: 'absolute', right: 4, bottom: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },
 });

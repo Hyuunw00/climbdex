@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { randomUUID } from 'expo-crypto';
 import * as MediaLibrary from 'expo-media-library';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useRef, useState } from 'react';
@@ -40,12 +41,16 @@ function formatSeconds(seconds: number) {
 
 
 export default function TrimScreen({ video, settings, index, total, onBack, onNavigate, onUpdate, userId, dex }: Props) {
-  const initialClips = (v: PickedVideo) => clipsOf(v, settings);
-  const [clips, setClips] = useState<Clip[]>(() => initialClips(video).map((c) => ({ ...c, sent: c.sent ?? judgeSend(video.tracks, c.start, c.end) ?? true })));
+  const initialClips = (v: PickedVideo) =>
+    clipsOf(v, settings).map((c) => {
+      const autoSent = c.autoSent !== undefined ? c.autoSent : judgeSend(v.tracks, c.start, c.end);
+      return { ...c, id: c.id ?? randomUUID(), autoSent, sent: c.sent ?? autoSent ?? true };
+    });
+  const [clips, setClips] = useState<Clip[]>(() => initialClips(video));
   const [current, setCurrent] = useState(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [view, setView] = useState<{ start: number; end: number } | null>(() => {
-    const first = initialClips(video);
+    const first = clipsOf(video, settings);
     return first.length > 1 ? windowFor(first[0], video.duration) : null;
   });
   const [saving, setSaving] = useState<string | null>(null);
@@ -322,7 +327,12 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       onUpdate({ saved: (video.saved ?? 0) + done, clips: marked });
       let sent = 0;
       if (recording && userId && choice) {
-        const records = targets.map((c) => ({ gymId: choice.gym.id, basis: choice.basis, clip: c, label: c.tape!, sent: c.sent ?? true }));
+        const summary = tapes ? summarize(tapes, userId) : [];
+        const records = targets.map((c) => {
+          const tape = summary.find((t) => t.label === c.tape);
+          const own = vote && vote.label === c.tape ? vote.v : null;
+          return { gymId: choice.gym.id, basis: choice.basis, clip: c, label: c.tape!, sent: c.sent ?? true, vMin: tape?.vMin ?? own, vMax: tape?.vMax ?? own };
+        });
         sent = records.filter((r) => r.sent).length;
         try {
           await pushSends(userId, video, records);
@@ -482,10 +492,10 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
             </View>
           </View>
           {tapes === undefined ? (
-            <Text style={styles.followHint}>띠 불러오는 중…</Text>
+            <Text style={styles.followHint}>난이도 불러오는 중…</Text>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tapeChips}>
-              <Text style={styles.tapeLabel}>띠레벨</Text>
+              <Text style={styles.tapeLabel}>난이도</Text>
               {(tapes?.set?.tapes ?? PALETTE.map((p) => ({ label: p.label, color: p.color }))).map((t) => (
                 <Pressable key={t.label} style={[styles.tapeChip, clip.tape === t.label && styles.tapeChipOn]} onPress={() => patchClip(current, { tape: t.label })}>
                   <View style={[styles.swatch, { backgroundColor: t.color ?? '#ddd' }]} />
@@ -511,7 +521,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           onPress={() => (clip.saved ? Alert.alert('이미 저장한 구간이에요', undefined, [{ text: '취소', style: 'cancel' }, { text: '다시 저장', onPress: () => save([clip]) }]) : save([clip]))}
           disabled={saving !== null || needGym || needTape}
         >
-          <Text style={styles.primaryText}>{saving ?? (needGym ? '암장을 골라 주세요' : needTape ? '띠를 골라 주세요' : clip.saved ? `${current + 1}번 저장됨 ✓` : `${current + 1}번 저장`)}</Text>
+          <Text style={styles.primaryText}>{saving ?? (needGym ? '암장을 골라 주세요' : needTape ? '난이도를 골라 주세요' : clip.saved ? `${current + 1}번 저장됨 ✓` : `${current + 1}번 저장`)}</Text>
         </Pressable>
       </View>
       {clips.length > 1 && (

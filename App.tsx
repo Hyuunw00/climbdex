@@ -24,7 +24,7 @@ import { randomUUID } from 'expo-crypto';
 import { signOut } from './src/auth/auth';
 import { supabase } from './src/lib/supabase';
 import AuthScreen from './src/screens/AuthScreen';
-import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, visitedToday } from './src/store/dex';
+import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, dayKey, visitedToday } from './src/store/dex';
 import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
 import { dismissToday, dismissedToday } from './src/todayVideos';
@@ -77,6 +77,8 @@ export default function App() {
   const [dexReady, setDexReady] = useState(false);
   const [gym, setGym] = useState<Gym | null>(null);
   const [dexView, setDexView] = useState<DexView>('home');
+  const [historyMonth, setHistoryMonth] = useState(() => ({ year: new Date().getFullYear(), month: new Date().getMonth() }));
+  const [historyDay, setHistoryDay] = useState(() => dayKey(new Date()));
   const [region, setRegion] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<{ gym: Gym; photo?: string; count: number; rank: number; date?: Date; replay?: boolean } | null>(null);
   const [query, setQuery] = useState('');
@@ -469,12 +471,6 @@ export default function App() {
     setCelebration({ gym: target, photo: dex.photos[target.id], count: visits.length, rank: earlier.size + 1, date: new Date(visits[0].at), replay: true });
   };
 
-  const openVideo = (index: number) => {
-    setGym(null);
-    setTab('videos');
-    setEditing(index);
-  };
-
   let screen;
   if (tab === 'videos') {
     screen =
@@ -528,7 +524,6 @@ export default function App() {
         onCheckIn={guest ? needLogin : checkIn}
         onRemoveVisit={removeVisitEverywhere}
         onPhoto={guest ? needLogin : setGymPhoto}
-        onOpenVideo={openVideo}
         onShowCard={guest ? needLogin : showCard}
         onNeedAuth={needLogin}
         userId={userId}
@@ -538,7 +533,7 @@ export default function App() {
     ) : dexView === 'all' ? (
       <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} />
     ) : dexView === 'history' ? (
-      <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} />
+      <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} userId={userId} month={historyMonth} onMonth={setHistoryMonth} selected={historyDay} onSelect={setHistoryDay} />
     ) : (
       <DexScreen
         dex={dex}

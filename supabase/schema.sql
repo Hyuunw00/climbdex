@@ -100,11 +100,29 @@ create table if not exists public.sends (
   sent boolean not null,
   basis text not null check (basis in ('location', 'visit')),
   video_key text not null,
+  clip_id text not null,
   clip_start numeric not null,
   clip_end numeric not null,
+  auto_sent boolean,
+  tape_version int not null default 1,
+  v_min int,
+  v_max int,
   created_at timestamptz not null default now(),
-  unique (user_id, video_key, clip_start, clip_end)
+  unique (user_id, video_key, clip_id)
 );
+alter table public.sends add column if not exists clip_id text;
+alter table public.sends add column if not exists auto_sent boolean;
+alter table public.sends add column if not exists tape_version int not null default 1;
+alter table public.sends add column if not exists v_min int;
+alter table public.sends add column if not exists v_max int;
+update public.sends set clip_id = id::text where clip_id is null;
+alter table public.sends alter column clip_id set not null;
+alter table public.sends drop constraint if exists sends_user_id_video_key_clip_start_clip_end_key;
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'sends_user_id_video_key_clip_id_key') then
+    alter table public.sends add constraint sends_user_id_video_key_clip_id_key unique (user_id, video_key, clip_id);
+  end if;
+end $$;
 create index if not exists sends_user_gym on public.sends(user_id, gym_id);
 alter table public.sends enable row level security;
 drop policy if exists "sends own" on public.sends;

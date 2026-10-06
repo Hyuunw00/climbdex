@@ -5,7 +5,7 @@ import type { Clip, PickedVideo } from '../types';
 
 export type Basis = 'location' | 'visit';
 export type GymCandidate = { gym: Gym; basis: Basis };
-export type SendRecord = { gymId: string; basis: Basis; clip: Clip; label: string; sent: boolean };
+export type SendRecord = { gymId: string; basis: Basis; clip: Clip; label: string; sent: boolean; vMin: number | null; vMax: number | null };
 
 const VIDEO_RADIUS = 200;
 const FALL_DROP = 1.5;
@@ -69,6 +69,43 @@ export function judgeSend(tracks: number[][][] | undefined, start: number, end: 
   return null;
 }
 
+export type MySend = { gymId: string; at: string; sent: boolean };
+
+export async function fetchMySends(userId: string): Promise<MySend[]> {
+  const { data, error } = await supabase.from('sends').select('gym_id, at, sent').eq('user_id', userId);
+  if (error) throw error;
+  return (data ?? []).map((r) => ({ gymId: r.gym_id, at: r.at, sent: r.sent }));
+}
+
+export type GymSend = { videoKey: string; clipId: string; start: number; end: number; label: string; sent: boolean; at: string };
+
+export async function fetchGymSends(userId: string, gymId: string): Promise<GymSend[]> {
+  const { data, error } = await supabase
+    .from('sends')
+    .select('video_key, clip_id, clip_start, clip_end, label, sent, at')
+    .eq('user_id', userId)
+    .eq('gym_id', gymId)
+    .order('at', { ascending: false })
+    .order('clip_start');
+  if (error) throw error;
+  return (data ?? []).map((r) => ({ videoKey: r.video_key, clipId: r.clip_id, start: Number(r.clip_start), end: Number(r.clip_end), label: r.label, sent: r.sent, at: r.at }));
+}
+
+export async function updateSendRange(userId: string, key: string, clipId: string, start: number, end: number) {
+  const { error } = await supabase
+    .from('sends')
+    .update({ clip_start: Math.round(start * 10) / 10, clip_end: Math.round(end * 10) / 10 })
+    .eq('user_id', userId)
+    .eq('video_key', key)
+    .eq('clip_id', clipId);
+  if (error) throw error;
+}
+
+export function sameAttempt(a: { start: number; end: number }, start: number, end: number) {
+  const overlap = Math.min(a.end, end) - Math.max(a.start, start);
+  return overlap > 0.5 * (Math.max(a.end, end) - Math.min(a.start, start));
+}
+
 export function videoKey(video: PickedVideo) {
   return video.assetId ?? `${video.fileName ?? 'video'}:${Math.round(video.duration)}`;
 }
@@ -76,6 +113,17 @@ export function videoKey(video: PickedVideo) {
 export async function pushSends(userId: string, video: PickedVideo, records: SendRecord[]) {
   const at = new Date(video.createdAt ?? Date.now()).toISOString();
   const key = videoKey(video);
+  const { data: existing, error: lookupError } = await supabase.from('sends').select('clip_id, clip_start, clip_end').eq('user_id', userId).eq('video_key', key);
+  if (lookupError) throw lookupError;
+  const used = new Set<string>();
+  const matchId = (clip: Clip) => {
+    const pool = (existing ?? []).filter((e) => !used.has(e.clip_id));
+    const exact = clip.id ? pool.find((e) => e.clip_id === clip.id) : undefined;
+    const hit = exact ?? pool.find((e) => sameAttempt(clip, Number(e.clip_start), Number(e.clip_end)));
+    const id = hit?.clip_id ?? clip.id ?? `${clip.start}-${clip.end}`;
+    used.add(id);
+    return id;
+  };
   const rows = records.map((r) => ({
     user_id: userId,
     gym_id: r.gymId,
@@ -84,9 +132,14 @@ export async function pushSends(userId: string, video: PickedVideo, records: Sen
     sent: r.sent,
     basis: r.basis,
     video_key: key,
+    clip_id: matchId(r.clip),
     clip_start: Math.round(r.clip.start * 10) / 10,
     clip_end: Math.round(r.clip.end * 10) / 10,
+    auto_sent: r.clip.autoSent ?? null,
+    tape_version: 1,
+    v_min: r.vMin,
+    v_max: r.vMax,
   }));
-  const { error } = await supabase.from('sends').upsert(rows, { onConflict: 'user_id,video_key,clip_start,clip_end' });
+  const { error } = await supabase.from('sends').upsert(rows, { onConflict: 'user_id,video_key,clip_id' });
   if (error) throw error;
 }

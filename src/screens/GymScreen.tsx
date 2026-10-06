@@ -5,6 +5,8 @@ import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } 
 import { type Candidate, type Gym, distanceMeters, formatNo, nearbyGyms } from '../data/gyms';
 import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters, formatDate, formatDistance } from '../components/dex';
 import { type DexState, dayKey, visitedToday } from '../store/dex';
+import TapeSection from '../components/TapeSection';
+import { useRefreshControl } from '../components/refresh';
 import type { PickedVideo } from '../types';
 import { ClimbVideo } from '../../modules/climb-video';
 
@@ -18,6 +20,9 @@ type Props = {
   onPhoto: (gym: Gym, photoUri: string) => void;
   onOpenVideo: (index: number) => void;
   onShowCard: (gym: Gym) => void;
+  onNeedAuth: () => void;
+  userId: string | null;
+  onRefresh?: () => Promise<void>;
   guest?: boolean;
 };
 
@@ -65,7 +70,9 @@ export function choosePhoto(): Promise<PhotoChoice> {
   });
 }
 
-export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo, onShowCard, guest }: Props) {
+export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onOpenVideo, onShowCard, onNeedAuth, userId, onRefresh, guest }: Props) {
+  const [tapeRefresh, setTapeRefresh] = useState(0);
+  const refreshControl = useRefreshControl(onRefresh && (async () => { setTapeRefresh((n) => n + 1); await onRefresh(); }));
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
   const photo = dex.photos[gym.id];
   const visitDays = new Set(visits.map((v) => dayKey(v.at)));
@@ -139,7 +146,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} refreshControl={refreshControl}>
       <Pressable onPress={onBack}>
         <Text style={styles.back}>← 도감</Text>
       </Pressable>
@@ -187,6 +194,10 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         </Text>
       </Pressable>
       <Text style={styles.hint}>{doneToday ? '방문은 하루 한 번 기록돼요' : `암장 ${CHECKIN_METERS}m 안에서만 등록돼요 · 사진은 선택`}</Text>
+
+      {(gym.types.length === 0 || gym.types.includes('볼더링')) && (
+        <TapeSection gymId={gym.id} userId={userId} checkedIn={visits.length > 0} onNeedAuth={onNeedAuth} refreshKey={tapeRefresh} />
+      )}
 
       <Text style={styles.sectionTitle}>방문 {visits.length}회</Text>
       {visits.length === 0 ? (

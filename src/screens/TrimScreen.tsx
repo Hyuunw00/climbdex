@@ -10,6 +10,10 @@ import type { Clip, PickedVideo } from '../types';
 import { clipsOf } from '../clips';
 import { deleteFile } from '../videoFiles';
 import type { Settings } from '../settings';
+import type { DexState } from '../store/dex';
+import { type GymCandidate, judgeSend, pushSends, resolveGyms } from '../store/sends';
+import { OrderSheet, VoteSheet } from '../components/TapeSection';
+import { PALETTE, type Tape, type TapeData, type TapeSummary, castVote, fetchTapes, saveTapeSet, summarize } from '../store/tapes';
 
 type Props = {
   video: PickedVideo;
@@ -19,6 +23,8 @@ type Props = {
   onBack: () => void;
   onNavigate: (delta: number) => void;
   onUpdate: (patch: Partial<PickedVideo>) => void;
+  userId: string | null;
+  dex: DexState;
 };
 
 const THUMB_COUNT = 12;
@@ -33,9 +39,9 @@ function formatSeconds(seconds: number) {
 }
 
 
-export default function TrimScreen({ video, settings, index, total, onBack, onNavigate, onUpdate }: Props) {
+export default function TrimScreen({ video, settings, index, total, onBack, onNavigate, onUpdate, userId, dex }: Props) {
   const initialClips = (v: PickedVideo) => clipsOf(v, settings);
-  const [clips, setClips] = useState<Clip[]>(() => initialClips(video));
+  const [clips, setClips] = useState<Clip[]>(() => initialClips(video).map((c) => ({ ...c, sent: c.sent ?? judgeSend(video.tracks, c.start, c.end) ?? true })));
   const [current, setCurrent] = useState(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [view, setView] = useState<{ start: number; end: number } | null>(() => {
@@ -43,6 +49,12 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     return first.length > 1 ? windowFor(first[0], video.duration) : null;
   });
   const [saving, setSaving] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<GymCandidate[]>([]);
+  const [choice, setChoice] = useState<GymCandidate | null>(null);
+  const [tapes, setTapes] = useState<TapeData | null | undefined>(undefined);
+  const [noRecord, setNoRecord] = useState(false);
+  const [voteFor, setVoteFor] = useState<{ tape: TapeSummary; resolve: (v: number | null | undefined) => void } | null>(null);
+  const [orderFor, setOrderFor] = useState<{ resolve: (tapes: Tape[] | null | undefined) => void } | null>(null);
   const [position, setPosition] = useState(() => initialClips(video)[0].start);
   const [follow, setFollow] = useState(false);
   const [plan, setPlan] = useState<FollowPlan | null>(null);
@@ -82,6 +94,52 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   useEffect(() => {
     player.muted = muted;
   }, [player, muted]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      let current = video;
+      if (video.assetId && video.location === undefined) {
+        try {
+          const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
+          const location = info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null;
+          onUpdate({ location });
+          current = { ...video, location };
+        } catch (e) {
+          console.log('asset location error', String(e));
+        }
+      }
+      if (cancelled) return;
+      const found = resolveGyms(current, dex);
+      console.log('record gym', video.fileName, JSON.stringify({ createdAt: current.createdAt, pickedAt: current.pickedAt, location: current.location, visits: dex.visits.map((v) => [v.gymId, v.at]), found: found.map((c) => [c.gym.name, c.basis]) }));
+      setCandidates(found);
+      setChoice(found.find((c) => c.gym.id === clips[0]?.gymId) ?? found[0] ?? null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, video.uri, dex.visits.length]);
+
+  const loadTapes = async (gymId: string) => {
+    try {
+      setTapes(await fetchTapes(gymId));
+    } catch (e) {
+      console.log('tapes load error', String(e));
+      setTapes(null);
+    }
+  };
+
+  useEffect(() => {
+    setTapes(undefined);
+    if (choice) loadTapes(choice.gym.id);
+  }, [choice?.gym.id]);
+
+  const patchClip = (i: number, changes: Partial<Clip>) => {
+    const next = clips.map((c, k) => (k === i ? { ...c, ...changes } : c));
+    setClips(next);
+    onUpdate({ clips: next });
+  };
 
   useEffect(() => {
     const sub = player.addListener('playingChange', ({ isPlaying }) => setPlaying(isPlaying));
@@ -211,11 +269,62 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     player.play();
   };
 
+  const recording = !!(userId && choice && !noRecord);
+
+  const pickRecordGym = () => {
+    Alert.alert(
+      '완등 기록',
+      clips.length > 1 ? `${current + 1}번 구간 · ${clip.tape ?? '띠 미선택'}` : undefined,
+      [
+        ...candidates.filter((c) => c.gym.id !== choice?.gym.id).map((c) => ({ text: c.gym.name, onPress: () => setChoice(c) })),
+        { text: '기록 안 함', style: 'destructive' as const, onPress: () => setNoRecord(true) },
+        { text: '닫기', style: 'cancel' as const },
+      ],
+    );
+  };
+
   const save = async (targets: Clip[]) => {
     const permission = await MediaLibrary.requestPermissionsAsync(true);
     if (!permission.granted) {
       Alert.alert('사진 앱 저장 권한이 필요해요');
       return;
+    }
+    if (recording) {
+      const missing = targets.find((c) => !c.tape);
+      if (missing) {
+        Alert.alert('띠 색을 골라 주세요', clips.length > 1 ? `${clips.indexOf(missing) + 1}번 구간의 띠가 아직 없어요` : '이 시도의 띠 색을 고르면 완등 기록이 남아요');
+        return;
+      }
+    }
+    if (recording && choice && userId && tapes !== undefined && !tapes?.set) {
+      const order = await new Promise<Tape[] | null | undefined>((resolve) => setOrderFor({ resolve }));
+      setOrderFor(null);
+      if (order === undefined) return;
+      if (order) {
+        try {
+          await pushSends(userId, video, targets.map((c) => ({ gymId: choice.gym.id, basis: choice.basis, clip: c, label: c.tape!, sent: c.sent ?? true })));
+          await saveTapeSet(userId, choice.gym.id, order);
+          loadTapes(choice.gym.id);
+        } catch (e) {
+          console.log('order save error', String(e));
+        }
+      }
+    }
+    if (recording && choice && tapes?.set && targets[0].tape) {
+      const tape = summarize(tapes, userId).find((t) => t.label === targets[0].tape);
+      if (tape && !tape.voted) {
+        const v = await new Promise<number | null | undefined>((resolve) => setVoteFor({ tape, resolve }));
+        setVoteFor(null);
+        if (v === undefined) return;
+        if (v !== null && userId) {
+          try {
+            await castVote(userId, choice.gym.id, tape.label, v, v);
+            loadTapes(choice.gym.id);
+          } catch (e) {
+            console.log('vote error', String(e));
+          }
+        }
+      }
     }
     let done = 0;
     try {
@@ -228,10 +337,20 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         deleteFile(outUri);
         done += 1;
       }
-      const marked = clips.map((c) => (targets.includes(c) ? { ...c, saved: true } : c));
+      const marked = clips.map((c) => (targets.includes(c) ? { ...c, saved: true, ...(recording ? { gymId: choice!.gym.id } : {}) } : c));
       setClips(marked);
       onUpdate({ saved: (video.saved ?? 0) + done, clips: marked });
-      Alert.alert('저장했어요', `클립 ${done}개를 사진 앱에 넣었어요`);
+      let sent = 0;
+      if (recording && userId && choice) {
+        const records = targets.map((c) => ({ gymId: choice.gym.id, basis: choice.basis, clip: c, label: c.tape!, sent: c.sent ?? true }));
+        sent = records.filter((r) => r.sent).length;
+        try {
+          await pushSends(userId, video, records);
+        } catch (e) {
+          console.log('sends push error', String(e));
+        }
+      }
+      Alert.alert('저장했어요', `클립 ${done}개를 사진 앱에 넣었어요` + (recording ? ` · 완등 ${sent}개 기록` : ''));
     } catch (e) {
       Alert.alert('저장 실패', String(e));
     } finally {
@@ -342,6 +461,41 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         </View>
         <Switch value={follow} onValueChange={setFollow} trackColor={{ true: '#111' }} />
       </View>
+      {userId && choice && noRecord && (
+        <Pressable onPress={() => setNoRecord(false)} hitSlop={6} style={styles.recordOff}>
+          <Text style={styles.recordLink}>완등 기록 안 남김 · 다시 켜기</Text>
+        </Pressable>
+      )}
+      {recording && choice && (
+        <View style={styles.record}>
+          <View style={styles.recordHead}>
+            <Pressable onPress={pickRecordGym} hitSlop={6} style={styles.recordGymButton}>
+              <Text style={styles.recordGym}>{choice.gym.name}</Text>
+              <Ionicons name="chevron-down" size={16} color="#666" />
+            </Pressable>
+            <View style={styles.sentSwitch}>
+              {([[true, '완등'], [false, '낙하']] as const).map(([v, text]) => (
+                <Pressable key={text} style={[styles.sentItem, (clip.sent ?? true) === v && styles.sentItemOn]} onPress={() => patchClip(current, { sent: v })}>
+                  <Text style={[styles.sentText, (clip.sent ?? true) === v && styles.sentTextOn]}>{text}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+          {tapes === undefined ? (
+            <Text style={styles.followHint}>띠 불러오는 중…</Text>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tapeChips}>
+              <Text style={styles.tapeLabel}>띠레벨</Text>
+              {(tapes?.set?.tapes ?? PALETTE.map((p) => ({ label: p.label, color: p.color }))).map((t) => (
+                <Pressable key={t.label} style={[styles.tapeChip, clip.tape === t.label && styles.tapeChipOn]} onPress={() => patchClip(current, { tape: t.label })}>
+                  <View style={[styles.swatch, { backgroundColor: t.color ?? '#ddd' }]} />
+                  <Text style={styles.tapeChipText}>{t.label}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      )}
       {video.saved ? <Text style={styles.savedNote}>이 영상에서 저장한 클립 {video.saved}개</Text> : null}
     </ScrollView>
     <View style={styles.bar}>
@@ -359,6 +513,21 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         </Pressable>
       )}
     </View>
+    {orderFor && (
+      <OrderSheet onClose={() => orderFor.resolve(undefined)} onSkip={() => orderFor.resolve(null)} onSubmit={(tapes) => orderFor.resolve(tapes)} skipLabel="모르겠어요 · 그냥 저장" />
+    )}
+    {voteFor && (
+      <VoteSheet
+        tape={voteFor.tape}
+        mine={null}
+        onClose={() => voteFor.resolve(undefined)}
+        onSkip={() => voteFor.resolve(null)}
+        onSubmit={(min) => voteFor.resolve(min)}
+        onRemove={() => voteFor.resolve(undefined)}
+        skipLabel="모르겠어요 · 그냥 저장"
+        confirmLabel="투표하고 저장"
+      />
+    )}
     </View>
   );
 }
@@ -409,4 +578,21 @@ const styles = StyleSheet.create({
   primaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   disabled: { opacity: 0.5 },
   savedNote: { fontSize: 13, color: '#888', textAlign: 'center' },
+  record: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: '#f7f7f9' },
+  recordOff: { alignSelf: 'center', paddingVertical: 4 },
+  recordHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  recordGymButton: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+  recordGym: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
+  recordLink: { fontSize: 13, color: '#0a58ca' },
+  sentSwitch: { flexDirection: 'row', backgroundColor: '#e6e6ea', borderRadius: 9, padding: 2 },
+  sentItem: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 7 },
+  sentItemOn: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  sentText: { fontSize: 13, color: '#666' },
+  sentTextOn: { color: '#111', fontWeight: '600' },
+  tapeChips: { gap: 8, paddingVertical: 2, alignItems: 'center' },
+  tapeLabel: { fontSize: 12, color: '#666', marginRight: 2 },
+  tapeChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 16, backgroundColor: '#fff', borderWidth: 2, borderColor: 'transparent' },
+  tapeChipOn: { borderColor: '#d7263d' },
+  tapeChipText: { fontSize: 13 },
+  swatch: { width: 16, height: 16, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' },
 });

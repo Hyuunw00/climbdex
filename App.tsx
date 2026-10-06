@@ -27,7 +27,7 @@ import AuthScreen from './src/screens/AuthScreen';
 import { EMPTY_DEX, clearLegacy, loadCache, loadLegacy, removeVisit, replacePhoto, saveCache, storePhoto, type DexState, type Visit, visitedToday } from './src/store/dex';
 import { deleteAccount, deleteGymPhotoRemote, deleteVisitRemote, fetchDex, pushGymPhoto, pushVisit } from './src/store/remote';
 import type { PickedVideo } from './src/types';
-import { dismissToday, dismissedToday, newVideosToday, todayGym } from './src/todayVideos';
+import { dismissToday, dismissedToday } from './src/todayVideos';
 
 const store = new File(Paths.document, 'videos.json');
 
@@ -84,7 +84,6 @@ export default function App() {
   const removed = useRef(new Set<string>()).current;
   const detecting = useRef<string | null>(null);
   const [progress, setProgress] = useState<DetectProgress | null>(null);
-  const [today, setToday] = useState<{ gym: Gym; videos: PickedVideo[] | null } | null>(null);
   const [activeAt, setActiveAt] = useState(Date.now());
 
   useEffect(() => {
@@ -94,20 +93,6 @@ export default function App() {
     return () => sub.remove();
   }, []);
 
-  useEffect(() => {
-    const target = todayGym(dex);
-    if (!target || dismissedToday('videos')) return setToday(null);
-    let cancelled = false;
-    const known = new Set(videos.map((v) => v.assetId).filter((id): id is string => !!id));
-    newVideosToday(known)
-      .then((found) => {
-        if (!cancelled && !dismissedToday('videos')) setToday(found && found.length === 0 ? null : { gym: target, videos: found });
-      })
-      .catch((e) => console.log('today videos error', String(e)));
-    return () => {
-      cancelled = true;
-    };
-  }, [dex.visits, videos.length, activeAt]);
 
   const [here, setHere] = useState<Candidate[]>([]);
 
@@ -162,6 +147,15 @@ export default function App() {
   }, []);
 
   const userId = session?.user.id ?? null;
+
+  const refreshDex = async () => {
+    if (!userId) return;
+    try {
+      setDex(await fetchDex(userId, dex));
+    } catch (e) {
+      console.log('refreshDex error', String(e));
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -276,10 +270,10 @@ export default function App() {
           console.log('thumbnail error', video.fileName, String(e));
         }
       }
-      if (video.assetId && !video.createdAt) {
+      if (video.assetId && (!video.createdAt || video.location === undefined)) {
         try {
           const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
-          patch(video.uri, { createdAt: info.creationTime });
+          patch(video.uri, { createdAt: video.createdAt ?? info.creationTime, location: info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null });
         } catch {}
       }
       let segments: PickedVideo['segments'] = [];
@@ -351,7 +345,8 @@ export default function App() {
     if (skipped > 0) Alert.alert(`이미 있는 영상 ${skipped}개는 건너뛰었어요`);
     if (added.length === 0) return;
     for (const v of added) removed.delete(v.uri);
-    setVideos((prev) => [...prev, ...added]);
+    const pickedAt = Date.now();
+    setVideos((prev) => [...prev, ...added.map((v) => ({ ...v, pickedAt }))]);
     prepareNotifications();
     detect(added, true);
   };
@@ -485,6 +480,8 @@ export default function App() {
           onBack={() => setEditing(null)}
           onNavigate={(delta) => setEditing(Math.max(0, Math.min(videos.length - 1, editing + delta)))}
           onUpdate={(changes) => patch(videos[editing].uri, changes)}
+          userId={userId}
+          dex={dex}
         />
       ) : (
         <VideoListScreen
@@ -496,25 +493,13 @@ export default function App() {
           onRemove={(index) => {
             const target = videos[index];
             if (target) forget(target.uri);
-            if (target?.assetId) dismissToday(`asset:${target.assetId}`);
             setVideos((prev) => prev.filter((_, i) => i !== index));
           }}
           onClear={() => {
             for (const v of videos) forget(v.uri);
-            dismissToday(...videos.flatMap((v) => (v.assetId ? [`asset:${v.assetId}`] : [])));
             setVideos([]);
           }}
           onOpen={setEditing}
-          today={today ? { gymName: today.gym.name, count: today.videos?.length ?? null } : null}
-          onTodayAdd={() => {
-            if (!today?.videos) return;
-            add(today.videos);
-            setToday(null);
-          }}
-          onTodayDismiss={() => {
-            dismissToday('videos');
-            setToday(null);
-          }}
           here={hereBanner ? { gymName: hereBanner[0].gym.name, count: hereBanner.length } : null}
           onHere={() => (session ? hereBanner && checkIn(hereBanner, false) : setAuthPrompt(true))}
           onHereDismiss={() => {
@@ -537,12 +522,15 @@ export default function App() {
         onPhoto={guest ? needLogin : setGymPhoto}
         onOpenVideo={openVideo}
         onShowCard={guest ? needLogin : showCard}
+        onNeedAuth={needLogin}
+        userId={userId}
+        onRefresh={refreshDex}
         guest={guest}
       />
     ) : dexView === 'all' ? (
-      <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} />
+      <AllGymsScreen dex={dex} region={region} onRegion={setRegion} query={query} onQuery={setQuery} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} />
     ) : dexView === 'history' ? (
-      <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} />
+      <HistoryScreen dex={dex} onOpenGym={setGym} onBack={() => setDexView('home')} onRefresh={refreshDex} />
     ) : (
       <DexScreen
         dex={dex}
@@ -550,6 +538,7 @@ export default function App() {
         onCheckIn={guest ? needLogin : checkIn}
         onOpenAll={() => setDexView('all')}
         onOpenHistory={guest ? needLogin : () => setDexView('history')}
+        onRefresh={refreshDex}
         onAccount={guest ? needLogin : accountMenu}
         account={session ? { name: String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? ''), email: session.user.email ?? '' } : null}
       />

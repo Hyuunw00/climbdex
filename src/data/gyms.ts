@@ -12,6 +12,7 @@ export type Gym = {
   phone: string | null;
   placeUrl: string;
   kind: string;
+  types: string[];
   image: string | null;
   no: number;
 };

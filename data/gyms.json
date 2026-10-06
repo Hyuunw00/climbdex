@@ -11,7 +11,11 @@
     "phone": "033-646-5014",
     "placeUrl": "http://place.map.kakao.com/26940066",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "478028894",
@@ -25,7 +29,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/478028894",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "891095074",
@@ -39,7 +46,10 @@
     "phone": "033-539-3560",
     "placeUrl": "http://place.map.kakao.com/891095074",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "1864391622",
@@ -53,7 +63,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1864391622",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1823027722",
@@ -67,7 +81,8 @@
     "phone": "033-635-0814",
     "placeUrl": "http://place.map.kakao.com/1823027722",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1736591738",
@@ -81,7 +96,11 @@
     "phone": "033-635-0814",
     "placeUrl": "http://place.map.kakao.com/1736591738",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "226637448",
@@ -95,7 +114,8 @@
     "phone": "010-8872-3931",
     "placeUrl": "http://place.map.kakao.com/226637448",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1825350899",
@@ -109,7 +129,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1825350899",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "22607225",
@@ -123,7 +144,8 @@
     "phone": "010-6770-4027",
     "placeUrl": "http://place.map.kakao.com/22607225",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "439775423",
@@ -137,21 +159,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/439775423",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1510392845",
-    "name": "용소빙장",
-    "lat": 38.1256099120047,
-    "lng": 128.045680095405,
-    "address": "강원특별자치도 양구군 국토정중앙면 가오작리 1092-2",
-    "region1": "강원",
-    "region2": "양구군",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/1510392845",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1695779778",
@@ -165,7 +177,10 @@
     "phone": "033-761-4177",
     "placeUrl": "http://place.map.kakao.com/1695779778",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "18098868",
@@ -179,7 +194,8 @@
     "phone": "033-744-0123",
     "placeUrl": "http://place.map.kakao.com/18098868",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "27461812",
@@ -193,7 +209,11 @@
     "phone": "033-765-0909",
     "placeUrl": "http://place.map.kakao.com/27461812",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "411729813",
@@ -207,7 +227,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/411729813",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1114267701",
@@ -221,7 +242,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1114267701",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "24505563",
@@ -235,7 +257,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/24505563",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1825569654",
@@ -249,7 +272,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1825569654",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1205902555",
@@ -263,7 +290,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1205902555",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26940093",
@@ -277,7 +305,11 @@
     "phone": "033-761-4177",
     "placeUrl": "http://place.map.kakao.com/26940093",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1950378324",
@@ -291,21 +323,12 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1950378324",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "27500635",
-    "name": "판대아이스파크",
-    "lat": 37.37064325287458,
-    "lng": 127.79646625773931,
-    "address": "강원특별자치도 원주시 지정면 지정로 1101",
-    "region1": "강원",
-    "region2": "원주시",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/27500635",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1116136244",
@@ -319,7 +342,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1116136244",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2011692628",
@@ -333,21 +357,8 @@
     "phone": "033-263-5305",
     "placeUrl": "http://place.map.kakao.com/2011692628",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "113553168",
-    "name": "레고랜드코리아리조트 콜의암벽등반",
-    "lat": 37.8847628775471,
-    "lng": 127.696336441649,
-    "address": "강원특별자치도 춘천시 중도동 560-4",
-    "region1": "강원",
-    "region2": "춘천시",
-    "category": "여행 > 관광,명소 > 테마파크 > 테마파크시설",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/113553168",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1402153343",
@@ -361,7 +372,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1402153343",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "340768558",
@@ -375,7 +387,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/340768558",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "969059199",
@@ -389,7 +402,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/969059199",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "27334593",
@@ -403,7 +419,10 @@
     "phone": "033-263-7302",
     "placeUrl": "http://place.map.kakao.com/27334593",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "644799968",
@@ -417,7 +436,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/644799968",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "25575936",
@@ -431,7 +451,11 @@
     "phone": "1544-6772",
     "placeUrl": "http://place.map.kakao.com/25575936",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "692029814",
@@ -445,7 +469,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/692029814",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26924144",
@@ -459,7 +487,11 @@
     "phone": "033-432-1773",
     "placeUrl": "http://place.map.kakao.com/26924144",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "22135537",
@@ -473,7 +505,11 @@
     "phone": "031-929-4868",
     "placeUrl": "http://place.map.kakao.com/22135537",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26842478",
@@ -487,7 +523,11 @@
     "phone": "031-905-5014",
     "placeUrl": "http://place.map.kakao.com/26842478",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2082508697",
@@ -501,7 +541,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2082508697",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1928631583",
@@ -515,7 +556,8 @@
     "phone": "031-972-9992",
     "placeUrl": "http://place.map.kakao.com/1928631583",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1959034574",
@@ -529,7 +571,11 @@
     "phone": "031-903-7191",
     "placeUrl": "http://place.map.kakao.com/1959034574",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "18841469",
@@ -543,7 +589,8 @@
     "phone": "031-904-5015",
     "placeUrl": "http://place.map.kakao.com/18841469",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "14721491",
@@ -557,21 +604,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/14721491",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "27510796",
-    "name": "자연학습공원 암벽오르기",
-    "lat": 37.68522165610193,
-    "lng": 126.75110715522128,
-    "address": "경기 고양시 일산서구 대화동 2337",
-    "region1": "경기",
-    "region2": "고양시",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/27510796",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1701692104",
@@ -585,7 +619,11 @@
     "phone": "031-923-4768",
     "placeUrl": "http://place.map.kakao.com/1701692104",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1727687487",
@@ -599,7 +637,11 @@
     "phone": "031-911-4757",
     "placeUrl": "http://place.map.kakao.com/1727687487",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1777945869",
@@ -613,7 +655,12 @@
     "phone": "031-922-8848",
     "placeUrl": "http://place.map.kakao.com/1777945869",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "607958683",
@@ -627,7 +674,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/607958683",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1897069627",
@@ -641,7 +692,8 @@
     "phone": "02-6012-4296",
     "placeUrl": "http://place.map.kakao.com/1897069627",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "8202950",
@@ -655,7 +707,11 @@
     "phone": "02-2680-6620",
     "placeUrl": "http://place.map.kakao.com/8202950",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1327018857",
@@ -669,7 +725,8 @@
     "phone": "02-898-5198",
     "placeUrl": "http://place.map.kakao.com/1327018857",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "657222577",
@@ -683,7 +740,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/657222577",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1524394778",
@@ -697,7 +755,8 @@
     "phone": "031-763-8876",
     "placeUrl": "http://place.map.kakao.com/1524394778",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1258092885",
@@ -711,7 +770,11 @@
     "phone": "031-565-8849",
     "placeUrl": "http://place.map.kakao.com/1258092885",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1346983387",
@@ -725,7 +788,10 @@
     "phone": "031-397-6911",
     "placeUrl": "http://place.map.kakao.com/1346983387",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "26592412",
@@ -739,7 +805,11 @@
     "phone": "0503-7151-2648",
     "placeUrl": "http://place.map.kakao.com/26592412",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드"
+    ]
   },
   {
     "id": "1894215765",
@@ -753,7 +823,11 @@
     "phone": "031-393-7747",
     "placeUrl": "http://place.map.kakao.com/1894215765",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2055624397",
@@ -767,7 +841,10 @@
     "phone": "070-4607-5511",
     "placeUrl": "http://place.map.kakao.com/2055624397",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "923647637",
@@ -781,7 +858,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/923647637",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "531981685",
@@ -795,7 +873,8 @@
     "phone": "010-4257-2527",
     "placeUrl": "http://place.map.kakao.com/531981685",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2022603893",
@@ -809,7 +888,8 @@
     "phone": "070-7377-7333",
     "placeUrl": "http://place.map.kakao.com/2022603893",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1416884929",
@@ -823,7 +903,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1416884929",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1893325196",
@@ -837,7 +918,11 @@
     "phone": "031-989-4443",
     "placeUrl": "http://place.map.kakao.com/1893325196",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "18164860",
@@ -851,7 +936,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/18164860",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "1553501455",
@@ -865,7 +953,11 @@
     "phone": "010-9929-4864",
     "placeUrl": "http://place.map.kakao.com/1553501455",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2026125484",
@@ -879,7 +971,12 @@
     "phone": "031-510-1610",
     "placeUrl": "http://place.map.kakao.com/2026125484",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "930591035",
@@ -893,7 +990,8 @@
     "phone": "031-557-5055",
     "placeUrl": "http://place.map.kakao.com/930591035",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2078945273",
@@ -907,7 +1005,11 @@
     "phone": "031-555-0868",
     "placeUrl": "http://place.map.kakao.com/2078945273",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "761409151",
@@ -921,7 +1023,11 @@
     "phone": "070-4414-6235",
     "placeUrl": "http://place.map.kakao.com/761409151",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "536949958",
@@ -935,7 +1041,8 @@
     "phone": "032-326-0543",
     "placeUrl": "http://place.map.kakao.com/536949958",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "14662127",
@@ -949,7 +1056,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/14662127",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1172831319",
@@ -963,7 +1073,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1172831319",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "183632345",
@@ -977,7 +1090,11 @@
     "phone": "032-6650-0305",
     "placeUrl": "http://place.map.kakao.com/183632345",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "14707620",
@@ -991,7 +1108,12 @@
     "phone": "032-684-1722",
     "placeUrl": "http://place.map.kakao.com/14707620",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "684238233",
@@ -1005,7 +1127,11 @@
     "phone": "070-4012-0301",
     "placeUrl": "http://place.map.kakao.com/684238233",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1145248071",
@@ -1019,7 +1145,29 @@
     "phone": "031-714-5014",
     "placeUrl": "http://place.map.kakao.com/1145248071",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
+  },
+  {
+    "id": "77774339",
+    "name": "락트리클라이밍 분당",
+    "lat": 37.3788319443341,
+    "lng": 127.11328565086,
+    "address": "경기 성남시 분당구 황새울로 224",
+    "region1": "경기",
+    "region2": "성남시",
+    "category": "스포츠,레저 > 스포츠시설",
+    "phone": "070-4833-8889",
+    "placeUrl": "http://place.map.kakao.com/77774339",
+    "kind": "실내",
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "478896849",
@@ -1033,7 +1181,10 @@
     "phone": "031-749-2016",
     "placeUrl": "http://place.map.kakao.com/478896849",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1324097805",
@@ -1047,7 +1198,8 @@
     "phone": "031-755-7775",
     "placeUrl": "http://place.map.kakao.com/1324097805",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "22249715",
@@ -1061,7 +1213,11 @@
     "phone": "0507-1399-4570",
     "placeUrl": "http://place.map.kakao.com/22249715",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "12624192",
@@ -1075,7 +1231,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/12624192",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "17572940",
@@ -1089,7 +1248,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/17572940",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "24374877",
@@ -1103,7 +1265,11 @@
     "phone": "031-739-8332",
     "placeUrl": "http://place.map.kakao.com/24374877",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "26214266",
@@ -1117,7 +1283,10 @@
     "phone": "031-753-8848",
     "placeUrl": "http://place.map.kakao.com/26214266",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "791709183",
@@ -1131,7 +1300,11 @@
     "phone": "031-753-5962",
     "placeUrl": "http://place.map.kakao.com/791709183",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "24127433",
@@ -1145,7 +1318,11 @@
     "phone": "031-8017-4663",
     "placeUrl": "http://place.map.kakao.com/24127433",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1334187849",
@@ -1159,7 +1336,11 @@
     "phone": "031-290-6032",
     "placeUrl": "http://place.map.kakao.com/1334187849",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "25986434",
@@ -1173,7 +1354,11 @@
     "phone": "031-217-5014",
     "placeUrl": "http://place.map.kakao.com/25986434",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "180386579",
@@ -1187,7 +1372,8 @@
     "phone": "031-292-3079",
     "placeUrl": "http://place.map.kakao.com/180386579",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "795490276",
@@ -1201,7 +1387,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/795490276",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "436491717",
@@ -1215,7 +1404,10 @@
     "phone": "031-233-1197",
     "placeUrl": "http://place.map.kakao.com/436491717",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "924214472",
@@ -1229,7 +1421,8 @@
     "phone": "0502-5551-9969",
     "placeUrl": "http://place.map.kakao.com/924214472",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1994264626",
@@ -1243,7 +1436,10 @@
     "phone": "0502-5551-0064",
     "placeUrl": "http://place.map.kakao.com/1994264626",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "592291597",
@@ -1257,7 +1453,11 @@
     "phone": "031-202-3461",
     "placeUrl": "http://place.map.kakao.com/592291597",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1025021964",
@@ -1271,7 +1471,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1025021964",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1929275619",
@@ -1285,7 +1486,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1929275619",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27474066",
@@ -1299,7 +1504,11 @@
     "phone": "1855-0514",
     "placeUrl": "http://place.map.kakao.com/27474066",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1636304179",
@@ -1313,7 +1522,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1636304179",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2083530053",
@@ -1327,7 +1537,11 @@
     "phone": "031-362-5046",
     "placeUrl": "http://place.map.kakao.com/2083530053",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "881166736",
@@ -1341,7 +1555,11 @@
     "phone": "031-313-0713",
     "placeUrl": "http://place.map.kakao.com/881166736",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1280231137",
@@ -1355,7 +1573,11 @@
     "phone": "031-314-9920",
     "placeUrl": "http://place.map.kakao.com/1280231137",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "436603315",
@@ -1369,7 +1591,10 @@
     "phone": "031-318-8848",
     "placeUrl": "http://place.map.kakao.com/436603315",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "929668905",
@@ -1383,7 +1608,11 @@
     "phone": "010-7208-1050",
     "placeUrl": "http://place.map.kakao.com/929668905",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "20991080",
@@ -1397,7 +1626,11 @@
     "phone": "031-439-8848",
     "placeUrl": "http://place.map.kakao.com/20991080",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "592637544",
@@ -1411,7 +1644,10 @@
     "phone": "010-6615-6585",
     "placeUrl": "http://place.map.kakao.com/592637544",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1189033765",
@@ -1425,7 +1661,11 @@
     "phone": "031-403-5400",
     "placeUrl": "http://place.map.kakao.com/1189033765",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "693819203",
@@ -1439,7 +1679,11 @@
     "phone": "070-7797-0526",
     "placeUrl": "http://place.map.kakao.com/693819203",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "971980433",
@@ -1453,7 +1697,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/971980433",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1368093733",
@@ -1467,7 +1712,10 @@
     "phone": "010-8258-2572",
     "placeUrl": "http://place.map.kakao.com/1368093733",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "887509252",
@@ -1481,7 +1729,11 @@
     "phone": "031-676-7111",
     "placeUrl": "http://place.map.kakao.com/887509252",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27066047",
@@ -1495,7 +1747,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/27066047",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1356828241",
@@ -1509,7 +1765,11 @@
     "phone": "031-342-3111",
     "placeUrl": "http://place.map.kakao.com/1356828241",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "415193341",
@@ -1523,7 +1783,8 @@
     "phone": "031-388-8128",
     "placeUrl": "http://place.map.kakao.com/415193341",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "27535540",
@@ -1537,7 +1798,11 @@
     "phone": "031-422-1708",
     "placeUrl": "http://place.map.kakao.com/27535540",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "346111234",
@@ -1551,7 +1816,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/346111234",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1789561130",
@@ -1565,7 +1834,11 @@
     "phone": "031-381-3845",
     "placeUrl": "http://place.map.kakao.com/1789561130",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "275520075",
@@ -1579,7 +1852,11 @@
     "phone": "031-422-8716",
     "placeUrl": "http://place.map.kakao.com/275520075",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1865488384",
@@ -1593,7 +1870,11 @@
     "phone": "031-894-5242",
     "placeUrl": "http://place.map.kakao.com/1865488384",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1996317911",
@@ -1607,7 +1888,8 @@
     "phone": "031-928-6777",
     "placeUrl": "http://place.map.kakao.com/1996317911",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "510666720",
@@ -1621,7 +1903,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/510666720",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1126819711",
@@ -1635,7 +1921,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1126819711",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "9702970",
@@ -1649,7 +1936,12 @@
     "phone": "031-233-7467",
     "placeUrl": "http://place.map.kakao.com/9702970",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1561471583",
@@ -1663,7 +1955,11 @@
     "phone": "0503-7151-8238",
     "placeUrl": "http://place.map.kakao.com/1561471583",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1215148523",
@@ -1677,7 +1973,8 @@
     "phone": "031-262-8758",
     "placeUrl": "http://place.map.kakao.com/1215148523",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2115393134",
@@ -1691,7 +1988,11 @@
     "phone": "031-335-2023",
     "placeUrl": "http://place.map.kakao.com/2115393134",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "284660630",
@@ -1705,7 +2006,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/284660630",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "415945862",
@@ -1719,7 +2024,11 @@
     "phone": "070-8894-7979",
     "placeUrl": "http://place.map.kakao.com/415945862",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1955228388",
@@ -1733,7 +2042,8 @@
     "phone": "031-274-3373",
     "placeUrl": "http://place.map.kakao.com/1955228388",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "460546705",
@@ -1747,7 +2057,8 @@
     "phone": "031-274-3373",
     "placeUrl": "http://place.map.kakao.com/460546705",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1354121362",
@@ -1761,7 +2072,8 @@
     "phone": "031-333-8930",
     "placeUrl": "http://place.map.kakao.com/1354121362",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1004992476",
@@ -1775,7 +2087,11 @@
     "phone": "031-429-8849",
     "placeUrl": "http://place.map.kakao.com/1004992476",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "636392346",
@@ -1789,7 +2105,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/636392346",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1956627182",
@@ -1803,7 +2120,11 @@
     "phone": "0507-1353-2571",
     "placeUrl": "http://place.map.kakao.com/1956627182",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "526179818",
@@ -1817,7 +2138,11 @@
     "phone": "031-847-1800",
     "placeUrl": "http://place.map.kakao.com/526179818",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1146352662",
@@ -1831,7 +2156,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1146352662",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "413086956",
@@ -1845,7 +2174,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/413086956",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "26095021",
@@ -1859,7 +2192,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/26095021",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "903733788",
@@ -1873,7 +2209,11 @@
     "phone": "070-4833-7036",
     "placeUrl": "http://place.map.kakao.com/903733788",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1560953650",
@@ -1887,7 +2227,11 @@
     "phone": "031-632-1259",
     "placeUrl": "http://place.map.kakao.com/1560953650",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1334185890",
@@ -1901,7 +2245,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1334185890",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "140829074",
@@ -1915,7 +2260,11 @@
     "phone": "031-941-7770",
     "placeUrl": "http://place.map.kakao.com/140829074",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "25085961",
@@ -1929,7 +2278,10 @@
     "phone": "031-944-6262",
     "placeUrl": "http://place.map.kakao.com/25085961",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "372547179",
@@ -1943,7 +2295,11 @@
     "phone": "031-940-5241",
     "placeUrl": "http://place.map.kakao.com/372547179",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "150261951",
@@ -1957,7 +2313,8 @@
     "phone": "010-8958-1144",
     "placeUrl": "http://place.map.kakao.com/150261951",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2086063113",
@@ -1971,7 +2328,11 @@
     "phone": "031-949-0570",
     "placeUrl": "http://place.map.kakao.com/2086063113",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "18145509",
@@ -1985,7 +2346,11 @@
     "phone": "010-6348-0570",
     "placeUrl": "http://place.map.kakao.com/18145509",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "410381912",
@@ -1999,7 +2364,10 @@
     "phone": "010-8949-1149",
     "placeUrl": "http://place.map.kakao.com/410381912",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1460350848",
@@ -2013,7 +2381,11 @@
     "phone": "031-652-0382",
     "placeUrl": "http://place.map.kakao.com/1460350848",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "17545298",
@@ -2027,7 +2399,10 @@
     "phone": "031-656-2744",
     "placeUrl": "http://place.map.kakao.com/17545298",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "367499464",
@@ -2041,7 +2416,11 @@
     "phone": "031-656-0413",
     "placeUrl": "http://place.map.kakao.com/367499464",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "476378043",
@@ -2055,7 +2434,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/476378043",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "27252629",
@@ -2069,7 +2451,11 @@
     "phone": "031-540-6366",
     "placeUrl": "http://place.map.kakao.com/27252629",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "392095407",
@@ -2083,21 +2469,8 @@
     "phone": "031-791-9268",
     "placeUrl": "http://place.map.kakao.com/392095407",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "754659097",
-    "name": "클라이밍월 공장",
-    "lat": 37.5292516019867,
-    "lng": 127.168365611873,
-    "address": "경기 하남시 초광산단서로 4",
-    "region1": "경기",
-    "region2": "하남시",
-    "category": "서비스,산업 > 공장",
-    "phone": "02-511-4570",
-    "placeUrl": "http://place.map.kakao.com/754659097",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "59084667",
@@ -2111,7 +2484,11 @@
     "phone": "0507-1390-5963",
     "placeUrl": "http://place.map.kakao.com/59084667",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "767092140",
@@ -2125,7 +2502,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/767092140",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "879069003",
@@ -2139,7 +2520,11 @@
     "phone": "031-613-6138",
     "placeUrl": "http://place.map.kakao.com/879069003",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1723084144",
@@ -2153,7 +2538,10 @@
     "phone": "031-8043-0382",
     "placeUrl": "http://place.map.kakao.com/1723084144",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "1436504400",
@@ -2167,7 +2555,11 @@
     "phone": "031-222-5014",
     "placeUrl": "http://place.map.kakao.com/1436504400",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "20226221",
@@ -2181,7 +2573,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/20226221",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1951069905",
@@ -2195,7 +2588,8 @@
     "phone": "070-7519-0059",
     "placeUrl": "http://place.map.kakao.com/1951069905",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1682612600",
@@ -2209,7 +2603,11 @@
     "phone": "070-8255-3119",
     "placeUrl": "http://place.map.kakao.com/1682612600",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "660191063",
@@ -2223,7 +2621,11 @@
     "phone": "010-8427-3207",
     "placeUrl": "http://place.map.kakao.com/660191063",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1625899456",
@@ -2237,7 +2639,10 @@
     "phone": "031-226-5016",
     "placeUrl": "http://place.map.kakao.com/1625899456",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "648317177",
@@ -2251,21 +2656,11 @@
     "phone": "010-8245-4285",
     "placeUrl": "http://place.map.kakao.com/648317177",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "578723728",
-    "name": "KB국민은행ATM H암벽생산지원센터",
-    "lat": 34.872192565364,
-    "lng": 128.695696065802,
-    "address": "경남 거제시 거제대로 3370",
-    "region1": "경남",
-    "region2": "거제시",
-    "category": "금융,보험 > 금융서비스 > 은행 > ATM",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/578723728",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "432758368",
@@ -2279,7 +2674,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/432758368",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1864903380",
@@ -2293,7 +2689,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1864903380",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1278257246",
@@ -2307,7 +2704,10 @@
     "phone": "055-339-8866",
     "placeUrl": "http://place.map.kakao.com/1278257246",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "1513025443",
@@ -2321,7 +2721,11 @@
     "phone": "055-339-8866",
     "placeUrl": "http://place.map.kakao.com/1513025443",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "2119652204",
@@ -2335,7 +2739,11 @@
     "phone": "010-3518-9557",
     "placeUrl": "http://place.map.kakao.com/2119652204",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드"
+    ]
   },
   {
     "id": "1044597295",
@@ -2349,7 +2757,8 @@
     "phone": "010-4511-9502",
     "placeUrl": "http://place.map.kakao.com/1044597295",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1505217288",
@@ -2363,7 +2772,8 @@
     "phone": "055-312-9812",
     "placeUrl": "http://place.map.kakao.com/1505217288",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26856449",
@@ -2377,7 +2787,11 @@
     "phone": "055-338-1707",
     "placeUrl": "http://place.map.kakao.com/26856449",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "828681079",
@@ -2391,7 +2805,11 @@
     "phone": "055-312-9578",
     "placeUrl": "http://place.map.kakao.com/828681079",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2082044053",
@@ -2405,7 +2823,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2082044053",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1694635276",
@@ -2419,7 +2838,10 @@
     "phone": "070-7677-7106",
     "placeUrl": "http://place.map.kakao.com/1694635276",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "708848109",
@@ -2433,7 +2855,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/708848109",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "27390875",
@@ -2447,7 +2870,11 @@
     "phone": "055-367-3763",
     "placeUrl": "http://place.map.kakao.com/27390875",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1836389314",
@@ -2461,7 +2888,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1836389314",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "4203571",
@@ -2475,7 +2905,8 @@
     "phone": "055-375-0230",
     "placeUrl": "http://place.map.kakao.com/4203571",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "651605356",
@@ -2489,7 +2920,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/651605356",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1757970135",
@@ -2503,7 +2935,11 @@
     "phone": "055-763-1316",
     "placeUrl": "http://place.map.kakao.com/1757970135",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "557009444",
@@ -2517,7 +2953,12 @@
     "phone": "055-746-8848",
     "placeUrl": "http://place.map.kakao.com/557009444",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "2084918813",
@@ -2531,7 +2972,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2084918813",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "20900809",
@@ -2545,7 +2987,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/20900809",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1211043241",
@@ -2559,7 +3002,11 @@
     "phone": "055-552-5001",
     "placeUrl": "http://place.map.kakao.com/1211043241",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27409483",
@@ -2573,7 +3020,8 @@
     "phone": "055-255-6874",
     "placeUrl": "http://place.map.kakao.com/27409483",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "292169536",
@@ -2587,7 +3035,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/292169536",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "976582930",
@@ -2601,7 +3053,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/976582930",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2022011647",
@@ -2615,7 +3071,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2022011647",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1197673203",
@@ -2629,7 +3086,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1197673203",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "955522058",
@@ -2643,7 +3101,8 @@
     "phone": "010-4822-1024",
     "placeUrl": "http://place.map.kakao.com/955522058",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "506505084",
@@ -2657,7 +3116,11 @@
     "phone": "055-267-8225",
     "placeUrl": "http://place.map.kakao.com/506505084",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "805308160",
@@ -2671,7 +3134,10 @@
     "phone": "010-7567-9982",
     "placeUrl": "http://place.map.kakao.com/805308160",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "2122908452",
@@ -2685,7 +3151,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2122908452",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "385563690",
@@ -2699,7 +3166,8 @@
     "phone": "010-7790-6156",
     "placeUrl": "http://place.map.kakao.com/385563690",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2049528827",
@@ -2713,7 +3181,11 @@
     "phone": "053-802-0971",
     "placeUrl": "http://place.map.kakao.com/2049528827",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "496013030",
@@ -2727,7 +3199,11 @@
     "phone": "053-851-3322",
     "placeUrl": "http://place.map.kakao.com/496013030",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "46116201",
@@ -2741,7 +3217,12 @@
     "phone": "053-813-3918",
     "placeUrl": "http://place.map.kakao.com/46116201",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1408328762",
@@ -2755,7 +3236,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1408328762",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1022403628",
@@ -2769,7 +3251,8 @@
     "phone": "054-621-8848",
     "placeUrl": "http://place.map.kakao.com/1022403628",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1660533219",
@@ -2783,7 +3266,8 @@
     "phone": "054-621-8848",
     "placeUrl": "http://place.map.kakao.com/1660533219",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1574877758",
@@ -2797,7 +3281,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1574877758",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1427712983",
@@ -2811,7 +3296,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1427712983",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1877546915",
@@ -2825,7 +3314,12 @@
     "phone": "0502-5554-6112",
     "placeUrl": "http://place.map.kakao.com/1877546915",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26602780",
@@ -2839,7 +3333,8 @@
     "phone": "054-452-8848",
     "placeUrl": "http://place.map.kakao.com/26602780",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "656673827",
@@ -2853,7 +3348,8 @@
     "phone": "054-471-9487",
     "placeUrl": "http://place.map.kakao.com/656673827",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1398145179",
@@ -2867,7 +3363,11 @@
     "phone": "054-476-1322",
     "placeUrl": "http://place.map.kakao.com/1398145179",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "443929790",
@@ -2881,7 +3381,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/443929790",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1767953033",
@@ -2895,7 +3396,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1767953033",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "354379401",
@@ -2909,21 +3414,11 @@
     "phone": "054-552-7475",
     "placeUrl": "http://place.map.kakao.com/354379401",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1285537682",
-    "name": "문경국제클라이밍센터 주차장",
-    "lat": 36.6024169971308,
-    "lng": 128.211412170801,
-    "address": "경북 문경시 흥덕동 77-1",
-    "region1": "경북",
-    "region2": "문경시",
-    "category": "교통,수송 > 교통시설 > 주차장",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/1285537682",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "872842703",
@@ -2937,7 +3432,10 @@
     "phone": "054-537-6217",
     "placeUrl": "http://place.map.kakao.com/872842703",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "872849898",
@@ -2951,7 +3449,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/872849898",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1022669688",
@@ -2965,7 +3464,8 @@
     "phone": "054-533-0890",
     "placeUrl": "http://place.map.kakao.com/1022669688",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "469254291",
@@ -2979,7 +3479,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/469254291",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1195288603",
@@ -2993,7 +3494,8 @@
     "phone": "054-859-8848",
     "placeUrl": "http://place.map.kakao.com/1195288603",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "25311084",
@@ -3007,7 +3509,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/25311084",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "789377286",
@@ -3021,21 +3524,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/789377286",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1956013223",
-    "name": "구계빙벽장",
-    "lat": 36.4588932328382,
-    "lng": 128.721288656689,
-    "address": "경북 의성군 단촌면 구계리 1213-1",
-    "region1": "경북",
-    "region2": "의성군",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/1956013223",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1682354508",
@@ -3049,7 +3542,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1682354508",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "636839887",
@@ -3063,7 +3557,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/636839887",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "318073484",
@@ -3077,7 +3572,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/318073484",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "15166739",
@@ -3091,35 +3587,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/15166739",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "5595993",
-    "name": "청송 아이스클라이밍 월드컵경기장",
-    "lat": 36.316854081230986,
-    "lng": 129.2193526755685,
-    "address": "경북 청송군 주왕산면 내룡리 22-4",
-    "region1": "경북",
-    "region2": "청송군",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "054-870-6207",
-    "placeUrl": "http://place.map.kakao.com/5595993",
-    "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "984170340",
-    "name": "청송 아이스클라이밍월드컵",
-    "lat": 36.31701338848402,
-    "lng": 129.21902208555593,
-    "address": "경북 청송군 주왕산면 팔각산로 140",
-    "region1": "경북",
-    "region2": "청송군",
-    "category": "이슈 > 이벤트 > 페스티벌",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/984170340",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "17793814",
@@ -3133,7 +3602,12 @@
     "phone": "054-277-0334",
     "placeUrl": "http://place.map.kakao.com/17793814",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "679205402",
@@ -3147,7 +3621,11 @@
     "phone": "0503-7152-0153",
     "placeUrl": "http://place.map.kakao.com/679205402",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "176727580",
@@ -3161,7 +3639,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/176727580",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "25737344",
@@ -3175,7 +3654,11 @@
     "phone": "0507-1385-0515",
     "placeUrl": "http://place.map.kakao.com/25737344",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1652840836",
@@ -3189,7 +3672,8 @@
     "phone": "010-3501-9209",
     "placeUrl": "http://place.map.kakao.com/1652840836",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1595790326",
@@ -3203,7 +3687,8 @@
     "phone": "010-3263-0891",
     "placeUrl": "http://place.map.kakao.com/1595790326",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1959834135",
@@ -3217,7 +3702,10 @@
     "phone": "0502-5550-9935",
     "placeUrl": "http://place.map.kakao.com/1959834135",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "1561364133",
@@ -3231,7 +3719,11 @@
     "phone": "070-4799-1150",
     "placeUrl": "http://place.map.kakao.com/1561364133",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "375079995",
@@ -3245,7 +3737,11 @@
     "phone": "062-571-3332",
     "placeUrl": "http://place.map.kakao.com/375079995",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2061802180",
@@ -3259,7 +3755,11 @@
     "phone": "062-956-3737",
     "placeUrl": "http://place.map.kakao.com/2061802180",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "24073757",
@@ -3273,7 +3773,8 @@
     "phone": "062-571-3332",
     "placeUrl": "http://place.map.kakao.com/24073757",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "71867889",
@@ -3287,7 +3788,8 @@
     "phone": "010-4640-8848",
     "placeUrl": "http://place.map.kakao.com/71867889",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "18454125",
@@ -3301,7 +3803,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/18454125",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "283870296",
@@ -3315,7 +3818,11 @@
     "phone": "070-8777-1150",
     "placeUrl": "http://place.map.kakao.com/283870296",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27446581",
@@ -3329,7 +3836,11 @@
     "phone": "062-229-0510",
     "placeUrl": "http://place.map.kakao.com/27446581",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "519682108",
@@ -3343,7 +3854,11 @@
     "phone": "062-236-5051",
     "placeUrl": "http://place.map.kakao.com/519682108",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "26867948",
@@ -3357,21 +3872,10 @@
     "phone": "061-283-6080",
     "placeUrl": "http://place.map.kakao.com/26867948",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1960112362",
-    "name": "목포탑매드클라임동호회",
-    "lat": 34.7962150728453,
-    "lng": 126.393298438516,
-    "address": "전남광주통합특별시 목포시 산정로 86",
-    "region1": "광주·전남",
-    "region2": "목포시",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "010-6244-1950",
-    "placeUrl": "http://place.map.kakao.com/1960112362",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "157291353",
@@ -3385,7 +3889,11 @@
     "phone": "061-980-6042",
     "placeUrl": "http://place.map.kakao.com/157291353",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "23839767",
@@ -3399,7 +3907,8 @@
     "phone": "062-514-5325",
     "placeUrl": "http://place.map.kakao.com/23839767",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1485669779",
@@ -3413,7 +3922,11 @@
     "phone": "062-575-6914",
     "placeUrl": "http://place.map.kakao.com/1485669779",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "489301153",
@@ -3427,7 +3940,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/489301153",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "985389230",
@@ -3441,7 +3955,10 @@
     "phone": "062-381-3838",
     "placeUrl": "http://place.map.kakao.com/985389230",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "707402444",
@@ -3455,7 +3972,11 @@
     "phone": "0507-1366-4305",
     "placeUrl": "http://place.map.kakao.com/707402444",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "359538448",
@@ -3469,7 +3990,11 @@
     "phone": "062-362-8848",
     "placeUrl": "http://place.map.kakao.com/359538448",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "26094783",
@@ -3483,7 +4008,8 @@
     "phone": "061-727-8844",
     "placeUrl": "http://place.map.kakao.com/26094783",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1667333925",
@@ -3497,7 +4023,12 @@
     "phone": "061-723-0114",
     "placeUrl": "http://place.map.kakao.com/1667333925",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1437644096",
@@ -3511,7 +4042,11 @@
     "phone": "010-2069-4043",
     "placeUrl": "http://place.map.kakao.com/1437644096",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "921054584",
@@ -3525,7 +4060,8 @@
     "phone": "061-655-2220",
     "placeUrl": "http://place.map.kakao.com/921054584",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26096554",
@@ -3539,7 +4075,11 @@
     "phone": "061-691-8611",
     "placeUrl": "http://place.map.kakao.com/26096554",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1000916943",
@@ -3553,7 +4093,11 @@
     "phone": "053-476-2184",
     "placeUrl": "http://place.map.kakao.com/1000916943",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "115812412",
@@ -3567,7 +4111,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/115812412",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26531644",
@@ -3581,7 +4126,11 @@
     "phone": "053-761-0636",
     "placeUrl": "http://place.map.kakao.com/26531644",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1824791409",
@@ -3595,7 +4144,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1824791409",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2032055000",
@@ -3609,7 +4162,11 @@
     "phone": "010-3513-6904",
     "placeUrl": "http://place.map.kakao.com/2032055000",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1683915910",
@@ -3623,7 +4180,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1683915910",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "20648345",
@@ -3637,7 +4195,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/20648345",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "22670691",
@@ -3651,7 +4210,8 @@
     "phone": "070-8911-6040",
     "placeUrl": "http://place.map.kakao.com/22670691",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "184075960",
@@ -3665,7 +4225,11 @@
     "phone": "053-622-8447",
     "placeUrl": "http://place.map.kakao.com/184075960",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "976934185",
@@ -3679,7 +4243,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/976934185",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "333102814",
@@ -3693,7 +4261,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/333102814",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "302304354",
@@ -3707,7 +4279,11 @@
     "phone": "053-245-9190",
     "placeUrl": "http://place.map.kakao.com/302304354",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "443902931",
@@ -3721,7 +4297,8 @@
     "phone": "053-639-5014",
     "placeUrl": "http://place.map.kakao.com/443902931",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1641882688",
@@ -3735,7 +4312,10 @@
     "phone": "010-4728-9700",
     "placeUrl": "http://place.map.kakao.com/1641882688",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "26919932",
@@ -3749,7 +4329,12 @@
     "phone": "053-212-9500",
     "placeUrl": "http://place.map.kakao.com/26919932",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1571782875",
@@ -3763,7 +4348,11 @@
     "phone": "010-5883-8822",
     "placeUrl": "http://place.map.kakao.com/1571782875",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "916621732",
@@ -3777,7 +4366,8 @@
     "phone": "070-7767-2442",
     "placeUrl": "http://place.map.kakao.com/916621732",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1171867",
@@ -3791,7 +4381,11 @@
     "phone": "053-962-5331",
     "placeUrl": "http://place.map.kakao.com/1171867",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "385301876",
@@ -3805,21 +4399,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/385301876",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1729479914",
-    "name": "정글짐키즈클라이밍센터",
-    "lat": 35.8785153087576,
-    "lng": 128.732299046677,
-    "address": "대구 동구 첨단로8길 20",
-    "region1": "대구",
-    "region2": "동구",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "053-213-2755",
-    "placeUrl": "http://place.map.kakao.com/1729479914",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "605062645",
@@ -3833,7 +4416,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/605062645",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "17054873",
@@ -3847,7 +4434,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/17054873",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "277831592",
@@ -3861,7 +4451,11 @@
     "phone": "053-351-1217",
     "placeUrl": "http://place.map.kakao.com/277831592",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1938364829",
@@ -3875,7 +4469,11 @@
     "phone": "010-4456-8447",
     "placeUrl": "http://place.map.kakao.com/1938364829",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1889708486",
@@ -3889,7 +4487,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1889708486",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1823041318",
@@ -3903,7 +4502,8 @@
     "phone": "053-325-0393",
     "placeUrl": "http://place.map.kakao.com/1823041318",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1316973792",
@@ -3917,7 +4517,12 @@
     "phone": "053-956-6547",
     "placeUrl": "http://place.map.kakao.com/1316973792",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "5114667",
@@ -3931,7 +4536,11 @@
     "phone": "010-5114-4434",
     "placeUrl": "http://place.map.kakao.com/5114667",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "25924031",
@@ -3945,7 +4554,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/25924031",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "132020272",
@@ -3959,7 +4569,11 @@
     "phone": "053-314-9400",
     "placeUrl": "http://place.map.kakao.com/132020272",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "22083131",
@@ -3973,7 +4587,11 @@
     "phone": "053-562-8848",
     "placeUrl": "http://place.map.kakao.com/22083131",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "132452873",
@@ -3987,7 +4605,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/132452873",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2097478089",
@@ -4001,7 +4623,11 @@
     "phone": "010-6788-8563",
     "placeUrl": "http://place.map.kakao.com/2097478089",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "669087661",
@@ -4015,7 +4641,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/669087661",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26198607",
@@ -4029,7 +4656,11 @@
     "phone": "053-953-8848",
     "placeUrl": "http://place.map.kakao.com/26198607",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "19340606",
@@ -4043,7 +4674,10 @@
     "phone": "010-3892-8850",
     "placeUrl": "http://place.map.kakao.com/19340606",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "14105279",
@@ -4057,7 +4691,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/14105279",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1023553412",
@@ -4071,7 +4706,12 @@
     "phone": "053-257-7979",
     "placeUrl": "http://place.map.kakao.com/1023553412",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "18496346",
@@ -4085,7 +4725,10 @@
     "phone": "042-526-8848",
     "placeUrl": "http://place.map.kakao.com/18496346",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1032498372",
@@ -4099,7 +4742,11 @@
     "phone": "010-2604-9781",
     "placeUrl": "http://place.map.kakao.com/1032498372",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27587250",
@@ -4113,7 +4760,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/27587250",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "27241022",
@@ -4127,7 +4777,11 @@
     "phone": "042-724-3430",
     "placeUrl": "http://place.map.kakao.com/27241022",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1867943824",
@@ -4141,7 +4795,11 @@
     "phone": "042-826-5014",
     "placeUrl": "http://place.map.kakao.com/1867943824",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "16982603",
@@ -4155,7 +4813,11 @@
     "phone": "042-825-5014",
     "placeUrl": "http://place.map.kakao.com/16982603",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26574886",
@@ -4169,7 +4831,12 @@
     "phone": "042-825-5013",
     "placeUrl": "http://place.map.kakao.com/26574886",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26542158",
@@ -4183,7 +4850,11 @@
     "phone": "0507-1321-0231",
     "placeUrl": "http://place.map.kakao.com/26542158",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "816551823",
@@ -4197,7 +4868,8 @@
     "phone": "010-5559-6992",
     "placeUrl": "http://place.map.kakao.com/816551823",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "792588420",
@@ -4211,7 +4883,11 @@
     "phone": "010-7655-3495",
     "placeUrl": "http://place.map.kakao.com/792588420",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1881319431",
@@ -4225,7 +4901,8 @@
     "phone": "051-728-7170",
     "placeUrl": "http://place.map.kakao.com/1881319431",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "173514400",
@@ -4239,7 +4916,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/173514400",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1016574248",
@@ -4253,7 +4931,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1016574248",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26896573",
@@ -4267,7 +4946,11 @@
     "phone": "051-989-8800",
     "placeUrl": "http://place.map.kakao.com/26896573",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "315102755",
@@ -4281,7 +4964,8 @@
     "phone": "010-3162-3186",
     "placeUrl": "http://place.map.kakao.com/315102755",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "15888250",
@@ -4295,7 +4979,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/15888250",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1815384210",
@@ -4309,7 +4996,11 @@
     "phone": "010-8380-4799",
     "placeUrl": "http://place.map.kakao.com/1815384210",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1434844197",
@@ -4323,7 +5014,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1434844197",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "577987078",
@@ -4337,7 +5029,11 @@
     "phone": "051-728-7170",
     "placeUrl": "http://place.map.kakao.com/577987078",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "21853913",
@@ -4351,7 +5047,8 @@
     "phone": "0503-7154-5310",
     "placeUrl": "http://place.map.kakao.com/21853913",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1792136595",
@@ -4365,7 +5062,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1792136595",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1808054048",
@@ -4379,7 +5077,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1808054048",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "27134181",
@@ -4393,7 +5092,8 @@
     "phone": "051-361-4443",
     "placeUrl": "http://place.map.kakao.com/27134181",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "589622035",
@@ -4407,7 +5107,12 @@
     "phone": "010-4108-7055",
     "placeUrl": "http://place.map.kakao.com/589622035",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "563525502",
@@ -4421,7 +5126,11 @@
     "phone": "051-304-4150",
     "placeUrl": "http://place.map.kakao.com/563525502",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "25769497",
@@ -4435,7 +5144,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/25769497",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "353166306",
@@ -4449,7 +5159,11 @@
     "phone": "070-7747-5158",
     "placeUrl": "http://place.map.kakao.com/353166306",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "95358717",
@@ -4463,7 +5177,11 @@
     "phone": "051-711-7851",
     "placeUrl": "http://place.map.kakao.com/95358717",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1473458003",
@@ -4477,7 +5195,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1473458003",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "995214523",
@@ -4491,7 +5213,10 @@
     "phone": "051-867-8848",
     "placeUrl": "http://place.map.kakao.com/995214523",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "183452282",
@@ -4505,7 +5230,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/183452282",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "768810860",
@@ -4519,7 +5247,8 @@
     "phone": "070-7733-8977",
     "placeUrl": "http://place.map.kakao.com/768810860",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1700395604",
@@ -4533,7 +5262,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1700395604",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "807578478",
@@ -4547,7 +5279,11 @@
     "phone": "02-566-8821",
     "placeUrl": "http://place.map.kakao.com/807578478",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "953399573",
@@ -4561,7 +5297,11 @@
     "phone": "02-576-8821",
     "placeUrl": "http://place.map.kakao.com/953399573",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "612949056",
@@ -4575,21 +5315,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/612949056",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1603222466",
-    "name": "콜스에듀케이션",
-    "lat": 37.4977464632167,
-    "lng": 127.04100506352,
-    "address": "서울 강남구 논현로76길 27",
-    "region1": "서울",
-    "region2": "강남구",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "070-7766-2152",
-    "placeUrl": "http://place.map.kakao.com/1603222466",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2029901090",
@@ -4603,7 +5330,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2029901090",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "403186026",
@@ -4617,7 +5348,11 @@
     "phone": "02-555-4662",
     "placeUrl": "http://place.map.kakao.com/403186026",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1270950119",
@@ -4631,7 +5366,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1270950119",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "225895844",
@@ -4645,7 +5381,11 @@
     "phone": "02-477-2018",
     "placeUrl": "http://place.map.kakao.com/225895844",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "648392033",
@@ -4659,7 +5399,11 @@
     "phone": "0503-7154-5246",
     "placeUrl": "http://place.map.kakao.com/648392033",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "239953917",
@@ -4673,7 +5417,11 @@
     "phone": "02-486-6806",
     "placeUrl": "http://place.map.kakao.com/239953917",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27117953",
@@ -4687,21 +5435,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/27117953",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1139844153",
-    "name": "쿠키즈클라이밍",
-    "lat": 37.5500454311374,
-    "lng": 127.144098856173,
-    "address": "서울 강동구 양재대로 1620",
-    "region1": "서울",
-    "region2": "강동구",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "02-426-2352",
-    "placeUrl": "http://place.map.kakao.com/1139844153",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "1391758447",
@@ -4715,7 +5452,8 @@
     "phone": "010-6701-6194",
     "placeUrl": "http://place.map.kakao.com/1391758447",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "457300921",
@@ -4729,7 +5467,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/457300921",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "1269936251",
@@ -4743,7 +5484,8 @@
     "phone": "02-907-9226",
     "placeUrl": "http://place.map.kakao.com/1269936251",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "621524945",
@@ -4757,7 +5499,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/621524945",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26829207",
@@ -4771,7 +5517,11 @@
     "phone": "02-3662-0138",
     "placeUrl": "http://place.map.kakao.com/26829207",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1756311380",
@@ -4785,7 +5535,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1756311380",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1015735313",
@@ -4799,7 +5553,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1015735313",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "504806909",
@@ -4813,7 +5568,11 @@
     "phone": "02-2668-5014",
     "placeUrl": "http://place.map.kakao.com/504806909",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1786078320",
@@ -4827,7 +5586,11 @@
     "phone": "02-6084-8890",
     "placeUrl": "http://place.map.kakao.com/1786078320",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1176420694",
@@ -4841,7 +5604,8 @@
     "phone": "02-6737-1253",
     "placeUrl": "http://place.map.kakao.com/1176420694",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1668558300",
@@ -4855,7 +5619,11 @@
     "phone": "070-7755-9289",
     "placeUrl": "http://place.map.kakao.com/1668558300",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "26527675",
@@ -4869,7 +5637,11 @@
     "phone": "02-2600-8920",
     "placeUrl": "http://place.map.kakao.com/26527675",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1965545283",
@@ -4883,7 +5655,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1965545283",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "367482090",
@@ -4897,7 +5670,11 @@
     "phone": "02-585-8821",
     "placeUrl": "http://place.map.kakao.com/367482090",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "610038060",
@@ -4911,7 +5688,11 @@
     "phone": "02-877-8821",
     "placeUrl": "http://place.map.kakao.com/610038060",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1671084771",
@@ -4925,7 +5706,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1671084771",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "749051732",
@@ -4939,7 +5721,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/749051732",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "2138916951",
@@ -4953,7 +5738,11 @@
     "phone": "02-877-7397",
     "placeUrl": "http://place.map.kakao.com/2138916951",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "23180875",
@@ -4967,7 +5756,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/23180875",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "17808293",
@@ -4981,7 +5773,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/17808293",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1827043506",
@@ -4995,7 +5791,10 @@
     "phone": "02-456-5013",
     "placeUrl": "http://place.map.kakao.com/1827043506",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "27323437",
@@ -5009,7 +5808,11 @@
     "phone": "02-446-6111",
     "placeUrl": "http://place.map.kakao.com/27323437",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2067403979",
@@ -5023,7 +5826,11 @@
     "phone": "02-454-5014",
     "placeUrl": "http://place.map.kakao.com/2067403979",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1136264179",
@@ -5037,7 +5844,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1136264179",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "496958523",
@@ -5051,7 +5859,11 @@
     "phone": "010-3374-2704",
     "placeUrl": "http://place.map.kakao.com/496958523",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1267787018",
@@ -5065,7 +5877,10 @@
     "phone": "02-858-5014",
     "placeUrl": "http://place.map.kakao.com/1267787018",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "14825359",
@@ -5079,7 +5894,11 @@
     "phone": "02-836-8848",
     "placeUrl": "http://place.map.kakao.com/14825359",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "349001291",
@@ -5093,7 +5912,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/349001291",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "2051667887",
@@ -5107,7 +5927,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2051667887",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "132573277",
@@ -5121,7 +5944,11 @@
     "phone": "02-526-8850",
     "placeUrl": "http://place.map.kakao.com/132573277",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "852708965",
@@ -5135,7 +5962,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/852708965",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "7814609",
@@ -5149,7 +5977,10 @@
     "phone": "02-2289-6841",
     "placeUrl": "http://place.map.kakao.com/7814609",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "1071989415",
@@ -5163,7 +5994,11 @@
     "phone": "02-6080-1229",
     "placeUrl": "http://place.map.kakao.com/1071989415",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "498707344",
@@ -5177,7 +6012,11 @@
     "phone": "02-6080-0017",
     "placeUrl": "http://place.map.kakao.com/498707344",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1539123641",
@@ -5191,7 +6030,11 @@
     "phone": "070-4696-3270",
     "placeUrl": "http://place.map.kakao.com/1539123641",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "893297359",
@@ -5205,7 +6048,11 @@
     "phone": "02-936-0515",
     "placeUrl": "http://place.map.kakao.com/893297359",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "176517375",
@@ -5219,7 +6066,11 @@
     "phone": "02-741-0837",
     "placeUrl": "http://place.map.kakao.com/176517375",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "79968783",
@@ -5233,7 +6084,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/79968783",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "330028525",
@@ -5247,7 +6099,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/330028525",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "17008617",
@@ -5261,7 +6114,10 @@
     "phone": "02-900-6194",
     "placeUrl": "http://place.map.kakao.com/17008617",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1993300418",
@@ -5275,7 +6131,11 @@
     "phone": "02-2212-0518",
     "placeUrl": "http://place.map.kakao.com/1993300418",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1689439202",
@@ -5289,7 +6149,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1689439202",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "384938612",
@@ -5303,7 +6166,11 @@
     "phone": "02-2233-5157",
     "placeUrl": "http://place.map.kakao.com/384938612",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1221512402",
@@ -5317,7 +6184,8 @@
     "phone": "02-928-4677",
     "placeUrl": "http://place.map.kakao.com/1221512402",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "807821546",
@@ -5331,7 +6199,11 @@
     "phone": "010-5793-7980",
     "placeUrl": "http://place.map.kakao.com/807821546",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1115009396",
@@ -5345,7 +6217,11 @@
     "phone": "02-588-5014",
     "placeUrl": "http://place.map.kakao.com/1115009396",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "24274125",
@@ -5359,7 +6235,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/24274125",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1851049470",
@@ -5373,21 +6253,11 @@
     "phone": "02-533-5294",
     "placeUrl": "http://place.map.kakao.com/1851049470",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1854005600",
-    "name": "대한스포츠클라이밍협회",
-    "lat": 37.5565531955574,
-    "lng": 126.917812299545,
-    "address": "서울 마포구 월드컵북로5가길 8-15",
-    "region1": "서울",
-    "region2": "마포구",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "1600-3092",
-    "placeUrl": "http://place.map.kakao.com/1854005600",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "817297511",
@@ -5401,7 +6271,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/817297511",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "78694546",
@@ -5415,7 +6286,11 @@
     "phone": "02-2088-5071",
     "placeUrl": "http://place.map.kakao.com/78694546",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "768248324",
@@ -5429,7 +6304,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/768248324",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1491561655",
@@ -5443,7 +6319,12 @@
     "phone": "02-306-8848",
     "placeUrl": "http://place.map.kakao.com/1491561655",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "24580642",
@@ -5457,7 +6338,10 @@
     "phone": "010-7776-6909",
     "placeUrl": "http://place.map.kakao.com/24580642",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "25647957",
@@ -5471,7 +6355,11 @@
     "phone": "070-7733-4768",
     "placeUrl": "http://place.map.kakao.com/25647957",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "226789176",
@@ -5485,7 +6373,11 @@
     "phone": "02-332-5015",
     "placeUrl": "http://place.map.kakao.com/226789176",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1225322806",
@@ -5499,7 +6391,11 @@
     "phone": "02-304-9732",
     "placeUrl": "http://place.map.kakao.com/1225322806",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2036153750",
@@ -5513,7 +6409,11 @@
     "phone": "02-313-1003",
     "placeUrl": "http://place.map.kakao.com/2036153750",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "688426394",
@@ -5527,7 +6427,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/688426394",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1371007415",
@@ -5541,7 +6445,8 @@
     "phone": "02-545-5014",
     "placeUrl": "http://place.map.kakao.com/1371007415",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26912060",
@@ -5555,7 +6460,11 @@
     "phone": "02-6407-8848",
     "placeUrl": "http://place.map.kakao.com/26912060",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "408430175",
@@ -5569,7 +6478,11 @@
     "phone": "02-545-5014",
     "placeUrl": "http://place.map.kakao.com/408430175",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2029401912",
@@ -5583,7 +6496,11 @@
     "phone": "02-523-3094",
     "placeUrl": "http://place.map.kakao.com/2029401912",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "207562819",
@@ -5597,7 +6514,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/207562819",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "745525153",
@@ -5611,7 +6529,10 @@
     "phone": "010-2850-3421",
     "placeUrl": "http://place.map.kakao.com/745525153",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "250906410",
@@ -5625,7 +6546,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/250906410",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "633255619",
@@ -5639,7 +6561,10 @@
     "phone": "02-499-5014",
     "placeUrl": "http://place.map.kakao.com/633255619",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "20907214",
@@ -5653,7 +6578,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/20907214",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1726991902",
@@ -5667,21 +6596,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1726991902",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "2052812646",
-    "name": "응봉산 암벽공원 주차장",
-    "lat": 37.548539039286,
-    "lng": 127.030950056406,
-    "address": "서울 성동구 응봉동 269-4",
-    "region1": "서울",
-    "region2": "성동구",
-    "category": "교통,수송 > 교통시설 > 주차장",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/2052812646",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "8043078",
@@ -5695,7 +6613,11 @@
     "phone": "02-2286-6061",
     "placeUrl": "http://place.map.kakao.com/8043078",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26333002",
@@ -5709,7 +6631,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/26333002",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "188938778",
@@ -5723,7 +6648,11 @@
     "phone": "02-2282-4739",
     "placeUrl": "http://place.map.kakao.com/188938778",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "820005366",
@@ -5737,7 +6666,11 @@
     "phone": "070-7700-0120",
     "placeUrl": "http://place.map.kakao.com/820005366",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "10817028",
@@ -5751,7 +6684,8 @@
     "phone": "02-423-8848",
     "placeUrl": "http://place.map.kakao.com/10817028",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "958971411",
@@ -5765,7 +6699,11 @@
     "phone": "070-8822-2345",
     "placeUrl": "http://place.map.kakao.com/958971411",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1822085153",
@@ -5779,7 +6717,11 @@
     "phone": "070-7775-1133",
     "placeUrl": "http://place.map.kakao.com/1822085153",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "931706576",
@@ -5793,7 +6735,11 @@
     "phone": "010-3371-2703",
     "placeUrl": "http://place.map.kakao.com/931706576",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "460790324",
@@ -5807,7 +6753,11 @@
     "phone": "0507-1431-5019",
     "placeUrl": "http://place.map.kakao.com/460790324",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1811685585",
@@ -5821,7 +6771,10 @@
     "phone": "010-4750-4291",
     "placeUrl": "http://place.map.kakao.com/1811685585",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "278485068",
@@ -5835,7 +6788,8 @@
     "phone": "02-2649-0010",
     "placeUrl": "http://place.map.kakao.com/278485068",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "814897728",
@@ -5849,7 +6803,11 @@
     "phone": "02-2644-4478",
     "placeUrl": "http://place.map.kakao.com/814897728",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1045438278",
@@ -5863,7 +6821,11 @@
     "phone": "02-3667-5014",
     "placeUrl": "http://place.map.kakao.com/1045438278",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1107340927",
@@ -5877,7 +6839,11 @@
     "phone": "02-2088-5310",
     "placeUrl": "http://place.map.kakao.com/1107340927",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1135946676",
@@ -5891,7 +6857,11 @@
     "phone": "02-2632-4478",
     "placeUrl": "http://place.map.kakao.com/1135946676",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "850543972",
@@ -5905,7 +6875,11 @@
     "phone": "010-6686-2700",
     "placeUrl": "http://place.map.kakao.com/850543972",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "690907860",
@@ -5919,7 +6893,10 @@
     "phone": "02-2676-1932",
     "placeUrl": "http://place.map.kakao.com/690907860",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "956081122",
@@ -5933,7 +6910,11 @@
     "phone": "070-8862-2018",
     "placeUrl": "http://place.map.kakao.com/956081122",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1030844403",
@@ -5947,7 +6928,11 @@
     "phone": "02-2630-2991",
     "placeUrl": "http://place.map.kakao.com/1030844403",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1974288623",
@@ -5961,7 +6946,8 @@
     "phone": "010-5419-7121",
     "placeUrl": "http://place.map.kakao.com/1974288623",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1015936668",
@@ -5975,7 +6961,11 @@
     "phone": "02-2676-8848",
     "placeUrl": "http://place.map.kakao.com/1015936668",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "662516308",
@@ -5989,7 +6979,11 @@
     "phone": "02-6958-7796",
     "placeUrl": "http://place.map.kakao.com/662516308",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1386545872",
@@ -6003,7 +6997,8 @@
     "phone": "010-3263-0891",
     "placeUrl": "http://place.map.kakao.com/1386545872",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "566598161",
@@ -6017,7 +7012,8 @@
     "phone": "010-3263-0891",
     "placeUrl": "http://place.map.kakao.com/566598161",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "24959013",
@@ -6031,7 +7027,10 @@
     "phone": "02-386-8851",
     "placeUrl": "http://place.map.kakao.com/24959013",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1238231391",
@@ -6045,7 +7044,11 @@
     "phone": "02-350-5370",
     "placeUrl": "http://place.map.kakao.com/1238231391",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1843739511",
@@ -6059,7 +7062,11 @@
     "phone": "02-357-0305",
     "placeUrl": "http://place.map.kakao.com/1843739511",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1615143674",
@@ -6073,7 +7080,11 @@
     "phone": "010-3289-2705",
     "placeUrl": "http://place.map.kakao.com/1615143674",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1455205552",
@@ -6087,7 +7098,11 @@
     "phone": "070-8886-2018",
     "placeUrl": "http://place.map.kakao.com/1455205552",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1796322688",
@@ -6101,7 +7116,11 @@
     "phone": "02-762-4662",
     "placeUrl": "http://place.map.kakao.com/1796322688",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1330937676",
@@ -6115,7 +7134,11 @@
     "phone": "02-526-8862",
     "placeUrl": "http://place.map.kakao.com/1330937676",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "196180430",
@@ -6129,7 +7152,11 @@
     "phone": "02-318-3094",
     "placeUrl": "http://place.map.kakao.com/196180430",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "444613083",
@@ -6143,7 +7170,11 @@
     "phone": "02-2272-2855",
     "placeUrl": "http://place.map.kakao.com/444613083",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "289064421",
@@ -6157,7 +7188,11 @@
     "phone": "0503-7151-3584",
     "placeUrl": "http://place.map.kakao.com/289064421",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1506558196",
@@ -6171,7 +7206,8 @@
     "phone": "02-977-5333",
     "placeUrl": "http://place.map.kakao.com/1506558196",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1817443322",
@@ -6185,7 +7221,11 @@
     "phone": "0507-1396-3423",
     "placeUrl": "http://place.map.kakao.com/1817443322",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27258808",
@@ -6199,7 +7239,11 @@
     "phone": "070-4193-6108",
     "placeUrl": "http://place.map.kakao.com/27258808",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "222397833",
@@ -6213,7 +7257,11 @@
     "phone": "070-4130-1111",
     "placeUrl": "http://place.map.kakao.com/222397833",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1819783947",
@@ -6227,7 +7275,11 @@
     "phone": "044-866-5073",
     "placeUrl": "http://place.map.kakao.com/1819783947",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1554107227",
@@ -6241,7 +7293,11 @@
     "phone": "052-903-8848",
     "placeUrl": "http://place.map.kakao.com/1554107227",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "477957050",
@@ -6255,7 +7311,11 @@
     "phone": "010-2617-2469",
     "placeUrl": "http://place.map.kakao.com/477957050",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1471134643",
@@ -6269,7 +7329,11 @@
     "phone": "052-236-7399",
     "placeUrl": "http://place.map.kakao.com/1471134643",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1197885305",
@@ -6283,7 +7347,11 @@
     "phone": "052-256-6476",
     "placeUrl": "http://place.map.kakao.com/1197885305",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1461666598",
@@ -6297,7 +7365,10 @@
     "phone": "010-6530-8805",
     "placeUrl": "http://place.map.kakao.com/1461666598",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "1749189155",
@@ -6311,7 +7382,11 @@
     "phone": "010-8507-4595",
     "placeUrl": "http://place.map.kakao.com/1749189155",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27149693",
@@ -6325,7 +7400,8 @@
     "phone": "052-204-2932",
     "placeUrl": "http://place.map.kakao.com/27149693",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26990556",
@@ -6339,7 +7415,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/26990556",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "27587507",
@@ -6353,21 +7432,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/27587507",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "533072689",
-    "name": "한우리산악회",
-    "lat": 35.5810278597156,
-    "lng": 129.343562031594,
-    "address": "울산 중구 동천5길 50",
-    "region1": "울산",
-    "region2": "중구",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/533072689",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "805942914",
@@ -6381,7 +7447,8 @@
     "phone": "032-937-7481",
     "placeUrl": "http://place.map.kakao.com/805942914",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26944335",
@@ -6395,7 +7462,12 @@
     "phone": "032-715-5014",
     "placeUrl": "http://place.map.kakao.com/26944335",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1397375901",
@@ -6409,7 +7481,8 @@
     "phone": "032-567-0308",
     "placeUrl": "http://place.map.kakao.com/1397375901",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "426710820",
@@ -6423,7 +7496,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/426710820",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "8642281",
@@ -6437,7 +7511,10 @@
     "phone": "032-554-5014",
     "placeUrl": "http://place.map.kakao.com/8642281",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1263808491",
@@ -6451,21 +7528,11 @@
     "phone": "032-710-1950",
     "placeUrl": "http://place.map.kakao.com/1263808491",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "32338067",
-    "name": "기필코홀드",
-    "lat": 37.4004232964692,
-    "lng": 126.707669175766,
-    "address": "인천 남동구 호구포로 189",
-    "region1": "인천",
-    "region2": "남동구",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": "010-8547-0566",
-    "placeUrl": "http://place.map.kakao.com/32338067",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2040358199",
@@ -6479,7 +7546,11 @@
     "phone": "032-463-5015",
     "placeUrl": "http://place.map.kakao.com/2040358199",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1278653375",
@@ -6493,7 +7564,11 @@
     "phone": "0502-5552-8920",
     "placeUrl": "http://place.map.kakao.com/1278653375",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1888231641",
@@ -6507,7 +7582,11 @@
     "phone": "032-502-5944",
     "placeUrl": "http://place.map.kakao.com/1888231641",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "18294951",
@@ -6521,7 +7600,10 @@
     "phone": "032-572-8847",
     "placeUrl": "http://place.map.kakao.com/18294951",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "876554869",
@@ -6535,7 +7617,11 @@
     "phone": "032-721-5014",
     "placeUrl": "http://place.map.kakao.com/876554869",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "931865140",
@@ -6549,7 +7635,12 @@
     "phone": "1533-5014",
     "placeUrl": "http://place.map.kakao.com/931865140",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "188912195",
@@ -6563,7 +7654,8 @@
     "phone": "032-710-5014",
     "placeUrl": "http://place.map.kakao.com/188912195",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "9013439",
@@ -6577,7 +7669,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/9013439",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "992376105",
@@ -6591,7 +7684,11 @@
     "phone": "032-716-5837",
     "placeUrl": "http://place.map.kakao.com/992376105",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "944784776",
@@ -6605,7 +7702,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/944784776",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "1857857925",
@@ -6619,7 +7719,11 @@
     "phone": "010-5680-9296",
     "placeUrl": "http://place.map.kakao.com/1857857925",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "668372942",
@@ -6633,7 +7737,11 @@
     "phone": "032-751-5837",
     "placeUrl": "http://place.map.kakao.com/668372942",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "304644660",
@@ -6647,7 +7755,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/304644660",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "280801623",
@@ -6661,7 +7772,11 @@
     "phone": "063-466-1915",
     "placeUrl": "http://place.map.kakao.com/280801623",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1665499422",
@@ -6675,7 +7790,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1665499422",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1639604436",
@@ -6689,7 +7808,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1639604436",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1571503725",
@@ -6703,7 +7825,11 @@
     "phone": "010-9953-1725",
     "placeUrl": "http://place.map.kakao.com/1571503725",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1779675095",
@@ -6717,7 +7843,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1779675095",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "2078496822",
@@ -6731,7 +7861,11 @@
     "phone": "063-581-4738",
     "placeUrl": "http://place.map.kakao.com/2078496822",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1820649103",
@@ -6745,7 +7879,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1820649103",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "193904316",
@@ -6759,7 +7897,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/193904316",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "321261321",
@@ -6773,7 +7912,12 @@
     "phone": "0502-5551-0260",
     "placeUrl": "http://place.map.kakao.com/321261321",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1121143529",
@@ -6787,7 +7931,10 @@
     "phone": "0503-7154-3767",
     "placeUrl": "http://place.map.kakao.com/1121143529",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "1823832591",
@@ -6801,7 +7948,11 @@
     "phone": "010-6676-4602",
     "placeUrl": "http://place.map.kakao.com/1823832591",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "832450185",
@@ -6815,7 +7966,11 @@
     "phone": "010-4883-4602",
     "placeUrl": "http://place.map.kakao.com/832450185",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1124532935",
@@ -6829,7 +7984,11 @@
     "phone": "063-251-6777",
     "placeUrl": "http://place.map.kakao.com/1124532935",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "27597229",
@@ -6843,7 +8002,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/27597229",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "20313961",
@@ -6857,7 +8020,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/20313961",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "1432410193",
@@ -6871,7 +8037,12 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1432410193",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "120812720",
@@ -6885,7 +8056,12 @@
     "phone": "010-5789-0263",
     "placeUrl": "http://place.map.kakao.com/120812720",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1040716181",
@@ -6899,7 +8075,12 @@
     "phone": "010-4546-1837",
     "placeUrl": "http://place.map.kakao.com/1040716181",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "27485229",
@@ -6913,7 +8094,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/27485229",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "945190046",
@@ -6927,7 +8111,12 @@
     "phone": "064-787-8611",
     "placeUrl": "http://place.map.kakao.com/945190046",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1579782468",
@@ -6941,7 +8130,8 @@
     "phone": "064-787-8611",
     "placeUrl": "http://place.map.kakao.com/1579782468",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26314120",
@@ -6955,7 +8145,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/26314120",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26100097",
@@ -6969,7 +8160,11 @@
     "phone": "064-728-3271",
     "placeUrl": "http://place.map.kakao.com/26100097",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "292549758",
@@ -6983,7 +8178,8 @@
     "phone": "010-3699-9237",
     "placeUrl": "http://place.map.kakao.com/292549758",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "191145206",
@@ -6997,7 +8193,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/191145206",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1696448844",
@@ -7011,7 +8211,11 @@
     "phone": "0503-7154-4269",
     "placeUrl": "http://place.map.kakao.com/1696448844",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1211096464",
@@ -7025,7 +8229,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1211096464",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "1756958043",
@@ -7039,7 +8247,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1756958043",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "543600695",
@@ -7053,21 +8264,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/543600695",
     "kind": "실내",
-    "image": null
-  },
-  {
-    "id": "1732010903",
-    "name": "서산시 클라이밍장 (2026년 예정)",
-    "lat": 36.7963518071163,
-    "lng": 126.437035101295,
-    "address": "충남 서산시 안견로 638",
-    "region1": "충남",
-    "region2": "서산시",
-    "category": "스포츠,레저 > 클라이밍",
-    "phone": null,
-    "placeUrl": "http://place.map.kakao.com/1732010903",
-    "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "26886844",
@@ -7081,7 +8282,11 @@
     "phone": "041-667-5015",
     "placeUrl": "http://place.map.kakao.com/26886844",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1076688585",
@@ -7095,7 +8300,10 @@
     "phone": "041-665-9511",
     "placeUrl": "http://place.map.kakao.com/1076688585",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링"
+    ]
   },
   {
     "id": "26832297",
@@ -7109,7 +8317,12 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/26832297",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "947839097",
@@ -7123,7 +8336,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/947839097",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "17408063",
@@ -7137,7 +8354,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/17408063",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "597359688",
@@ -7151,7 +8369,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/597359688",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "183987554",
@@ -7165,7 +8386,11 @@
     "phone": "041-563-8119",
     "placeUrl": "http://place.map.kakao.com/183987554",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "2034922207",
@@ -7179,7 +8404,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2034922207",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "26915248",
@@ -7193,7 +8419,8 @@
     "phone": "041-577-7747",
     "placeUrl": "http://place.map.kakao.com/26915248",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "1685987073",
@@ -7207,7 +8434,11 @@
     "phone": "0507-1322-4042",
     "placeUrl": "http://place.map.kakao.com/1685987073",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "562199779",
@@ -7221,7 +8452,11 @@
     "phone": "041-577-7747",
     "placeUrl": "http://place.map.kakao.com/562199779",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "24828805",
@@ -7235,7 +8470,10 @@
     "phone": "041-567-2744",
     "placeUrl": "http://place.map.kakao.com/24828805",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "2062046097",
@@ -7249,7 +8487,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2062046097",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "2006152929",
@@ -7263,7 +8505,8 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/2006152929",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   },
   {
     "id": "10258868",
@@ -7277,7 +8520,12 @@
     "phone": "043-217-1900",
     "placeUrl": "http://place.map.kakao.com/10258868",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "17205409",
@@ -7291,7 +8539,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/17205409",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "732745497",
@@ -7305,7 +8556,10 @@
     "phone": "043-270-7393",
     "placeUrl": "http://place.map.kakao.com/732745497",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "2028561909",
@@ -7319,7 +8573,11 @@
     "phone": "043-217-5697",
     "placeUrl": "http://place.map.kakao.com/2028561909",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1658649326",
@@ -7333,7 +8591,11 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1658649326",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드",
+      "지구력"
+    ]
   },
   {
     "id": "11484319",
@@ -7347,7 +8609,11 @@
     "phone": "043-284-5014",
     "placeUrl": "http://place.map.kakao.com/11484319",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1329181772",
@@ -7361,7 +8627,10 @@
     "phone": "043-842-5956",
     "placeUrl": "http://place.map.kakao.com/1329181772",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "지구력"
+    ]
   },
   {
     "id": "14680269",
@@ -7375,7 +8644,10 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/14680269",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "리드"
+    ]
   },
   {
     "id": "420378025",
@@ -7389,7 +8661,11 @@
     "phone": "043-856-5014",
     "placeUrl": "http://place.map.kakao.com/420378025",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": [
+      "볼더링",
+      "지구력"
+    ]
   },
   {
     "id": "1592009501",
@@ -7403,6 +8679,7 @@
     "phone": null,
     "placeUrl": "http://place.map.kakao.com/1592009501",
     "kind": "실내",
-    "image": null
+    "image": null,
+    "types": []
   }
 ]

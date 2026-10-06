@@ -162,7 +162,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
       </Pressable>
       <Text style={styles.name}>{gym.name}</Text>
       <Text style={styles.meta}>
-        {gym.region1} {gym.region2} · {gym.kind}
+        {[`${gym.region1} ${gym.region2}`, gym.kind, ...gym.types].join(' · ')}
       </Text>
       <Text style={styles.address}>{gym.address}</Text>
       <View style={styles.links}>

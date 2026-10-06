@@ -6,6 +6,27 @@ const QUERIES = ['클라이밍', '볼더링', '암벽'];
 const KOREA = { x1: 124.5, y1: 33.0, x2: 131.9, y2: 38.7 };
 const found = new Map();
 let calls = 0;
+const NOT_GYM = {
+  '1285537682': '문경국제클라이밍센터 주차장',
+  '2052812646': '응봉산 암벽공원 주차장',
+  '578723728': 'KB국민은행ATM H암벽생산지원센터',
+  '754659097': '클라이밍월 공장',
+  '32338067': '기필코홀드',
+  '1603222466': '콜스에듀케이션',
+  '1854005600': '대한스포츠클라이밍협회',
+  '533072689': '한우리산악회',
+  '1960112362': '목포탑매드클라임동호회',
+  '1510392845': '용소빙장',
+  '27500635': '판대아이스파크',
+  '1956013223': '구계빙벽장',
+  '5595993': '청송 아이스클라이밍 월드컵경기장',
+  '984170340': '청송 아이스클라이밍월드컵',
+  '1729479914': '정글짐키즈클라이밍센터',
+  '1139844153': '쿠키즈클라이밍',
+  '113553168': '레고랜드코리아리조트 콜의암벽등반',
+  '27510796': '자연학습공원 암벽오르기',
+  '1732010903': '서산시 클라이밍장 (2026년 예정)',
+};
 
 async function search(query, rect, page) {
   const url = new URL('https://dapi.kakao.com/v2/local/search/keyword.json');
@@ -49,11 +70,12 @@ const REGION_SHORT = {
 };
 
 function isGym(d) {
+  if (NOT_GYM[d.id]) return false;
   const name = d.place_name;
   const category = d.category_name;
-  if (/클라이밍짐|암벽장|클라이밍장|볼더링/.test(name) && !/키즈카페|트리클라이밍/.test(name)) return true;
+  if (/클라이밍짐|암벽장|클라이밍장|볼더링/.test(name) && !/키즈카페|(?<!락)트리클라이밍/.test(name)) return true;
   if (!/클라이밍|볼더|암벽|climb/i.test(`${name} ${category}`)) return false;
-  if (/트리클라이밍|용품|의류|장비|시공|건설|무역|충전소|축구|캠핑|스크린/.test(`${name} ${category}`)) return false;
+  if (/(?<!락)트리클라이밍|용품|의류|장비|시공|건설|무역|충전소|축구|캠핑|스크린/.test(`${name} ${category}`)) return false;
   return true;
 }
 

@@ -16,9 +16,6 @@ type Props = {
   onRemove: (index: number) => void;
   onClear: () => void;
   onOpen: (index: number) => void;
-  today: { gymName: string; count: number | null } | null;
-  onTodayAdd: () => void;
-  onTodayDismiss: () => void;
   here: { gymName: string; count: number } | null;
   onHere: () => void;
   onHereDismiss: () => void;
@@ -39,7 +36,7 @@ function statusOf(video: PickedVideo, settings: Settings) {
   return parts.join(' · ');
 }
 
-export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen, today, onTodayAdd, onTodayDismiss, here, onHere, onHereDismiss }: Props) {
+export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen, here, onHere, onHereDismiss }: Props) {
   const [loading, setLoading] = useState(false);
 
   const pick = async () => {
@@ -84,10 +81,6 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
     return true;
   };
 
-  const pickForToday = async () => {
-    if (await pick()) onTodayDismiss();
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -116,22 +109,9 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
             <Text style={styles.todayTitle} numberOfLines={1}>
               {here.count > 1 ? `${here.gymName} 외 ${here.count - 1}곳 근처예요` : `${here.gymName}에 있네요`}
             </Text>
-            <Text style={styles.todayAction}>체크인하고 사진 찍기 →</Text>
+            <Text style={styles.todayAction}>도감에 등록하고 사진 찍기 →</Text>
           </View>
           <Pressable hitSlop={10} onPress={onHereDismiss}>
-            <Ionicons name="close" size={18} color="#888" />
-          </Pressable>
-        </Pressable>
-      )}
-      {today && (
-        <Pressable style={styles.today} onPress={today.count === null ? pickForToday : onTodayAdd}>
-          <View style={styles.todayBody}>
-            <Text style={styles.todayTitle} numberOfLines={1}>
-              {today.count === null ? `오늘 ${today.gymName} 다녀왔네요` : `오늘 ${today.gymName} · 새 영상 ${today.count}개`}
-            </Text>
-            <Text style={styles.todayAction}>{today.count === null ? '찍은 영상 고르기 →' : '시도 구간 찾기 →'}</Text>
-          </View>
-          <Pressable hitSlop={10} onPress={onTodayDismiss}>
             <Ionicons name="close" size={18} color="#888" />
           </Pressable>
         </Pressable>

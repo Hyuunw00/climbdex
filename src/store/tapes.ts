@@ -8,7 +8,7 @@ export type TapeSummary = { label: string; color: string | null; vMin: number | 
 
 export const V_MIN = -1;
 export const V_MAX = 12;
-export const MIN_VOTES = 3;
+export const MIN_VOTES = 10;
 
 export const PALETTE: { label: string; color: string }[] = [
   { label: '흰색', color: '#f5f5f5' },

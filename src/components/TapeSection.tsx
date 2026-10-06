@@ -183,7 +183,7 @@ export function VoteSheet({ tape, mine, onClose, onSubmit, onRemove, skipLabel, 
   const [picked, setPicked] = useState<{ min: number; max: number } | null>(mine ? { min: mine.vMin, max: mine.vMax } : null);
   const chosen = confirmLabel ? picked : mine ? { min: mine.vMin, max: mine.vMax } : null;
   const pick = (v: number) => {
-    if (!picked || picked.min !== picked.max || v < picked.min) setPicked({ min: v, max: v });
+    if (!picked || picked.min !== picked.max || v < picked.min || v > picked.min + 1) setPicked({ min: v, max: v });
     else setPicked({ min: picked.min, max: v });
   };
   return (
@@ -202,7 +202,7 @@ export function VoteSheet({ tape, mine, onClose, onSubmit, onRemove, skipLabel, 
           );
         })}
       </View>
-      {confirmLabel && <Text style={styles.hint}>더 높은 등급을 한 번 더 누르면 범위로 돼요</Text>}
+      {confirmLabel && <Text style={styles.hint}>바로 위 등급을 한 번 더 누르면 두 단계 범위로 돼요</Text>}
       {confirmLabel && (
         <Pressable style={[styles.primary, picked === null && styles.disabled]} disabled={picked === null} onPress={() => picked !== null && onSubmit(picked.min, picked.max)}>
           <Text style={styles.primaryText}>{picked === null ? '등급을 골라 주세요' : `${formatRange(picked.min, picked.max)} · ${confirmLabel}`}</Text>

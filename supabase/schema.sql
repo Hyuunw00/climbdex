@@ -76,6 +76,8 @@ create table if not exists public.tape_votes (
   primary key (user_id, gym_id, label)
 );
 create index if not exists tape_votes_gym on public.tape_votes(gym_id);
+alter table public.tape_votes drop constraint if exists tape_votes_range;
+alter table public.tape_votes add constraint tape_votes_range check (v_max >= v_min and v_max - v_min <= 1);
 
 create table if not exists public.tape_reports (
   id uuid primary key default gen_random_uuid(),

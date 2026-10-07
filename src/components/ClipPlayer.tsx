@@ -1,4 +1,5 @@
 import * as MediaLibrary from 'expo-media-library';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -135,9 +136,10 @@ export default function ClipPlayer({ items, initial, onClose, onSaved }: Props) 
     }
   };
 
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.header}>
           <Text style={styles.title} numberOfLines={1}>
             {item.title}
@@ -202,7 +204,7 @@ export default function ClipPlayer({ items, initial, onClose, onSaved }: Props) 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', paddingTop: 56, paddingBottom: 32 },
+  container: { flex: 1, backgroundColor: '#000' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, gap: 12 },
   title: { flex: 1, color: '#fff', fontSize: 15, fontWeight: '700' },
   close: { color: '#fff', fontSize: 22 },

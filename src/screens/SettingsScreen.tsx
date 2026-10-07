@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_SETTINGS, type Settings } from '../settings';
 
 type Props = {
@@ -23,9 +24,10 @@ function Stepper({ value, onChange }: { value: number; onChange: (v: number) => 
 }
 
 export default function SettingsScreen({ settings, onChange, onClose }: Props) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={styles.container}>
+      <View style={[styles.container, Platform.OS === 'android' && { paddingTop: insets.top + 20 }, { paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>자르기 설정</Text>
           <Pressable onPress={onClose} hitSlop={10}>

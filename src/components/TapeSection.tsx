@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Animated, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RED } from './dex';
 import {
   PALETTE, type Tape, type TapeData, type TapeSummary, V_MAX, V_MIN,
@@ -23,9 +24,10 @@ export function Swatch({ color, size = 28 }: { color: string | null; size?: numb
 }
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={styles.sheet}>
+      <View style={[styles.sheet, Platform.OS === 'android' && { paddingTop: insets.top + 20 }, { paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.sheetHeader}>
           <Text style={styles.sheetTitle}>{title}</Text>
           <Pressable onPress={onClose} hitSlop={10}>

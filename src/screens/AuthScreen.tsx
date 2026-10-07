@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { signInWithGoogle } from '../auth/auth';
 import { RED } from '../components/dex';
 import { configured } from '../lib/supabase';
@@ -19,10 +20,11 @@ export default function AuthScreen({ onClose }: { onClose?: () => void }) {
     }
   };
 
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, Platform.OS === 'android' && { paddingTop: insets.top + 24 }, { paddingBottom: insets.bottom + 24 }]}>
       {onClose && (
-        <Pressable style={styles.close} onPress={onClose} hitSlop={12}>
+        <Pressable style={[styles.close, Platform.OS === 'android' && { top: insets.top + 16 }]} onPress={onClose} hitSlop={12}>
           <Text style={styles.closeText}>×</Text>
         </Pressable>
       )}

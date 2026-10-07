@@ -109,9 +109,17 @@ class ClimbVideoModule : Module() {
           }
           val info = videoInfo(context, uri)
           var name: String? = null
+          var takenMs: Long? = null
           resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
             if (c.moveToFirst()) name = c.getString(0)
           }
+          try {
+            resolver.query(uri, arrayOf(MediaStore.MediaColumns.DATE_TAKEN), null, null, null)?.use { c ->
+              if (c.moveToFirst() && !c.isNull(0)) takenMs = c.getLong(0).takeIf { it > 0 }
+            }
+          } catch (_: Exception) {
+          }
+          if (takenMs == null) takenMs = videoDateMs(context, uri)
           mapOf(
             "uri" to uri.toString(),
             "assetId" to uri.toString(),
@@ -119,6 +127,7 @@ class ClimbVideoModule : Module() {
             "width" to info.displayWidth,
             "height" to info.displayHeight,
             "fileName" to name,
+            "createdAt" to takenMs,
           )
         } catch (_: Exception) {
           null
@@ -128,6 +137,17 @@ class ClimbVideoModule : Module() {
     }
 
     AsyncFunction("resolveUri") { uri: String -> uri }
+
+    AsyncFunction("assetLocation") { assetId: String ->
+      val decoded = Uri.decode(assetId)
+      val id = Regex("(\\d+)$").find(decoded)?.groupValues?.get(1)?.toLongOrNull() ?: return@AsyncFunction null
+      var uri = android.content.ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+      if (android.os.Build.VERSION.SDK_INT >= 29) uri = MediaStore.setRequireOriginal(uri)
+      val iso = quickTimeLocation(context, uri) ?: retrieverLocation(context, uri)
+      android.util.Log.i("ClimbVideo", "assetLocation id=$id iso=$iso")
+      val match = iso?.let { Regex("([+-][0-9.]+)([+-][0-9.]+)").find(it) } ?: return@AsyncFunction null
+      mapOf("lat" to match.groupValues[1].toDouble(), "lng" to match.groupValues[2].toDouble())
+    }
 
     Function("cancelDetect") { uri: String ->
       DetectCancels.add(uri)
@@ -275,3 +295,98 @@ private fun personFrom(tracks: List<List<List<Double>>>?, start: Double, end: Do
 
 class NoPersonException : expo.modules.kotlin.exception.CodedException("구간 안에서 사람을 못 찾았어요")
 class NoFramesException(stats: String) : expo.modules.kotlin.exception.CodedException("영상에서 프레임을 못 읽었어요 ($stats)")
+
+private fun videoDateMs(context: android.content.Context, uri: Uri): Long? {
+  val retriever = android.media.MediaMetadataRetriever()
+  return try {
+    retriever.setDataSource(context, uri)
+    val raw = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DATE) ?: return null
+    val format = java.text.SimpleDateFormat("yyyyMMdd'T'HHmmss", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+    format.parse(raw.take(15))?.time
+  } catch (_: Exception) {
+    null
+  } finally {
+    retriever.release()
+  }
+}
+
+private fun retrieverLocation(context: android.content.Context, uri: Uri): String? {
+  val retriever = android.media.MediaMetadataRetriever()
+  return try {
+    retriever.setDataSource(context, uri)
+    retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_LOCATION)
+  } catch (_: Exception) {
+    null
+  } finally {
+    retriever.release()
+  }
+}
+
+private fun quickTimeLocation(context: android.content.Context, uri: Uri): String? {
+  return try {
+    context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+      java.io.FileInputStream(pfd.fileDescriptor).channel.use { channel ->
+        val reader = BoxReader(channel)
+        val moov = reader.children(0, channel.size()).firstOrNull { it.type == "moov" } ?: return null
+        val meta = reader.children(moov.start + moov.header, moov.end).firstOrNull { it.type == "meta" } ?: return null
+        var inner = meta.start + meta.header
+        if (reader.int(inner) == 0) inner += 4
+        val parts = reader.children(inner, meta.end)
+        val keysBox = parts.firstOrNull { it.type == "keys" } ?: return null
+        val ilst = parts.firstOrNull { it.type == "ilst" } ?: return null
+        val keys = mutableListOf<String>()
+        var pos = keysBox.start + keysBox.header + 4
+        val count = reader.int(pos); pos += 4
+        repeat(count) {
+          val size = reader.int(pos)
+          keys.add(reader.string(pos + 8, size - 8))
+          pos += size
+        }
+        val index = keys.indexOf("com.apple.quicktime.location.ISO6709") + 1
+        if (index == 0) return null
+        for (item in reader.children(ilst.start + ilst.header, ilst.end)) {
+          if (reader.int(item.start + 4) != index) continue
+          val data = reader.children(item.start + item.header, item.end).firstOrNull { it.type == "data" } ?: continue
+          return reader.string(data.start + data.header + 8, (data.end - data.start - data.header - 8).toInt())
+        }
+        null
+      }
+    }
+  } catch (_: Exception) {
+    null
+  }
+}
+
+private class Box(val start: Long, val end: Long, val type: String, val header: Int)
+
+private class BoxReader(private val channel: java.nio.channels.FileChannel) {
+  private fun read(pos: Long, len: Int): java.nio.ByteBuffer {
+    val buf = java.nio.ByteBuffer.allocate(len)
+    var offset = pos
+    while (buf.hasRemaining()) {
+      val n = channel.read(buf, offset)
+      if (n <= 0) break
+      offset += n
+    }
+    buf.flip()
+    return buf
+  }
+  fun int(pos: Long): Int = read(pos, 4).int
+  fun string(pos: Long, len: Int): String = String(read(pos, len).let { b -> ByteArray(b.remaining()).also { b.get(it) } }, Charsets.UTF_8)
+  fun children(from: Long, to: Long): List<Box> {
+    val out = mutableListOf<Box>()
+    var pos = from
+    while (pos + 8 <= to) {
+      val head = read(pos, 16)
+      if (head.remaining() < 8) break
+      var size = (head.int.toLong() and 0xffffffffL)
+      val typeBytes = ByteArray(4).also { head.get(it) }
+      var header = 8
+      if (size == 1L) { size = head.long; header = 16 } else if (size == 0L) size = to - pos
+      if (size < header) break
+      out.add(Box(pos, minOf(pos + size, to), String(typeBytes, Charsets.ISO_8859_1), header))
+      pos += size
+    }
+    return out
+  }
+}

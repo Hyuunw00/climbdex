@@ -3,7 +3,7 @@ import { randomUUID } from 'expo-crypto';
 import * as MediaLibrary from 'expo-media-library';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { ClimbVideo, type FollowPlan } from '../../modules/climb-video';
 import FollowPreview from '../components/FollowPreview';
 import Timeline from '../components/Timeline';
@@ -59,6 +59,8 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const [saving, setSaving] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<GymCandidate[]>([]);
   const [choice, setChoice] = useState<GymCandidate | null>(null);
+  const [resolved, setResolved] = useState(false);
+  const [mediaDenied, setMediaDenied] = useState(false);
   const [tapes, setTapes] = useState<TapeData | null | undefined>(undefined);
   const [noRecord, setNoRecord] = useState(false);
   const [voteFor, setVoteFor] = useState<{ tape: TapeSummary; resolve: (v: { min: number; max: number } | null | undefined) => void } | null>(null);
@@ -108,10 +110,21 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     let cancelled = false;
     (async () => {
       let current = video;
+      if (Platform.OS === 'android') {
+        try {
+          const permission = await MediaLibrary.getPermissionsAsync(false, ['video']);
+          if (!cancelled) setMediaDenied(!permission.granted && permission.accessPrivileges !== 'limited');
+        } catch {}
+      }
       if (video.assetId && video.location === undefined) {
         try {
-          const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
-          const location = info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null;
+          let location: { lat: number; lng: number } | null = null;
+          if (Platform.OS === 'android') {
+            location = (await ClimbVideo.assetLocation?.(video.assetId)) ?? null;
+          } else {
+            const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
+            location = info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null;
+          }
           onUpdate({ location });
           current = { ...video, location };
         } catch (e) {
@@ -123,6 +136,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       console.log('record gym', video.fileName, JSON.stringify({ createdAt: current.createdAt, pickedAt: current.pickedAt, location: current.location, visits: dex.visits.map((v) => [v.gymId, v.at]), found: found.map((c) => [c.gym.name, c.basis]) }));
       setCandidates(found);
       setChoice(found.find((c) => c.gym.id === clips[0]?.gymId) ?? (found.length === 1 ? found[0] : null));
+      setResolved(true);
     })();
     return () => {
       cancelled = true;
@@ -468,6 +482,18 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
         </View>
         <Switch value={follow} onValueChange={setFollow} trackColor={{ true: '#111' }} />
       </View>
+      {userId && resolved && candidates.length === 0 && (
+        <View style={[styles.record, styles.recordOff]}>
+          <Text style={styles.recordMuted}>
+            {mediaDenied ? '암장을 알 수 없어 등반 기록을 못 남겨요. 사진 위치 접근을 허용하면 자동으로 잡아요' : '영상의 위치·날짜로 암장을 못 찾아 등반 기록을 못 남겨요'}
+          </Text>
+          {mediaDenied && (
+            <Pressable onPress={() => Linking.openSettings()} hitSlop={6}>
+              <Text style={styles.recordLink}>설정에서 허용하기</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
       {userId && candidates.length > 0 && noRecord && (
         <Pressable onPress={() => setNoRecord(false)} hitSlop={6} style={[styles.record, styles.recordOff]}>
           <Text style={styles.recordMuted}>등반 기록 안 남김 · 다시 켜기</Text>

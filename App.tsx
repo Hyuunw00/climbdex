@@ -2,7 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, Modal, Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ClimbVideo } from './modules/climb-video';
 import { cleanupPickerCopies, deleteFile } from './src/videoFiles';
@@ -281,6 +281,7 @@ export default function App() {
       } catch (e) {
         console.log('background run error', String(e));
       }
+      if (queue.pendingSec * queue.rate >= 30) prepareNotifications();
     }
     syncProgress();
     for (const video of targets) {
@@ -301,8 +302,13 @@ export default function App() {
       let meta: Partial<PickedVideo> = {};
       if (video.assetId && (!video.createdAt || video.location === undefined)) {
         try {
-          const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
-          meta = { createdAt: video.createdAt ?? info.creationTime, location: info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null };
+          if (Platform.OS === 'android') {
+            const location = (await ClimbVideo.assetLocation?.(video.assetId)) ?? null;
+            meta = { createdAt: video.createdAt, location };
+          } else {
+            const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
+            meta = { createdAt: video.createdAt ?? info.creationTime, location: info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null };
+          }
           patch(video.uri, meta);
         } catch {}
       }
@@ -383,7 +389,7 @@ export default function App() {
     deleteFile(uri);
   };
 
-  const add = (picked: PickedVideo[]) => {
+  const add = async (picked: PickedVideo[]) => {
     const known = new Set(videos.map((v) => v.assetId).filter(Boolean));
     const added = picked.filter((v) => !v.assetId || !known.has(v.assetId));
     const skipped = picked.length - added.length;
@@ -392,7 +398,13 @@ export default function App() {
     for (const v of added) removed.delete(v.uri);
     const pickedAt = Date.now();
     setVideos((prev) => [...prev, ...added.map((v) => ({ ...v, pickedAt }))]);
-    prepareNotifications();
+    if (Platform.OS === 'android') {
+      try {
+        await MediaLibrary.requestPermissionsAsync(false, ['video']);
+      } catch (e) {
+        console.log('media permission error', String(e));
+      }
+    }
     detect(added, true);
   };
 

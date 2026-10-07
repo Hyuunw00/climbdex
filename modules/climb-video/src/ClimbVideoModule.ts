@@ -25,6 +25,7 @@ declare class ClimbVideoModule extends NativeModule {
   cleanupOriginals?(keep: string[]): void;
   pickVideos?(): Promise<PickedAsset[]>;
   resolveUri?(uri: string): Promise<string>;
+  assetLocation?(assetId: string): Promise<{ lat: number; lng: number } | null>;
   startBackgroundRun?(title: string, subtitle: string, totalSeconds: number): boolean;
   updateBackgroundRun?(completedSeconds: number, subtitle: string): void;
   finishBackgroundRun?(success: boolean): void;

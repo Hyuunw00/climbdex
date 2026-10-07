@@ -28,7 +28,7 @@ function write(items: Item[]) {
   try {
     store.write(JSON.stringify(items));
   } catch (e) {
-    console.log('outbox write error', String(e));
+    console.log('outbox write error', describe(e));
   }
 }
 
@@ -59,7 +59,7 @@ async function deliver(item: Item) {
     await send(item);
     return true;
   } catch (e) {
-    console.log('queued', item.kind, String(e));
+    console.log('queued', item.kind, describe(e));
     write([...read(), item]);
     return false;
   }
@@ -98,7 +98,7 @@ export function flushOutbox() {
       try {
         await send(item);
       } catch (e) {
-        console.log('outbox retry failed', String(e));
+        console.log('outbox retry failed', describe(e));
         left.push(item);
       }
     }
@@ -108,4 +108,12 @@ export function flushOutbox() {
     flushing = null;
   });
   return flushing;
+}
+
+function describe(e: unknown) {
+  if (e && typeof e === 'object') {
+    const o = e as Record<string, unknown>;
+    return JSON.stringify({ message: o.message, code: o.code, details: o.details, hint: o.hint });
+  }
+  return String(e);
 }

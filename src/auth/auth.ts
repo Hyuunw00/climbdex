@@ -51,21 +51,6 @@ export async function signInWithGoogle() {
     await signInFresh();
     return;
   }
-  const { data, error } = await supabase.auth.linkIdentity({
-    provider: 'google',
-    options: { redirectTo: REDIRECT, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
-  });
-  if (!error && data.url) {
-    const params = await openAuth(data.url);
-    if (!params || params.get('error') === 'access_denied') return;
-    if (!params.get('error')) {
-      await applySession(params);
-      return;
-    }
-    if (params.get('error_code') !== 'identity_already_exists') console.log('link identity error', params.get('error_code'));
-  } else {
-    console.log('link identity unavailable', error?.message);
-  }
   const { data: ticket, error: ticketError } = await supabase.from('anon_merge').insert({}).select('token').single();
   if (ticketError || !ticket) throw ticketError ?? new Error('기록을 옮길 준비를 못 했어요. 다시 시도해 주세요');
   await SecureStore.setItemAsync(MERGE_KEY, ticket.token);

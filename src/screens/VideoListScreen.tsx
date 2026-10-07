@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PickedVideo } from '../types';
 import { type DetectProgress, formatRemaining } from '../detectProgress';
 import { ClimbVideo } from '../../modules/climb-video';
 import type { Settings } from '../settings';
+import { askSettings } from '../permissions';
 
 type Props = {
   videos: PickedVideo[];
@@ -40,8 +41,17 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
   const [loading, setLoading] = useState(false);
 
   const pick = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return false;
+    if (Platform.OS === 'ios') {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        askSettings('사진 접근이 필요해요', '영상을 고르려면 설정에서 사진 접근을 허용해 주세요. 영상은 폰 밖으로 나가지 않아요');
+        return false;
+      }
+      if (permission.accessPrivileges === 'limited') {
+        askSettings('모든 사진 접근이 필요해요', '지금은 선택한 사진만 허용돼 있어서 고른 영상을 읽을 수 없어요. 설정에서 사진 접근을 "모든 사진"으로 바꿔 주세요. 영상은 폰 밖으로 나가지 않아요');
+        return false;
+      }
+    }
     if (ClimbVideo.pickVideos) {
       try {
         const assets = await ClimbVideo.pickVideos();

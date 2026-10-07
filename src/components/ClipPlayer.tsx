@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, Modal, Pressable, StyleSheet, Text, View } fr
 import { ClimbVideo } from '../../modules/climb-video';
 import { deleteFile } from '../videoFiles';
 import Timeline from './Timeline';
+import { SAVE_DENIED, askSettings } from '../permissions';
 
 export type PlayItem = { key: string; uri: string; start: number; end: number; title: string; editable: boolean };
 
@@ -119,7 +120,7 @@ export default function ClipPlayer({ items, initial, onClose, onSaved }: Props) 
 
   const save = async () => {
     const permission = await MediaLibrary.requestPermissionsAsync(true);
-    if (!permission.granted) return Alert.alert('사진 앱 저장 권한이 필요해요');
+    if (!permission.granted) return askSettings(...SAVE_DENIED);
     setSaving(true);
     player.pause();
     try {

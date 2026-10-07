@@ -16,6 +16,7 @@ import DexScreen from './src/screens/DexScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import AccountSheet from './src/components/AccountSheet';
 import TrimScreen from './src/screens/TrimScreen';
 import { loadSettings, saveSettings, type Settings } from './src/settings';
 import VideoListScreen from './src/screens/VideoListScreen';
@@ -281,7 +282,7 @@ export default function App() {
       } catch (e) {
         console.log('background run error', String(e));
       }
-      if (queue.pendingSec * queue.rate >= 30) prepareNotifications();
+      prepareNotifications();
     }
     syncProgress();
     for (const video of targets) {
@@ -457,40 +458,33 @@ export default function App() {
     }
   };
 
-  const accountMenu = () => {
-    Alert.alert(String(session?.user.user_metadata?.full_name ?? session?.user.email ?? '계정'), session?.user.email ?? undefined, [
-      { text: '로그아웃', onPress: () => signOut() },
+  const [showAccount, setShowAccount] = useState(false);
+  const accountMenu = () => setShowAccount(true);
+
+  const confirmDelete = () =>
+    Alert.alert('정말 탈퇴할까요?', '도감 기록, 사진, 등반 기록이 모두 지워져요', [
+      { text: '취소', style: 'cancel' },
       {
-        text: '회원 탈퇴',
+        text: '계속',
         style: 'destructive',
         onPress: () =>
-          Alert.alert('정말 탈퇴할까요?', '도감 기록, 사진, 등반 기록이 모두 지워져요', [
+          Alert.alert('마지막으로 확인할게요', '탈퇴하면 되돌릴 수 없어요. 정말 탈퇴할까요?', [
             { text: '취소', style: 'cancel' },
             {
-              text: '계속',
+              text: '탈퇴하기',
               style: 'destructive',
-              onPress: () =>
-                Alert.alert('마지막으로 확인할게요', '탈퇴하면 되돌릴 수 없어요. 정말 탈퇴할까요?', [
-                  { text: '취소', style: 'cancel' },
-                  {
-                    text: '탈퇴하기',
-                    style: 'destructive',
-                    onPress: async () => {
-                      if (!userId) return;
-                      try {
-                        await deleteAccount(userId);
-                      } catch (e) {
-                        Alert.alert('탈퇴 실패', String(e));
-                      }
-                    },
-                  },
-                ]),
+              onPress: async () => {
+                if (!userId) return;
+                try {
+                  await deleteAccount(userId);
+                } catch (e) {
+                  Alert.alert('탈퇴 실패', String(e));
+                }
+              },
             },
           ]),
       },
-      { text: '취소', style: 'cancel' },
     ]);
-  };
 
   const pickGym = (candidates: Candidate[]) =>
     new Promise<Gym | null>((resolve) => {
@@ -643,6 +637,21 @@ export default function App() {
       <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAuthPrompt(false)}>
         <AuthScreen onClose={() => setAuthPrompt(false)} />
       </Modal>
+    )}
+    {showAccount && userId && session && (
+      <AccountSheet
+        name={String(session.user.user_metadata?.full_name ?? session.user.user_metadata?.name ?? '')}
+        email={session.user.email ?? ''}
+        onSignOut={() => {
+          setShowAccount(false);
+          signOut();
+        }}
+        onDelete={() => {
+          setShowAccount(false);
+          setTimeout(confirmDelete, 400);
+        }}
+        onClose={() => setShowAccount(false)}
+      />
     )}
     {showSettings && <SettingsScreen settings={settings} onChange={setSettings} onClose={() => setShowSettings(false)} />}
     {celebration && <Celebration gym={celebration.gym} photo={celebration.photo} count={celebration.count} rank={celebration.rank} date={celebration.date} replay={celebration.replay} onDone={() => setCelebration(null)} />}

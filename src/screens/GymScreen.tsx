@@ -11,6 +11,7 @@ import { useRefreshControl } from '../components/refresh';
 import type { PickedVideo } from '../types';
 import { ClimbVideo } from '../../modules/climb-video';
 import { type GymSend, fetchGymSends, sameAttempt, updateSendRange, videoKey } from '../store/sends';
+import { askSettings } from '../permissions';
 
 type Props = {
   gym: Gym;
@@ -29,17 +30,23 @@ type Props = {
   guest?: boolean;
 };
 
-export async function takePhoto(): Promise<string | null> {
+export async function takePhoto(): Promise<string | null | undefined> {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
-  if (!permission.granted) return null;
+  if (!permission.granted) {
+    askSettings('카메라 권한이 필요해요', '도감 사진을 찍으려면 설정에서 카메라 접근을 허용해 주세요');
+    return undefined;
+  }
   const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true, aspect: [1, 1] });
   if (result.canceled) return null;
   return result.assets[0].uri;
 }
 
-export async function pickPhoto(): Promise<string | null> {
+export async function pickPhoto(): Promise<string | null | undefined> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!permission.granted) return null;
+  if (!permission.granted) {
+    askSettings('사진 접근이 필요해요', '앨범에서 도감 사진을 고르려면 설정에서 사진 접근을 허용해 주세요');
+    return undefined;
+  }
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true, aspect: [1, 1] });
   if (result.canceled) return null;
   return result.assets[0].uri;
@@ -65,8 +72,8 @@ export type PhotoChoice = { uri: string | null } | undefined;
 export function choosePhoto(): Promise<PhotoChoice> {
   return new Promise((resolve) => {
     Alert.alert('도감 대표 사진', '나중에 바꿀 수 있어요', [
-      { text: '카메라로 찍기', onPress: async () => resolve({ uri: await takePhoto() }) },
-      { text: '앨범에서 고르기', onPress: async () => resolve({ uri: await pickPhoto() }) },
+      { text: '카메라로 찍기', onPress: async () => { const uri = await takePhoto(); resolve(uri === undefined ? undefined : { uri }); } },
+      { text: '앨범에서 고르기', onPress: async () => { const uri = await pickPhoto(); resolve(uri === undefined ? undefined : { uri }); } },
       { text: '사진 없이 등록', onPress: () => resolve({ uri: null }) },
       { text: '취소', style: 'cancel', onPress: () => resolve(undefined) },
     ]);
@@ -177,7 +184,10 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
     const result = await locate(gym);
     setChecking(false);
     if (result === null) {
-      Alert.alert('위치를 확인할 수 없어요', '설정에서 위치 권한을 허용해 주세요');
+      const permission = await Location.getForegroundPermissionsAsync();
+      if (!permission.granted) askSettings('위치 권한이 필요해요', '암장에 있는지 확인하려면 설정에서 위치 접근을 허용해 주세요');
+      else if (!(await Location.hasServicesEnabledAsync())) askSettings('위치 서비스가 꺼져 있어요', '설정에서 위치 서비스를 켜 주세요');
+      else Alert.alert('위치를 확인할 수 없어요', '잠시 뒤 다시 시도해 주세요');
       return;
     }
     if (result.distance > result.allowed && !SKIP_DISTANCE_CHECK) {

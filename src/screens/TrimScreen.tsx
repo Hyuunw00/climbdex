@@ -17,6 +17,7 @@ import GymPickerSheet from '../components/GymPickerSheet';
 import { deliverSends } from '../store/outbox';
 import { OrderSheet, VoteSheet } from '../components/TapeSection';
 import { PALETTE, type Tape, type TapeData, type TapeSummary, castVote, fetchTapes, saveTapeSet, summarize } from '../store/tapes';
+import { SAVE_DENIED, askSettings } from '../permissions';
 
 type Props = {
   video: PickedVideo;
@@ -321,7 +322,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const save = async (targets: Clip[]) => {
     const permission = await MediaLibrary.requestPermissionsAsync(true);
     if (!permission.granted) {
-      Alert.alert('사진 앱 저장 권한이 필요해요');
+      askSettings(...SAVE_DENIED);
       return;
     }
     if (recording && !choice) return;

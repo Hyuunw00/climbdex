@@ -1,5 +1,16 @@
 # STATUS
 
+## 마지막에 한 일 (2026-10-07 밤, 개인 노트북)
+- **릴리스 AAB 빌드(노트북)**: `cd android && JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home ./gradlew bundleRelease --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=768m"` → 3분 33초, `~/Desktop/climbdex-1.0.0-1.aab`(136MB, versionCode 1, 업로드 키 서명 확인, 로그인 한 번 경로 포함). workers 4·Xmx4g로는 스왑 4.8GB에서 멈췄음(노트북 함정). **업로드 보류**(사용자: 앱 개편·테스트 더 하고 바뀔 게 없을 때 한 번에 다시 AAB) — 그때 같은 명령으로 다시 빌드, 아무것도 안 올렸으니 versionCode 1 그대로
+- 알림 권한은 영상을 고를 때(사용자가 검출을 시작할 때) 항상 요청, '검출 30초 이상일 때만' 조건 제거(사용자 결정: 한 번만 묻는 거라 조건이 오히려 예측 어려움). 안드로이드는 첫 업로드 때 영상 접근 → 알림 팝업이 연달아 뜸
+- **권한 거부·제한이 조용히 끝나던 것 전부 안내로**(사용자: '조용히 끝나면 절대 안 됨'): `src/permissions.ts` `askSettings`(닫기/설정 열기). 영상 고르기 — iOS만 사진 거부 시 안내(안드로이드는 시스템 선택기라 권한 불필요, 확인 안 함), **iOS '선택한 사진만'(limited)이면 PHPicker로 골라도 `PHAsset.fetchAssets`가 허용 목록 밖 영상을 못 읽어 빈 목록이 넘어오던 것** → 고르기 전에 '모든 사진 접근이 필요해요' 안내(영상은 폰 밖으로 안 나간다는 문구 포함). 클립·카드 저장 권한, 도감 사진 카메라·앨범, 도감 등록 위치(권한 거부면 설정 안내, 위치만 못 잡으면 다시 시도 안내)
+- 리뷰 반영: 계정 시트 닫히는 중 탈퇴 Alert가 iOS에서 버려질 수 있어 400ms 뒤 띄움, 도감 등록 때 카메라·앨범 권한 거부면 '사진 없이 등록'으로 진행되던 것 → 등록 중단(촬영 취소는 기존대로 사진 없이), 도감 등록 위치 실패 시 위치 서비스 꺼짐이면 설정 안내
+- 계정 메뉴를 Alert → 아래에서 올라오는 시트(`src/components/AccountSheet.tsx`): 이름·이메일, 큰 '로그아웃', '취소', 오른쪽 아래 작은 회색 '회원 탈퇴'(누르면 기존 2단계 확인). 사용자 요청: 탈퇴가 너무 크게 보임
+- 구글 로그인을 항상 '정상 로그인 + 익명 기록 병합' 한 경로로(사용자 결정): 이미 가입한 계정이면 linkIdentity 실패 후 로그인 창이 두 번 뜨던 것 제거. 새 계정도 익명 id 대신 새 id가 생기고 `merge_anonymous`로 sends·video_summaries 이동(폰에서 확인된 경로). 'Allow manual linking'은 이제 안 씀
+- **업로드 키를 노트북에서 새로 만듦**(사용자 결정: 회사 맥 키는 Play에 올린 적 없어 미등록, 노트북에서 바로 AAB). `~/.climbdex/climbdex-upload.keystore`(PKCS12, alias `climbdex`, SHA-256 D0:6E:B1:…:8D:B2), 비밀번호는 노트북 `~/.gradle/gradle.properties`의 `CLIMBDEX_UPLOAD_*` 네 줄. **회사 맥의 같은 경로 키(SHA1 98:2F:…)는 이제 안 씀 — 회사 맥에서 AAB 만들려면 노트북 키스토어 파일과 네 줄로 덮어써야 함.** 첫 업로드 후엔 이 키가 등록되므로 백업 필수(키 파일 + 비밀번호). `android/app/build.gradle`에 release 서명 블록 다시 넣음(android/는 gitignore)
+- **Play 콘솔 앱 생성**(Playwright): 이름 Climbdex(스토어 표시명, 나중에 변경 가능 — 사용자: 일단 이걸로, 더 나은 이름 나오면 교체), 패키지 `com.climbdex.app`(사용 가능 확인, 변경 불가), 기본 언어 한국어, 앱·무료, 정책·미국 수출법 선언 체크. 콘솔 앱 id 4973794934204330007 (`https://play.google.com/console/u/0/developers/8200839771220054646/app/4973794934204330007/app-dashboard`). 다음: 회사 맥에서 업로드 키로 `bundleRelease` → 내부 테스트 트랙. 처리방침 URL이 앱 콘텐츠에서 요구될 가능성 높음(카메라·위치·사진 권한). 홈 화면 앱 이름 `app.json` name을 `Climbdex`로 바꿈(slug·패키지·번들 id는 그대로, 다음 네이티브 빌드부터 반영). `prebuild --clean` 하면 iOS 프로젝트·스킴 이름이 `Climbdex`로 바뀔 수 있음 → xcodebuild `-scheme`·entitlements 경로 확인
+- **Play 콘솔 연락처 전화번호 인증 완료**(Playwright로 계정 세부정보 → 문자 코드 입력, '전화번호 확인됨'). 본인 확인 서류는 이미 통과.
+
 ## 마지막에 한 일 (2026-10-07, 회사 맥)
 - 노트북 커밋(`5c55989`~`4d088e8`) pull. 전부 JS·docs·SQL이라 폰 재빌드 불필요, `tsc` 통과. 이 맥 `.env`엔 `SUPABASE_DB_URL` 없음(psql로 스키마 적용하려면 넣어야 함)
 - **Play 콘솔 본인 확인**: 은행 명세서(잔액증명서) 제출이 "현재 주소가 표시된 서류 + 계정 주소 일치"로 반려(사유는 메일·알림이 아니라 홈 → 본인 확인 → 시작하기 창에만 뜸). 국민은행 잔액증명서·삼성카드 이메일 명세서엔 주소가 없음. **국민은행 금융거래확인서**(고객정보 주소를 파주로 바꾼 뒤 재발급, 출금 제한 없음)는 신청인주소·발급일·직인이 찍혀서 이걸로 재제출(10-07). 뽑는 법: 인쇄 버튼은 ePageSafer라 PDF 불가 → Chrome 콘솔에서 fixed/sticky 요소 제거 후 ⌘P → PDF로 저장, PyMuPDF로 주민번호 가림. 콘솔 법적 주소는 서류 표기 "경기도 파주시 금정18길 17, 파주금촌에이스큐브 618호 (금촌동,파주금촌에이스큐브)"로 맞춤. 결과 대기 중, 통과 후 전화번호 인증 → 앱 만들기

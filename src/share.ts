@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 import type { RefObject } from 'react';
 import { Alert, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
+import { askSettings } from './permissions';
 
 async function capture(ref: RefObject<View | null>) {
   return captureRef(ref, { format: 'png', quality: 1, width: 1080, height: 1920, result: 'tmpfile' });
@@ -13,7 +14,7 @@ export async function saveCard(ref: RefObject<View | null>) {
   try {
     const permission = await MediaLibrary.requestPermissionsAsync(true);
     if (!permission.granted) {
-      Alert.alert('사진 앱 저장 권한이 필요해요');
+      askSettings('사진 저장 권한이 필요해요', '카드를 사진 앱에 넣으려면 설정에서 사진 접근을 허용해 주세요');
       return;
     }
     const uri = await capture(ref);

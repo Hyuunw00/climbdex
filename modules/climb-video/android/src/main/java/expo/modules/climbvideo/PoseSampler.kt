@@ -5,15 +5,17 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import com.google.android.gms.tasks.Tasks
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.pose.Pose
-import com.google.mlkit.vision.pose.PoseDetection
-import com.google.mlkit.vision.pose.PoseLandmark
-import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
+import com.google.mediapipe.framework.image.BitmapImageBuilder
+import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
+import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.core.Delegate
+import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.max
@@ -112,9 +114,12 @@ fun videoInfo(context: Context, uri: Uri): VideoInfo {
 }
 
 class PoseSampler(private val context: Context) {
-  private val detector = PoseDetection.getClient(
-    AccuratePoseDetectorOptions.Builder().setDetectorMode(AccuratePoseDetectorOptions.SINGLE_IMAGE_MODE).build()
-  )
+  var framesSeen = 0
+  var sourceStats = ""
+  var gpu = true
+    private set
+  private var videoLandmarker: PoseLandmarker? = null
+  private var stillLandmarker: PoseLandmarker? = null
   private val tiles = listOf(
     doubleArrayOf(0.0, 0.0, 0.6, 0.6), doubleArrayOf(0.4, 0.0, 0.6, 0.6),
     doubleArrayOf(0.0, 0.4, 0.6, 0.6), doubleArrayOf(0.4, 0.4, 0.6, 0.6),
@@ -122,7 +127,38 @@ class PoseSampler(private val context: Context) {
   private val minConfidence = 0.3f
   private val frameLongSide = 960
 
-  private fun candidates(bitmap: Bitmap, tile: DoubleArray?, aspect: Double): List<Candidate> {
+  private fun landmarker(mode: RunningMode): PoseLandmarker {
+    val base = BaseOptions.builder()
+      .setModelAssetBuffer(modelBuffer(context))
+      .setDelegate(if (gpu) Delegate.GPU else Delegate.CPU)
+      .build()
+    val options = PoseLandmarker.PoseLandmarkerOptions.builder()
+      .setBaseOptions(base)
+      .setRunningMode(mode)
+      .setNumPoses(2)
+      .build()
+    return PoseLandmarker.createFromOptions(context, options)
+  }
+
+  private fun detect(bitmap: Bitmap, tMs: Long?): PoseLandmarkerResult {
+    val image = BitmapImageBuilder(bitmap).build()
+    fun run(): PoseLandmarkerResult = if (tMs != null) {
+      (videoLandmarker ?: landmarker(RunningMode.VIDEO).also { videoLandmarker = it }).detectForVideo(image, tMs)
+    } else {
+      (stillLandmarker ?: landmarker(RunningMode.IMAGE).also { stillLandmarker = it }).detect(image)
+    }
+    return try {
+      run()
+    } catch (e: Exception) {
+      if (!gpu) throw e
+      android.util.Log.w("ClimbVideo", "pose landmarker GPU failed, falling back to CPU: $e")
+      gpu = false
+      close()
+      run()
+    }
+  }
+
+  private fun candidates(bitmap: Bitmap, tile: DoubleArray?, aspect: Double, tMs: Long?): List<Candidate> {
     val region = if (tile == null) bitmap else {
       val left = (tile[0] * bitmap.width).toInt()
       val top = ((1 - tile[1] - tile[3]) * bitmap.height).toInt()
@@ -130,33 +166,40 @@ class PoseSampler(private val context: Context) {
       val h = (tile[3] * bitmap.height).toInt()
       Bitmap.createBitmap(bitmap, left, top, w, h)
     }
-    val pose: Pose = Tasks.await(detector.process(InputImage.fromBitmap(region, 0)))
+    val inferStart = System.nanoTime()
+    val result = detect(region, if (tile == null) tMs else null)
+    val elapsed = System.nanoTime() - inferStart
+    Timing.inferNs += elapsed
+    Timing.inferCount++
+    if (tile != null) { Timing.tiles++; Timing.tileNs += elapsed } else { Timing.fullNs += elapsed; Timing.poses[result.landmarks().size.coerceAtMost(2)]++ }
     val out = mutableListOf<Candidate>()
-    fun point(type: Int): PoseLandmark? = pose.getPoseLandmark(type)?.takeIf { it.inFrameLikelihood >= minConfidence }
-    val ankles = listOfNotNull(point(PoseLandmark.LEFT_ANKLE), point(PoseLandmark.RIGHT_ANKLE))
-    val hips = listOfNotNull(point(PoseLandmark.LEFT_HIP), point(PoseLandmark.RIGHT_HIP))
-    val shoulders = listOfNotNull(point(PoseLandmark.LEFT_SHOULDER), point(PoseLandmark.RIGHT_SHOULDER))
-    if (ankles.isEmpty() || hips.isEmpty() || shoulders.isEmpty()) return out
-    val rw = region.width.toDouble()
-    val rh = region.height.toDouble()
-    val ankleY = ankles.minOf { 1 - it.position.y / rh }
-    val rootX = hips.map { it.position.x / rw }.average()
-    val rootY = hips.map { 1 - it.position.y / rh }.average()
-    val neckX = shoulders.map { it.position.x / rw }.average()
-    val neckY = shoulders.map { 1 - it.position.y / rh }.average()
     val boxX = tile?.get(0) ?: 0.0
     val boxY = tile?.get(1) ?: 0.0
     val boxW = tile?.get(2) ?: 1.0
     val boxH = tile?.get(3) ?: 1.0
-    val dx = (neckX - rootX) * boxW * aspect
-    val dy = (neckY - rootY) * boxH
-    val torso = sqrt(dx * dx + dy * dy)
-    val leg = (rootY - ankleY) * boxH
-    if (neckY <= rootY || leg < 0.6 * torso || leg > 3.5 * torso) return out
-    val confidence = (ankles + hips + shoulders).map { it.inFrameLikelihood.toDouble() }.average()
-    out.add(Candidate(boxY + ankleY * boxH, torso, boxX + rootX * boxW, boxY + rootY * boxH, confidence))
+    for (pose in result.landmarks()) {
+      fun point(index: Int): NormalizedLandmark? = pose.getOrNull(index)?.takeIf { likelihood(it) >= minConfidence }
+      val ankles = listOfNotNull(point(27), point(28))
+      val hips = listOfNotNull(point(23), point(24))
+      val shoulders = listOfNotNull(point(11), point(12))
+      if (ankles.isEmpty() || hips.isEmpty() || shoulders.isEmpty()) continue
+      val ankleY = ankles.minOf { 1 - it.y().toDouble() }
+      val rootX = hips.map { it.x().toDouble() }.average()
+      val rootY = hips.map { 1 - it.y().toDouble() }.average()
+      val neckX = shoulders.map { it.x().toDouble() }.average()
+      val neckY = shoulders.map { 1 - it.y().toDouble() }.average()
+      val dx = (neckX - rootX) * boxW * aspect
+      val dy = (neckY - rootY) * boxH
+      val torso = sqrt(dx * dx + dy * dy)
+      val leg = (rootY - ankleY) * boxH
+      if (neckY <= rootY || leg < 0.6 * torso || leg > 3.5 * torso) continue
+      val confidence = (ankles + hips + shoulders).map { likelihood(it).toDouble() }.average()
+      out.add(Candidate(boxY + ankleY * boxH, torso, boxX + rootX * boxW, boxY + rootY * boxH, confidence))
+    }
     return out
   }
+
+  private fun likelihood(l: NormalizedLandmark): Float = l.presence().orElse(l.visibility().orElse(1f))
 
   fun sample(uri: Uri, fps: Double, from: Double? = null, to: Double? = null, checkpoint: File? = null, onProgress: ((Double) -> Unit)? = null, cancelKey: String? = null): List<List<Sample>> {
     val info = videoInfo(context, uri)
@@ -171,11 +214,26 @@ class PoseSampler(private val context: Context) {
     val source = FrameSource(context, uri)
     try {
       val end = min(info.durationSec, to ?: info.durationSec)
+      framesSeen = 0
+      Timing.reset()
+      var lastBlockEnd = System.nanoTime()
       source.frames(startAt, end, fps, frameLongSide) { t, bitmap ->
+        framesSeen++
+        Timing.decodeNs += System.nanoTime() - lastBlockEnd
+        Timing.frames++
         run {
-          var found = candidates(bitmap, null, aspect)
+          val tMs = (t * 1000).toLong()
+          var found = candidates(bitmap, null, aspect, tMs)
           if (found.isEmpty()) {
-            found = tiles.flatMap { candidates(bitmap, it, aspect) }
+            val anchor = tracks.filter { t - it.lastT <= 2.0 }.maxByOrNull { it.lastT }
+            if (anchor == null) {
+              found = tiles.flatMap { candidates(bitmap, it, aspect, null) }
+            } else {
+              for (tile in tiles.sortedBy { (it[0] + it[2] / 2 - anchor.x).let { dx -> dx * dx } + (it[1] + it[3] / 2 - anchor.y).let { dy -> dy * dy } }) {
+                found = candidates(bitmap, tile, aspect, null)
+                if (found.isNotEmpty()) break
+              }
+            }
           }
           val unique = mutableListOf<Candidate>()
           for (c in found.sortedByDescending { it.confidence }) {
@@ -198,6 +256,7 @@ class PoseSampler(private val context: Context) {
           }
         }
         onProgress?.invoke(t)
+        lastBlockEnd = System.nanoTime()
         if (cancelKey != null && DetectCancels.has(cancelKey)) {
           DetectCancels.clear(cancelKey)
           checkpoint?.delete()
@@ -209,6 +268,7 @@ class PoseSampler(private val context: Context) {
         }
       }
     } finally {
+      sourceStats = source.stats()
       source.release()
     }
     checkpoint?.delete()
@@ -221,5 +281,38 @@ class PoseSampler(private val context: Context) {
     return spread(samples.map { it.ankleY }) < 0.06 && spread(samples.map { it.x }) < 0.05 && spread(samples.map { it.y }) < 0.05
   }
 
-  fun close() = detector.close()
+  fun close() {
+    videoLandmarker?.close(); videoLandmarker = null
+    stillLandmarker?.close(); stillLandmarker = null
+  }
+
+}
+
+private var cachedModel: ByteBuffer? = null
+
+private fun modelBuffer(context: Context): ByteBuffer {
+  cachedModel?.let { return it }
+  val bytes = context.assets.open("pose_landmarker_heavy.task").use { it.readBytes() }
+  val buffer = ByteBuffer.allocateDirect(bytes.size).put(bytes)
+  buffer.rewind()
+  cachedModel = buffer
+  return buffer
+}
+
+object Timing {
+  var frames = 0
+  var inferCount = 0
+  var tiles = 0
+  var decodeNs = 0L
+  var inferNs = 0L
+  var fullNs = 0L
+  var tileNs = 0L
+  val poses = IntArray(3)
+  fun reset() { frames = 0; inferCount = 0; tiles = 0; decodeNs = 0L; inferNs = 0L; fullNs = 0L; tileNs = 0L; poses.fill(0) }
+  fun summary(): String {
+    val full = inferCount - tiles
+    val fullMs = if (full > 0) fullNs / 1_000_000 / full else 0
+    val tileMs = if (tiles > 0) tileNs / 1_000_000 / tiles else 0
+    return "frames=$frames infer=$inferCount tiles=$tiles decode+convert=${decodeNs / 1_000_000}ms infer=${inferNs / 1_000_000}ms full=${fullMs}ms/회 tile=${tileMs}ms/회 poses0/1/2=${poses[0]}/${poses[1]}/${poses[2]}"
+  }
 }

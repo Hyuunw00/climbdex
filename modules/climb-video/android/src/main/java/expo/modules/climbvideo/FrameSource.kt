@@ -13,7 +13,13 @@ import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import android.os.Build
+import android.os.PerformanceHintManager
+import android.os.Process
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -24,6 +30,10 @@ class FrameSource(private val context: Context, private val uri: Uri) {
   private var rotation = 0
   private var inputDone = false
   private var outputDone = false
+  var outputs = 0
+  var nullImages = 0
+  var zeroSize = 0
+  var delivered = 0
 
   init {
     extractor.setDataSource(context, uri, null)
@@ -54,10 +64,65 @@ class FrameSource(private val context: Context, private val uri: Uri) {
   }
 
   fun frames(fromSec: Double, toSec: Double, fps: Double, longSide: Int, block: (Double, Bitmap) -> Unit) {
+    val queue = ArrayBlockingQueue<Any>(3)
+    val stop = AtomicBoolean(false)
+    val done = Any()
+    var failure: Throwable? = null
+    fun offer(item: Any) {
+      while (!stop.get() && !queue.offer(item, 100, TimeUnit.MILLISECONDS)) {}
+    }
+    val consumerTid = Process.myTid()
+    var producerTid = 0
+    val ready = java.util.concurrent.CountDownLatch(1)
+    val producer = Thread {
+      try {
+        producerTid = Process.myTid()
+        Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY)
+        ready.countDown()
+        decode(fromSec, toSec, fps, longSide, stop) { t, bitmap -> offer(Pair(t, bitmap)) }
+      } catch (e: Throwable) {
+        failure = e
+      } finally {
+        offer(done)
+      }
+    }
+    producer.start()
+    ready.await()
+    val previousPriority = Process.getThreadPriority(consumerTid)
+    Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY)
+    val targetNs = (1_000_000_000L / fps / 3).toLong()
+    val hint = if (Build.VERSION.SDK_INT >= 31) {
+      try {
+        context.getSystemService(PerformanceHintManager::class.java)?.createHintSession(intArrayOf(consumerTid, producerTid), targetNs)
+      } catch (_: Exception) { null }
+    } else null
+    var lastFrame = System.nanoTime()
+    try {
+      while (true) {
+        val item = queue.take()
+        if (item === done) break
+        @Suppress("UNCHECKED_CAST")
+        val pair = item as Pair<Double, Bitmap>
+        block(pair.first, pair.second)
+        val now = System.nanoTime()
+        if (Build.VERSION.SDK_INT >= 31) hint?.reportActualWorkDuration(now - lastFrame)
+        lastFrame = now
+      }
+      failure?.let { throw it }
+    } finally {
+      stop.set(true)
+      queue.clear()
+      producer.join()
+      if (Build.VERSION.SDK_INT >= 31) hint?.close()
+      Process.setThreadPriority(previousPriority)
+    }
+  }
+
+  private fun decode(fromSec: Double, toSec: Double, fps: Double, longSide: Int, stop: AtomicBoolean, emit: (Double, Bitmap) -> Unit) {
     seek(fromSec)
     var nextT = fromSec
     val step = 1.0 / fps
-    while (!outputDone) {
+    while (!outputDone && !stop.get()) {
       if (!inputDone) {
         val inIndex = codec.dequeueInputBuffer(10_000)
         if (inIndex >= 0) {
@@ -80,13 +145,18 @@ class FrameSource(private val context: Context, private val uri: Uri) {
           codec.releaseOutputBuffer(outIndex, false)
           break
         }
+        outputs++
+        if (info.size == 0) zeroSize++
         if (t + 1e-3 >= nextT && info.size > 0) {
           nextT += step
           val image = codec.getOutputImage(outIndex)
           if (image != null) {
             val bitmap = toBitmap(image, longSide)
             image.close()
-            block(t, bitmap)
+            delivered++
+            emit(t, bitmap)
+          } else {
+            nullImages++
           }
         }
         codec.releaseOutputBuffer(outIndex, false)
@@ -144,6 +214,8 @@ class FrameSource(private val context: Context, private val uri: Uri) {
     }
     return out
   }
+
+  fun stats() = "outputs=$outputs delivered=$delivered nullImages=$nullImages zeroSize=$zeroSize"
 
   fun release() {
     try { codec.stop() } catch (_: Exception) {}

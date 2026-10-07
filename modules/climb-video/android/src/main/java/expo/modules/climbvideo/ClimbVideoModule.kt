@@ -156,11 +156,17 @@ class ClimbVideoModule : Module() {
         val params = Params()
         try {
           DetectCancels.clear(uri)
-          val people = sampler.sample(Uri.parse(uri), 5.0, checkpoint = checkpointFile(uri), onProgress = { BackgroundRun.report(it) }, cancelKey = uri)
+          var people = sampler.sample(Uri.parse(uri), 5.0, checkpoint = checkpointFile(uri), onProgress = { BackgroundRun.report(it) }, cancelKey = uri)
+          if (sampler.framesSeen == 0 && videoInfo(context, Uri.parse(uri)).durationSec > 0.5) {
+            android.util.Log.w("ClimbVideo", "no frames decoded, retrying: " + sampler.sourceStats)
+            people = sampler.sample(Uri.parse(uri), 5.0, checkpoint = checkpointFile(uri), onProgress = { BackgroundRun.report(it) }, cancelKey = uri)
+            if (sampler.framesSeen == 0) throw NoFramesException(sampler.sourceStats)
+          }
           val all = people.withIndex()
             .filter { it.value.size >= (params.minDuration * 5).toInt() }
             .flatMap { (n, samples) -> segments(samples, params, people.filterIndexed { k, _ -> k != n }.flatten()).map { Pair(it, n) } }
           val (confident, low) = resolveClips(people, mergeOverlappingP(all, people))
+          android.util.Log.i("ClimbVideo", "timing " + Timing.summary() + " gpu=" + sampler.gpu)
           mapOf(
             "handheld" to false,
             "segments" to confident.map { mapOf("start" to it.start, "end" to it.end) },
@@ -268,3 +274,4 @@ private fun personFrom(tracks: List<List<List<Double>>>?, start: Double, end: Do
 }
 
 class NoPersonException : expo.modules.kotlin.exception.CodedException("구간 안에서 사람을 못 찾았어요")
+class NoFramesException(stats: String) : expo.modules.kotlin.exception.CodedException("영상에서 프레임을 못 읽었어요 ($stats)")

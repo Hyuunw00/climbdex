@@ -98,7 +98,7 @@ create table if not exists public.sends (
   at timestamptz not null,
   label text,
   sent boolean not null,
-  basis text not null check (basis in ('location', 'visit')),
+  basis text not null check (basis in ('location', 'visit', 'manual')),
   video_key text not null,
   clip_id text not null,
   clip_start numeric not null,
@@ -130,6 +130,8 @@ create policy "sends own" on public.sends
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 alter table public.sends alter column label drop not null;
+alter table public.sends drop constraint if exists sends_basis_check;
+alter table public.sends add constraint sends_basis_check check (basis in ('location', 'visit', 'manual'));
 alter table public.sends add column if not exists detect_version text;
 alter table public.sends add column if not exists app_version text;
 
@@ -143,7 +145,7 @@ create table if not exists public.video_summaries (
   climb_seconds numeric not null,
   handheld boolean not null,
   gym_id text,
-  basis text check (basis in ('location', 'visit')),
+  basis text check (basis in ('location', 'visit', 'manual')),
   detect_ms int,
   detect_version text,
   app_version text,
@@ -151,6 +153,8 @@ create table if not exists public.video_summaries (
   created_at timestamptz not null default now(),
   primary key (user_id, video_key)
 );
+alter table public.video_summaries drop constraint if exists video_summaries_basis_check;
+alter table public.video_summaries add constraint video_summaries_basis_check check (basis in ('location', 'visit', 'manual'));
 alter table public.video_summaries enable row level security;
 drop policy if exists "video_summaries own" on public.video_summaries;
 create policy "video_summaries own" on public.video_summaries

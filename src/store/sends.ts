@@ -4,7 +4,7 @@ import { type DexState, dayKey } from './dex';
 import type { Clip, PickedVideo } from '../types';
 import { APP_VERSION, DETECT_VERSION, PLATFORM } from '../version';
 
-export type Basis = 'location' | 'visit';
+export type Basis = 'location' | 'visit' | 'manual';
 export type GymCandidate = { gym: Gym; basis: Basis };
 export type SendRecord = { gymId: string; basis: Basis; clip: Clip; label: string | null; sent: boolean; vMin: number | null; vMax: number | null };
 
@@ -12,6 +12,12 @@ const VIDEO_RADIUS = 200;
 const FALL_DROP = 1.5;
 const FALL_WINDOW = 0.6;
 const STILL = 1.5;
+
+const manualPicks = new Map<string, Gym>();
+
+export function rememberManualGym(gym: Gym, at: number) {
+  manualPicks.set(dayKey(at), gym);
+}
 
 export function resolveGyms(video: PickedVideo, dex: DexState): GymCandidate[] {
   if (video.location) {
@@ -33,6 +39,10 @@ export function resolveGyms(video: PickedVideo, dex: DexState): GymCandidate[] {
       out.push({ gym, basis: 'visit' });
     }
     if (out.length > 0) return out;
+  }
+  for (const shot of [video.createdAt, video.pickedAt]) {
+    const gym = shot ? manualPicks.get(dayKey(shot)) : undefined;
+    if (gym) return [{ gym, basis: 'manual' }];
   }
   return [];
 }

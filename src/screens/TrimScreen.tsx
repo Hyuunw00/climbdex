@@ -12,7 +12,8 @@ import { clipsOf } from '../clips';
 import { deleteFile } from '../videoFiles';
 import type { Settings } from '../settings';
 import type { DexState } from '../store/dex';
-import { type GymCandidate, judgeSend, resolveGyms } from '../store/sends';
+import { type GymCandidate, judgeSend, rememberManualGym, resolveGyms } from '../store/sends';
+import GymPickerSheet from '../components/GymPickerSheet';
 import { deliverSends } from '../store/outbox';
 import { OrderSheet, VoteSheet } from '../components/TapeSection';
 import { PALETTE, type Tape, type TapeData, type TapeSummary, castVote, fetchTapes, saveTapeSet, summarize } from '../store/tapes';
@@ -60,6 +61,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const [candidates, setCandidates] = useState<GymCandidate[]>([]);
   const [choice, setChoice] = useState<GymCandidate | null>(null);
   const [resolved, setResolved] = useState(false);
+  const [pickingGym, setPickingGym] = useState(false);
   const [mediaDenied, setMediaDenied] = useState(false);
   const [tapes, setTapes] = useState<TapeData | null | undefined>(undefined);
   const [noRecord, setNoRecord] = useState(false);
@@ -304,8 +306,14 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const needGym = recording && !choice;
 
   const pickRecordGym = () => {
+    const others = candidates.filter((c) => c.gym.id !== choice?.gym.id);
+    if (others.length === 0) {
+      setPickingGym(true);
+      return;
+    }
     Alert.alert('어느 암장이에요?', undefined, [
-      ...candidates.filter((c) => c.gym.id !== choice?.gym.id).map((c) => ({ text: c.gym.name, onPress: () => setChoice(c) })),
+      ...others.map((c) => ({ text: c.gym.name, onPress: () => setChoice(c) })),
+      { text: '직접 검색', onPress: () => setPickingGym(true) },
       { text: '닫기', style: 'cancel' as const },
     ]);
   };
@@ -319,12 +327,13 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     if (recording && !choice) return;
     let order: Tape[] | null = null;
     let vote: { label: string; min: number; max: number } | null = null;
-    if (recording && member && choice && tapes !== undefined && !tapes?.set && targets.some((c) => c.tape && !c.tapeAuto)) {
+    const eligible = recording && member && choice && choice.basis !== 'manual';
+    if (eligible && tapes !== undefined && !tapes?.set && targets.some((c) => c.tape && !c.tapeAuto)) {
       const answer = await new Promise<Tape[] | null | undefined>((resolve) => setOrderFor({ resolve }));
       setOrderFor(null);
       if (answer === undefined) return;
       order = answer;
-    } else if (recording && member && choice && tapes?.set && targets[0].tape && !targets[0].tapeAuto) {
+    } else if (eligible && tapes?.set && targets[0].tape && !targets[0].tapeAuto) {
       const tape = summarize(tapes, userId).find((t) => t.label === targets[0].tape);
       if (tape && !tape.voted) {
         const answer = await new Promise<{ min: number; max: number } | null | undefined>((resolve) => setVoteFor({ tape, resolve }));
@@ -485,14 +494,33 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       {userId && resolved && candidates.length === 0 && (
         <View style={[styles.record, styles.recordOff]}>
           <Text style={styles.recordMuted}>
-            {mediaDenied ? '암장을 알 수 없어 등반 기록을 못 남겨요. 사진 위치 접근을 허용하면 자동으로 잡아요' : '영상의 위치·날짜로 암장을 못 찾아 등반 기록을 못 남겨요'}
+            {mediaDenied ? '영상에서 암장을 못 찾았어요. 사진 위치 접근을 허용하면 다음부턴 자동으로 잡아요' : '영상의 위치·날짜로 암장을 못 찾았어요'}
           </Text>
-          {mediaDenied && (
-            <Pressable onPress={() => Linking.openSettings()} hitSlop={6}>
-              <Text style={styles.recordLink}>설정에서 허용하기</Text>
+          <View style={styles.recordLinks}>
+            <Pressable onPress={() => setPickingGym(true)} hitSlop={6}>
+              <Text style={styles.recordLink}>암장 고르기</Text>
             </Pressable>
-          )}
+            {mediaDenied && (
+              <Pressable onPress={() => Linking.openSettings()} hitSlop={6}>
+                <Text style={styles.recordLink}>설정에서 허용하기</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
+      )}
+      {pickingGym && (
+        <GymPickerSheet
+          dex={dex}
+          onClose={() => setPickingGym(false)}
+          onPick={(gym) => {
+            rememberManualGym(gym, video.createdAt ?? video.pickedAt ?? Date.now());
+            const picked: GymCandidate = { gym, basis: 'manual' };
+            setCandidates([picked]);
+            setChoice(picked);
+            setNoRecord(false);
+            setPickingGym(false);
+          }}
+        />
       )}
       {userId && candidates.length > 0 && noRecord && (
         <Pressable onPress={() => setNoRecord(false)} hitSlop={6} style={[styles.record, styles.recordOff]}>
@@ -518,9 +546,9 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       {recording && choice && (
         <View style={styles.record}>
           <View style={styles.recordHead}>
-            <Pressable onPress={pickRecordGym} hitSlop={6} style={styles.recordGymButton} disabled={candidates.length < 2}>
+            <Pressable onPress={pickRecordGym} hitSlop={6} style={styles.recordGymButton} disabled={candidates.length < 2 && choice.basis !== 'manual'}>
               <Text style={styles.recordGym}>{choice.gym.name}</Text>
-              {candidates.length > 1 && <Ionicons name="chevron-down" size={16} color="#666" />}
+              {(candidates.length > 1 || choice.basis === 'manual') && <Ionicons name="chevron-down" size={16} color="#666" />}
             </Pressable>
             <View style={styles.sentSwitch}>
               {([[true, '완등'], [false, '추락']] as const).map(([v, text]) => (
@@ -647,6 +675,7 @@ const styles = StyleSheet.create({
   pill: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd' },
   pillText: { fontSize: 14, color: '#111' },
   recordMuted: { fontSize: 12, color: '#999' },
+  recordLinks: { flexDirection: 'row', gap: 16, marginTop: 6 },
   recordHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   recordGymButton: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   recordGym: { fontSize: 15, fontWeight: '600', flexShrink: 1 },

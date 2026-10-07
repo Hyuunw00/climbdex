@@ -18,7 +18,7 @@ export async function prepareNotifications() {
       await Notifications.setNotificationChannelAsync(TAG, { name: '시도 구간 찾기', importance: Notifications.AndroidImportance.DEFAULT });
     }
     const current = await Notifications.getPermissionsAsync();
-    if (current.status === 'undetermined') await Notifications.requestPermissionsAsync();
+    if (!current.granted && current.canAskAgain) await Notifications.requestPermissionsAsync();
   } catch (e) {
     console.log('notification permission error', String(e));
   }

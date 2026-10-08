@@ -31,4 +31,4 @@
 - 안드로이드: `npx expo run:android` (에뮬레이터 Pixel_7 먼저 띄움). 에뮬레이터에 영상 넣기: `adb push <file> /sdcard/Movies/` 후 `MEDIA_SCANNER_SCAN_FILE` 브로드캐스트. Metro는 `adb reverse tcp:8081 tcp:8081`
 - Supabase 스키마·시드 적용: `.env`의 `SUPABASE_DB_URL`(세션 풀러 `aws-0-ap-northeast-2`, 직접 연결은 IPv6 전용이라 안 붙음)로 `set -a; . ./.env; set +a; psql "$SUPABASE_DB_URL" -f supabase/schema.sql`. `.env`는 기기마다 따로
 - `gyms.json`을 `collect-gyms.mjs --offline`으로 다시 만들면 `types` 칸이 비므로 바로 `python3 scripts/spiri7-grades.py`를 이어서 돌린다
-- 네이티브 로직은 `scripts/detect.swift`가 원본. iOS 모듈은 그 본문을 복사해 만들고, Android는 `Segmenter.kt`에 같은 규칙을 손으로 옮김. 규칙을 바꾸면 세 군데 같이. 바꾼 날 `src/version.ts`의 `DETECT_VERSION`도 올린다(서버 기록에 같이 남음)
+- 네이티브 로직은 `scripts/detect.swift`가 원본. iOS 모듈은 그 본문을 복사해 만들고, Android는 `Segmenter.kt`에 같은 규칙을 손으로 옮김. 규칙을 바꾸면 세 군데 같이. 바꾼 날 `src/version.ts`의 `DETECT_VERSION`도 올린다(서버 기록에 같이 남음). 단 안드로이드 `PoseSampler.kt` 추적기의 몸통 비율 허용 폭(0.5~2.0)은 MediaPipe 노이즈 때문에 iOS(0.6~1.7)와 **의도적으로 다르다**. 맞추지 말 것(exp-01 10-08)

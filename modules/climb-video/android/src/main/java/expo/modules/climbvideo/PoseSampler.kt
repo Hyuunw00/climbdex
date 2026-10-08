@@ -20,6 +20,7 @@ import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 data class Candidate(val ankleY: Double, val torso: Double, val x: Double, val y: Double, val confidence: Double)
@@ -206,7 +207,7 @@ class PoseSampler(private val context: Context) {
     val aspect = info.displayWidth.toDouble() / info.displayHeight.toDouble()
     val followRadius = 0.25
     val torsoBand = 0.5..2.0
-    val trackTimeout = 6.0
+    val trackTimeout = 10.0
     val resumed = if (from == null) loadCheckpoint(checkpoint) else null
     val tracks = resumed?.second ?: mutableListOf()
     val startAt = resumed?.first ?: from ?: 0.0
@@ -279,7 +280,33 @@ class PoseSampler(private val context: Context) {
       throw DetectCancelledException()
     }
     checkpoint?.delete()
-    return tracks.map { dropStatic(it.samples) }.filter { !isStatic(it) }
+    return mergeTwins(tracks.map { it.samples }).map { dropStatic(it) }.filter { !isStatic(it) }
+  }
+
+  private fun mergeTwins(people: List<List<Sample>>): List<List<Sample>> {
+    val out = people.map { it.toMutableList() }.toMutableList()
+    var merged = true
+    while (merged) {
+      merged = false
+      outer@ for (i in out.indices) for (j in i + 1 until out.size) {
+        val a = out[i]
+        val b = out[j]
+        val byT = a.associateBy { (it.t * 10).roundToInt() }
+        val d = b.mapNotNull { s ->
+          val bin = (s.t * 10).roundToInt()
+          (-3..3).mapNotNull { byT[bin + it] }.minByOrNull { abs(it.t - s.t) }?.let { sqrt((s.x - it.x) * (s.x - it.x) + (s.y - it.y) * (s.y - it.y)) }
+        }
+        if (d.size >= 10 && d.sorted()[d.size / 2] < 0.15) {
+          val seen = a.map { (it.t * 10).roundToInt() }.toMutableSet()
+          for (s in b) if (seen.add((s.t * 10).roundToInt())) a.add(s)
+          a.sortBy { it.t }
+          out.removeAt(j)
+          merged = true
+          break@outer
+        }
+      }
+    }
+    return out
   }
 
   private fun isStatic(samples: List<Sample>): Boolean {

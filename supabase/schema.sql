@@ -192,6 +192,22 @@ create policy "tape_reports insert own" on public.tape_reports for insert with c
 drop policy if exists "tape_reports read own" on public.tape_reports;
 create policy "tape_reports read own" on public.tape_reports for select using (auth.uid() = user_id);
 
+-- 암장 제보: 없는 암장·폐업·이전·정보 오류. gyms.json 갱신은 사람이 보고 함
+create table if not exists public.gym_reports (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  gym_id text,
+  kind text not null check (kind in ('missing', 'closed', 'moved', 'wrong')),
+  name text,
+  note text,
+  created_at timestamptz not null default now()
+);
+alter table public.gym_reports enable row level security;
+drop policy if exists "gym_reports insert own" on public.gym_reports;
+create policy "gym_reports insert own" on public.gym_reports for insert with check (auth.uid() = user_id and not coalesce((auth.jwt()->>'is_anonymous')::boolean, false));
+drop policy if exists "gym_reports read own" on public.gym_reports;
+create policy "gym_reports read own" on public.gym_reports for select using (auth.uid() = user_id);
+
 -- 익명 계정 기록을 이미 있는 계정으로 옮기기: 익명일 때 토큰을 만들고, 로그인 뒤 그 토큰으로 호출
 create table if not exists public.anon_merge (
   token uuid primary key default gen_random_uuid(),

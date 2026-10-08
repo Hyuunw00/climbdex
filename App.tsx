@@ -381,7 +381,9 @@ export default function App() {
   };
 
   useEffect(() => {
-    detect(videos.filter((v) => v.segments === undefined));
+    const pending = videos.filter((v) => v.segments === undefined);
+    if (pending.length === 0 && ClimbVideo.backgroundRunActive?.()) ClimbVideo.finishBackgroundRun?.(false);
+    detect(pending);
   }, []);
 
   const forget = (uri: string) => {

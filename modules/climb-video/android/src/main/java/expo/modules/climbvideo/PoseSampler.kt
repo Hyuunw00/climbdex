@@ -217,7 +217,8 @@ class PoseSampler(private val context: Context) {
       framesSeen = 0
       Timing.reset()
       var lastBlockEnd = System.nanoTime()
-      source.frames(startAt, end, fps, frameLongSide) { t, bitmap ->
+      val cancelled = { cancelKey != null && DetectCancels.has(cancelKey) }
+      source.frames(startAt, end, fps, frameLongSide, cancelled) { t, bitmap ->
         framesSeen++
         Timing.decodeNs += System.nanoTime() - lastBlockEnd
         Timing.frames++
@@ -271,6 +272,11 @@ class PoseSampler(private val context: Context) {
     } finally {
       sourceStats = source.stats()
       source.release()
+    }
+    if (cancelKey != null && DetectCancels.has(cancelKey)) {
+      DetectCancels.clear(cancelKey)
+      checkpoint?.delete()
+      throw DetectCancelledException()
     }
     checkpoint?.delete()
     return tracks.map { dropStatic(it.samples) }.filter { !isStatic(it) }

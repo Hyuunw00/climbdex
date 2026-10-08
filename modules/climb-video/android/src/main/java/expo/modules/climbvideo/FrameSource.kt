@@ -63,7 +63,7 @@ class FrameSource(private val context: Context, private val uri: Uri) {
     outputDone = false
   }
 
-  fun frames(fromSec: Double, toSec: Double, fps: Double, longSide: Int, block: (Double, Bitmap) -> Unit) {
+  fun frames(fromSec: Double, toSec: Double, fps: Double, longSide: Int, cancelled: () -> Boolean = { false }, block: (Double, Bitmap) -> Unit) {
     val queue = ArrayBlockingQueue<Any>(3)
     val stop = AtomicBoolean(false)
     val done = Any()
@@ -79,7 +79,7 @@ class FrameSource(private val context: Context, private val uri: Uri) {
         producerTid = Process.myTid()
         Process.setThreadPriority(Process.THREAD_PRIORITY_DISPLAY)
         ready.countDown()
-        decode(fromSec, toSec, fps, longSide, stop) { t, bitmap -> offer(Pair(t, bitmap)) }
+        decode(fromSec, toSec, fps, longSide, stop, cancelled) { t, bitmap -> offer(Pair(t, bitmap)) }
       } catch (e: Throwable) {
         failure = e
       } finally {
@@ -118,11 +118,11 @@ class FrameSource(private val context: Context, private val uri: Uri) {
     }
   }
 
-  private fun decode(fromSec: Double, toSec: Double, fps: Double, longSide: Int, stop: AtomicBoolean, emit: (Double, Bitmap) -> Unit) {
+  private fun decode(fromSec: Double, toSec: Double, fps: Double, longSide: Int, stop: AtomicBoolean, cancelled: () -> Boolean, emit: (Double, Bitmap) -> Unit) {
     seek(fromSec)
     var nextT = fromSec
     val step = 1.0 / fps
-    while (!outputDone && !stop.get()) {
+    while (!outputDone && !stop.get() && !cancelled()) {
       if (!inputDone) {
         val inIndex = codec.dequeueInputBuffer(10_000)
         if (inIndex >= 0) {

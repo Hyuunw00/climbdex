@@ -69,8 +69,8 @@ fun segments(d: List<Sample>, p: Params, others: List<Sample> = emptyList()): Li
     val near = d.filter { it.t >= d[i].t - p.groundReach && it.t <= d[h].t + p.groundReach && sameDistance(it.torso, refTorso) }
     val ground = groundLevel(near.map { it.ankleY }, p)
     val rise = d.map { it.ankleY - ground }
-    val before = d.filter { it.t < d[i].t }.map { it.ankleY }
-    val after = d.filter { it.t > d[h].t }.map { it.ankleY }
+    val before = d.filter { it.t < d[i].t && sameDistance(it.torso, refTorso) }.map { it.ankleY }
+    val after = d.filter { it.t > d[h].t && sameDistance(it.torso, refTorso) }.map { it.ankleY }
     val similar = others.filter { sameDistance(it.torso, refTorso) }.map { it.ankleY }
     val source = when {
       before.size >= 5 -> before

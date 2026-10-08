@@ -896,8 +896,8 @@ func segments(_ d: [Sample], _ p: Params, others: [Sample] = []) -> [Segment] {
     let rise = d.map { $0.ankleY - ground }
     var startGround = ground
     do {
-      let before = d.filter { $0.t < d[i].t }.map { $0.ankleY }
-      let after = d.filter { $0.t > d[h].t }.map { $0.ankleY }
+      let before = d.filter { $0.t < d[i].t && sameDistance($0.torso, refTorso) }.map { $0.ankleY }
+      let after = d.filter { $0.t > d[h].t && sameDistance($0.torso, refTorso) }.map { $0.ankleY }
       let similar = others.filter { sameDistance($0.torso, refTorso) }.map { $0.ankleY }
       let source = before.count >= 5 ? before : after.count >= 5 ? after : similar.count >= 5 ? similar : []
       if !source.isEmpty { startGround = min(ground, groundLevel(source, p)) }

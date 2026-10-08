@@ -18,7 +18,7 @@ import GymScreen, { choosePhoto } from './src/screens/GymScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import AccountSheet from './src/components/AccountSheet';
 import TrimScreen from './src/screens/TrimScreen';
-import { loadSettings, saveSettings, type Settings } from './src/settings';
+import { loadSettings, saveSettings, type Settings, hintShown, markHint } from './src/settings';
 import VideoListScreen from './src/screens/VideoListScreen';
 import type { Session } from '@supabase/supabase-js';
 import { randomUUID } from 'expo-crypto';
@@ -304,13 +304,21 @@ export default function App() {
       if (video.assetId && (!video.createdAt || video.location === undefined)) {
         try {
           if (Platform.OS === 'android') {
-            const location = (await ClimbVideo.assetLocation?.(video.assetId)) ?? null;
-            meta = { createdAt: video.createdAt, location };
+            const info = await ClimbVideo.assetLocation?.(video.assetId);
+            const location = info?.lat !== undefined && info?.lng !== undefined ? { lat: info.lat, lng: info.lng } : null;
+            meta = { createdAt: video.createdAt, location, source: info?.camera ? 'camera' : 'other' };
           } else {
             const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
             meta = { createdAt: video.createdAt ?? info.creationTime, location: info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null };
           }
           patch(video.uri, meta);
+          if (Platform.OS === 'android' && meta.location === null && meta.source === 'camera' && !hintShown('locationTag')) {
+            const permission = await MediaLibrary.getPermissionsAsync();
+            if (permission.granted) {
+              markHint('locationTag');
+              Alert.alert('영상에 위치 정보가 없어요', "삼성 카메라는 '위치 태그'가 기본으로 꺼져 있어요. 카메라 설정에서 켜면 다음부터 암장을 자동으로 잡아요");
+            }
+          }
         } catch {}
       }
       let segments: PickedVideo['segments'] = [];

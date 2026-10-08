@@ -11,6 +11,7 @@ export type PickedVideo = {
   fileName: string | null;
   createdAt?: number;
   location?: { lat: number; lng: number } | null;
+  source?: 'camera' | 'other';
   pickedAt?: number;
   thumbnail?: string;
   segments?: DetectedSegment[];

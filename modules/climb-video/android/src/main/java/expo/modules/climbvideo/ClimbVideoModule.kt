@@ -144,9 +144,16 @@ class ClimbVideoModule : Module() {
       var uri = android.content.ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
       if (android.os.Build.VERSION.SDK_INT >= 29) uri = MediaStore.setRequireOriginal(uri)
       val iso = quickTimeLocation(context, uri) ?: retrieverLocation(context, uri)
-      android.util.Log.i("ClimbVideo", "assetLocation id=$id iso=$iso")
-      val match = iso?.let { Regex("([+-][0-9.]+)([+-][0-9.]+)").find(it) } ?: return@AsyncFunction null
-      mapOf("lat" to match.groupValues[1].toDouble(), "lng" to match.groupValues[2].toDouble())
+      val pathColumn = if (android.os.Build.VERSION.SDK_INT >= 29) MediaStore.MediaColumns.RELATIVE_PATH else MediaStore.MediaColumns.DATA
+      val base = android.content.ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+      val path = context.contentResolver.query(base, arrayOf(pathColumn), null, null, null)?.use { c -> if (c.moveToFirst()) c.getString(0) else null } ?: ""
+      android.util.Log.i("ClimbVideo", "assetLocation id=$id iso=$iso path=$path")
+      val out = mutableMapOf<String, Any>("camera" to path.contains("DCIM/"))
+      iso?.let { Regex("([+-][0-9.]+)([+-][0-9.]+)").find(it) }?.let { m ->
+        out["lat"] = m.groupValues[1].toDouble()
+        out["lng"] = m.groupValues[2].toDouble()
+      }
+      out
     }
 
     Function("cancelDetect") { uri: String ->

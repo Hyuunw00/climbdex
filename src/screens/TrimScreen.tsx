@@ -122,14 +122,17 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       if (video.assetId && video.location === undefined) {
         try {
           let location: { lat: number; lng: number } | null = null;
+          let source: PickedVideo['source'];
           if (Platform.OS === 'android') {
-            location = (await ClimbVideo.assetLocation?.(video.assetId)) ?? null;
+            const info = await ClimbVideo.assetLocation?.(video.assetId);
+            location = info?.lat !== undefined && info?.lng !== undefined ? { lat: info.lat, lng: info.lng } : null;
+            source = info?.camera ? 'camera' : 'other';
           } else {
             const info = await MediaLibrary.getAssetInfoAsync(video.assetId);
             location = info.location ? { lat: info.location.latitude, lng: info.location.longitude } : null;
           }
-          onUpdate({ location });
-          current = { ...video, location };
+          onUpdate({ location, source });
+          current = { ...video, location, source };
         } catch (e) {
           console.log('asset location error', String(e));
         }
@@ -389,12 +392,20 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     }
   };
 
+  const noSegments = video.segments !== undefined && video.segments.length === 0 && !video.candidates?.length;
   const status =
     video.segments === undefined
       ? '시도 구간 찾는 중…'
-      : video.segments.length === 0 && !video.candidates?.length
+      : noSegments
         ? '시도 구간을 못 찾았어요. 직접 잡아 주세요'
         : `시도 구간 ${clips.length}개${video.handheld ? ' (들고 찍은 영상: 사람이 보이는 구간)' : ''}`;
+  const gymNotice = mediaDenied
+    ? { title: '영상에서 암장을 못 찾았어요', body: '사진 위치 접근을 허용하면 다음부터 자동으로 잡아요' }
+    : Platform.OS === 'android' && video.location === null && video.source === 'camera'
+      ? { title: '영상에 위치 정보가 없어요', body: "삼성 카메라는 '위치 태그'가 기본으로 꺼져 있어요. 카메라 설정에서 켜면 다음부터 암장을 자동으로 잡아요" }
+      : video.location === null
+        ? { title: '영상에 위치 정보가 없어요', body: '암장을 직접 골라 주세요' }
+        : { title: '영상의 위치·날짜로 암장을 못 찾았어요', body: null };
 
   const shownPlan = follow ? plan : null;
   const boxWidth = shownPlan ? previewWidth : screenWidth - 32;
@@ -439,6 +450,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           <Text style={styles.followHint}>따라가기 경로 계산 중…</Text>
         </View>
       )}
+      {noSegments && <Text style={styles.tip}>멀리서 찍으면 사람을 못 찾을 수 있어요. 가까이서나 2배 줌으로 찍으면 잘 잡혀요</Text>}
       <View style={styles.statusRow}>
         <Text style={styles.status}>{status}</Text>
         <Pressable onPress={() => setView(view ? null : windowFor(clip, video.duration))} hitSlop={8}>
@@ -494,9 +506,8 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       </View>
       {userId && resolved && candidates.length === 0 && (
         <View style={[styles.record, styles.recordOff]}>
-          <Text style={styles.recordMuted}>
-            {mediaDenied ? '영상에서 암장을 못 찾았어요. 사진 위치 접근을 허용하면 다음부턴 자동으로 잡아요' : '영상의 위치·날짜로 암장을 못 찾았어요'}
-          </Text>
+          <Text style={styles.recordTitle}>{gymNotice.title}</Text>
+          {gymNotice.body && <Text style={styles.recordBody}>{gymNotice.body}</Text>}
           <View style={styles.recordLinks}>
             <Pressable onPress={() => setPickingGym(true)} hitSlop={6}>
               <Text style={styles.recordLink}>암장 고르기</Text>
@@ -638,6 +649,7 @@ const styles = StyleSheet.create({
   mute: { position: 'absolute', right: 12, bottom: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
   status: { fontSize: 14, color: '#666', flex: 1 },
+  tip: { fontSize: 13, color: '#888', lineHeight: 19, backgroundColor: '#f7f7f9', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 },
   reset: { fontSize: 14, color: '#0a58ca' },
   chips: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   chip: {
@@ -670,7 +682,9 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.5 },
   savedNote: { fontSize: 13, color: '#888', textAlign: 'center' },
   record: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: '#f7f7f9' },
-  recordOff: { alignItems: 'center', gap: 4 },
+  recordOff: { gap: 4 },
+  recordTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
+  recordBody: { fontSize: 13, color: '#777', lineHeight: 19 },
   recordFoot: { alignSelf: 'flex-end' },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   pill: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd' },

@@ -1,4 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Progress, RED } from '../components/dex';
+import Card from '../components/Card';
+import EmptyState from '../components/EmptyState';
+import { gymById } from '../data/gyms';
+import { resolveGyms } from '../store/sends';
+import type { DexState } from '../store/dex';
 import * as ImagePicker from 'expo-image-picker';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -15,6 +21,7 @@ type Props = {
   onOpenSettings: () => void;
   onAdd: (videos: PickedVideo[]) => void;
   onRemove: (index: number) => void;
+  dex: DexState;
   onClear: () => void;
   onOpen: (index: number) => void;
   here: { gymName: string; count: number } | null;
@@ -30,16 +37,33 @@ function formatSeconds(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function formatDay(ms: number) {
+  const d = new Date(ms);
+  return `${d.getMonth() + 1}.${d.getDate()} (${'일월화수목금토'[d.getDay()]})`;
+}
+
+function titleOf(video: PickedVideo, dex: DexState) {
+  const shot = video.createdAt ?? video.pickedAt;
+  if (!shot) return video.fileName ?? '영상';
+  const clipGym = video.clips?.find((c) => c.gymId)?.gymId;
+  let gymName = clipGym ? gymById.get(clipGym)?.name : undefined;
+  if (!gymName) {
+    const found = resolveGyms(video, dex);
+    if (found.length === 1) gymName = found[0].gym.name;
+  }
+  const date = formatDay(shot);
+  return gymName ? `${date} · ${gymName}` : date;
+}
+
 function statusOf(video: PickedVideo, settings: Settings) {
   if (video.segments === undefined) return '시도 구간 찾는 중';
   const count = video.clips?.length ?? video.segments.length + (settings.includeLow ? (video.candidates?.length ?? 0) : 0);
-  const parts = [count === 0 ? '구간 못 찾음' : `구간 ${count}개`];
-  if (video.handheld) parts.push('들고 찍음');
+  const parts = [formatSeconds(video.duration), count === 0 ? '시도를 못 찾음 · 직접 잡기' : `시도 ${count}번`];
   if (video.saved) parts.push(`저장 ${video.saved}개`);
   return parts.join(' · ');
 }
 
-export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen, here, onHere, onHereDismiss }: Props) {
+export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onOpen, here, onHere, onHereDismiss, dex, onClear }: Props) {
   const listRef = useRef<FlatList<PickedVideo>>(null);
   const restored = useRef(false);
   const [loading, setLoading] = useState(false);
@@ -101,24 +125,37 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
         <View>
           <Text style={styles.title}>내 영상</Text>
           {progress && (
-            <Text style={styles.progress}>
-              {progress.done}/{progress.total} 찾는 중 · {formatRemaining(progress.remainingSec)} · {progress.background ? '앱을 나가도 계속돼요' : '화면을 켜 두세요'}
-            </Text>
+            <View style={styles.progressBox}>
+              <Text style={styles.progress}>
+                {progress.done}/{progress.total} 찾는 중 · {formatRemaining(progress.remainingSec)} · {progress.background ? '앱을 나가도 계속돼요' : '화면을 켜 두세요'}
+              </Text>
+              <View style={styles.progressBar}>
+                <Progress value={progress.done} total={progress.total} />
+              </View>
+            </View>
           )}
         </View>
         <View style={styles.headerRight}>
           {videos.length > 0 && (
-            <Pressable onPress={onClear} hitSlop={8}>
+            <Pressable
+              hitSlop={8}
+              onPress={() =>
+                Alert.alert('목록을 전부 비울까요?', '검출 결과도 같이 지워요. 사진 앱 원본과 저장한 클립은 그대로 남아요', [
+                  { text: '취소', style: 'cancel' },
+                  { text: '비우기', style: 'destructive', onPress: onClear },
+                ])
+              }
+            >
               <Text style={styles.clear}>전체 비우기</Text>
             </Pressable>
           )}
           <Pressable onPress={onOpenSettings} hitSlop={8}>
-            <Ionicons name="settings-outline" size={22} color="#333" />
+            <Ionicons name="settings-outline" size={24} color="#333" />
           </Pressable>
         </View>
       </View>
       {here && (
-        <Pressable style={styles.today} onPress={onHere}>
+        <Card style={styles.today} onPress={onHere}>
           <View style={styles.todayBody}>
             <Text style={styles.todayTitle} numberOfLines={1}>
               {here.count > 1 ? `${here.gymName} 외 ${here.count - 1}곳 근처예요` : `${here.gymName}에 있네요`}
@@ -128,7 +165,7 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
           <Pressable hitSlop={10} onPress={onHereDismiss}>
             <Ionicons name="close" size={18} color="#888" />
           </Pressable>
-        </Pressable>
+        </Card>
       )}
       <FlatList
         ref={listRef}
@@ -143,7 +180,22 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
           listRef.current?.scrollToOffset({ offset: savedOffset, animated: false });
         }}
         keyExtractor={(item, index) => `${item.uri}-${index}`}
-        ListEmptyComponent={<Text style={styles.empty}>고른 영상이 없어요</Text>}
+        ListEmptyComponent={
+          <EmptyState title="찍어둔 영상을 고르면 시도마다 알아서 잘라요" lines={['친구가 찍어준 영상도 돼요 · 긴 영상도 돼요', '영상은 폰 밖으로 나가지 않아요']} seed="videos">
+            <View style={styles.sample}>
+              {['시도 4번 · 1:12', '시도 2번 · 0:38'].map((meta) => (
+                <View key={meta} style={styles.sampleRow}>
+                  <View style={styles.sampleThumb} />
+                  <View style={styles.sampleLines}>
+                    <View style={styles.sampleTitle} />
+                    <Text style={styles.rowMeta}>{meta}</Text>
+                  </View>
+                </View>
+              ))}
+              <Text style={styles.sampleHint}>처음엔 1~2분짜리로 시작해 보세요</Text>
+            </View>
+          </EmptyState>
+        }
         renderItem={({ item, index }) => (
           <Pressable style={styles.row} onPress={() => onOpen(index)}>
             <View style={styles.thumb}>
@@ -151,16 +203,24 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
             </View>
             <View style={styles.body}>
               <Text style={styles.rowTitle} numberOfLines={1}>
-                {item.fileName ?? `영상 ${index + 1}`}
+                {titleOf(item, dex)}
               </Text>
               <View style={styles.statusRow}>
                 {item.segments === undefined && <ActivityIndicator size="small" color="#666" />}
                 <Text style={styles.rowMeta}>{statusOf(item, settings)}</Text>
               </View>
-              <Text style={styles.rowMeta}>{formatSeconds(item.duration)}</Text>
             </View>
-            <Pressable hitSlop={8} onPress={() => onRemove(index)}>
-              <Text style={styles.remove}>삭제</Text>
+            <Pressable
+              hitSlop={8}
+              style={styles.remove}
+              onPress={() =>
+                Alert.alert('목록에서 뺄까요?', '사진 앱 원본과 저장한 클립은 그대로 남아요', [
+                  { text: '취소', style: 'cancel' },
+                  { text: '빼기', style: 'destructive', onPress: () => onRemove(index) },
+                ])
+              }
+            >
+              <Ionicons name="trash-outline" size={20} color="#999" />
             </Pressable>
           </Pressable>
         )}
@@ -180,19 +240,22 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 8, paddingBottom: 12 },
+  container: { flex: 1, paddingTop: 12, paddingBottom: 12 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, paddingHorizontal: 16 },
+  title: { fontSize: 24, fontWeight: '700' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  title: { fontSize: 20, fontWeight: '700' },
-  progress: { fontSize: 12, color: '#666', marginTop: 2 },
+  clear: { fontSize: 14, color: '#888' },
+  progressBox: { gap: 4, marginTop: 2 },
+  progress: { fontSize: 12, color: '#666' },
+  progressBar: { width: 180 },
   list: { flex: 1 },
-  today: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginBottom: 4, padding: 14, borderRadius: 12, backgroundColor: '#f2f2f2' },
+  today: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginBottom: 4, padding: 14 },
   todayBody: { flex: 1, gap: 4 },
   todayTitle: { fontSize: 15, fontWeight: '600' },
-  todayAction: { fontSize: 13, color: '#d7263d', fontWeight: '600' },
+  todayAction: { fontSize: 13, color: RED, fontWeight: '600' },
   listContent: { paddingHorizontal: 16 },
   addButton: {
-    backgroundColor: '#111',
+    backgroundColor: RED,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -202,7 +265,12 @@ const styles = StyleSheet.create({
   addButtonBusy: { opacity: 0.7 },
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   addButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  empty: { textAlign: 'center', color: '#888', marginTop: 40 },
+  sample: { alignSelf: 'stretch', marginTop: 20, gap: 10, opacity: 0.5 },
+  sampleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  sampleThumb: { width: 54, height: 72, borderRadius: 8, backgroundColor: '#ddd' },
+  sampleLines: { gap: 8 },
+  sampleTitle: { width: 140, height: 12, borderRadius: 6, backgroundColor: '#ddd' },
+  sampleHint: { fontSize: 13, color: '#888', textAlign: 'center', marginTop: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -214,9 +282,8 @@ const styles = StyleSheet.create({
   thumb: { width: 54, height: 72, borderRadius: 6, backgroundColor: '#ddd', overflow: 'hidden' },
   thumbImage: { width: '100%', height: '100%' },
   body: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 15 },
+  rowTitle: { fontSize: 15, fontWeight: '600' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rowMeta: { color: '#666', fontSize: 13 },
-  remove: { color: '#c00', fontSize: 14 },
-  clear: { color: '#c00', fontSize: 14 },
+  remove: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -12 },
 });

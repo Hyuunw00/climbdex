@@ -1,9 +1,10 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { gyms } from '../data/gyms';
 import { saveCard, shareCard } from '../share';
-import ShareCard from './ShareCard';
+import ShareCard, { type CardRatio, RATIOS } from './ShareCard';
+import { cardRatio, setCardRatio } from '../settings';
 import { type Gym, formatNo } from '../data/gyms';
 import { RED, Silhouette, formatDate } from './dex';
 
@@ -17,6 +18,11 @@ export default function Celebration({ gym, photo, count, rank, date, replay = fa
   const flip = useRef(new Animated.Value(0)).current;
   const rise = useRef(new Animated.Value(24)).current;
   const side = useRef(1);
+  const [ratio, setRatio] = useState<CardRatio>(cardRatio);
+  const pickRatio = (r: CardRatio) => {
+    setRatio(r);
+    setCardRatio(r);
+  };
 
   useEffect(() => {
     if (!replay) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
@@ -56,11 +62,18 @@ export default function Celebration({ gym, photo, count, rank, date, replay = fa
           <Text style={styles.meta}>
             {replay ? `${count}회 방문` : count === 1 ? '도감에 등록!' : `${count}번째 방문`} · {formatDate(date ?? new Date())}
           </Text>
+          <View style={styles.ratios}>
+            {(['1:1', '4:5', '9:16'] as const).map((r) => (
+              <Pressable key={r} style={[styles.ratio, ratio === r && styles.ratioOn]} onPress={() => pickRatio(r)}>
+                <Text style={[styles.ratioText, ratio === r && styles.ratioTextOn]}>{r}</Text>
+              </Pressable>
+            ))}
+          </View>
           <View style={styles.actions}>
-            <Pressable style={styles.secondary} onPress={() => saveCard(cardRef)}>
+            <Pressable style={styles.secondary} onPress={() => saveCard(cardRef, RATIOS[ratio].out)}>
               <Text style={styles.secondaryText}>이미지 저장</Text>
             </Pressable>
-            <Pressable style={styles.share} onPress={() => shareCard(cardRef)}>
+            <Pressable style={styles.share} onPress={() => shareCard(cardRef, RATIOS[ratio].out)}>
               <Text style={styles.shareText}>공유</Text>
             </Pressable>
           </View>
@@ -72,13 +85,18 @@ export default function Celebration({ gym, photo, count, rank, date, replay = fa
         </Animated.View>
       </Animated.View>
       <View style={styles.offscreen} pointerEvents="none">
-        <ShareCard ref={cardRef} gym={gym} photo={photo} rank={rank} total={gyms.length} date={date} />
+        <ShareCard ref={cardRef} gym={gym} photo={photo} rank={rank} total={gyms.length} date={date} ratio={ratio} />
       </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  ratios: { flexDirection: 'row', gap: 6, marginTop: 14 },
+  ratio: { paddingHorizontal: 12, height: 30, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', alignItems: 'center', justifyContent: 'center' },
+  ratioOn: { backgroundColor: '#fff', borderColor: '#fff' },
+  ratioText: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '700' },
+  ratioTextOn: { color: '#111' },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.88)', alignItems: 'center', justifyContent: 'center' },
   body: { alignItems: 'center', gap: 16 },
   no: { color: 'rgba(255,255,255,0.7)', fontSize: 16, fontWeight: '800', letterSpacing: 1 },

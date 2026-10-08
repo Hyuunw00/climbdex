@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
+import DexHeader from '../components/DexHeader';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRefreshControl } from '../components/refresh';
 import { type Gym, gymById } from '../data/gyms';
@@ -16,6 +18,9 @@ type Props = {
   onMonth: (month: { year: number; month: number }) => void;
   selected: string;
   onSelect: (day: string) => void;
+  account: { name: string; email: string } | null;
+  onAccount: () => void;
+  onOpenSettings: () => void;
 };
 
 type DayEntry = { gym: Gym; at: string; visited: boolean; clips: number; sent: number };
@@ -23,7 +28,7 @@ type DayEntry = { gym: Gym; at: string; visited: boolean; clips: number; sent: n
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MAX_DOTS = 3;
 
-export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userId, month, onMonth: setMonth, selected, onSelect: setSelected }: Props) {
+export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userId, month, onMonth: setMonth, selected, onSelect: setSelected, account, onAccount, onOpenSettings }: Props) {
   const [sends, setSends] = useState<MySend[]>([]);
   const loadSends = async () => {
     if (!userId) return setSends([]);
@@ -104,25 +109,17 @@ export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userI
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={onBack} hitSlop={8} style={styles.backRow}>
-          <Text style={styles.backArrow}>‹</Text>
-          <Text style={styles.title}>내 기록</Text>
-        </Pressable>
-        <Text style={styles.summary}>
-          방문 {dex.visits.length}회 · 암장 {gymCount}곳
-        </Text>
-      </View>
+      <DexHeader title="내 기록" onBack={onBack} subtitle={`방문 ${dex.visits.length}회 · 암장 ${gymCount}곳`} account={account} onAccount={onAccount} onOpenSettings={onOpenSettings} />
       <ScrollView contentContainerStyle={styles.list} refreshControl={refreshControl}>
         <View style={styles.monthRow}>
-          <Pressable onPress={() => shift(-1)} hitSlop={12}>
-            <Text style={styles.monthArrow}>‹</Text>
+          <Pressable onPress={() => shift(-1)} hitSlop={12} style={styles.monthArrow}>
+            <Ionicons name="chevron-back" size={22} color="#111" />
           </Pressable>
           <Text style={styles.monthTitle}>
             {month.year}년 {month.month + 1}월
           </Text>
-          <Pressable onPress={() => shift(1)} hitSlop={12} disabled={isCurrentMonth}>
-            <Text style={[styles.monthArrow, isCurrentMonth && styles.monthArrowDim]}>›</Text>
+          <Pressable onPress={() => shift(1)} hitSlop={12} disabled={isCurrentMonth} style={styles.monthArrow}>
+            <Ionicons name="chevron-forward" size={22} color={isCurrentMonth ? '#ccc' : '#111'} />
           </Pressable>
         </View>
         <View style={styles.week}>
@@ -131,6 +128,12 @@ export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userI
               {w}
             </Text>
           ))}
+        </View>
+        <View style={styles.legend}>
+          <View style={[styles.dot, { backgroundColor: RED }]} />
+          <Text style={styles.legendText}>방문 등록</Text>
+          <View style={[styles.dot, styles.dotHollow, { borderColor: RED }]} />
+          <Text style={styles.legendText}>클립만 저장</Text>
         </View>
         {weeks.map((week, i) => (
           <View key={i} style={styles.week}>
@@ -153,7 +156,9 @@ export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userI
             })}
           </View>
         ))}
-        {selectedVisits.length > 0 && (
+        {selectedVisits.length === 0 ? (
+          <Text style={styles.noDay}>이날은 기록이 없어요</Text>
+        ) : (
           <View>
             <Text style={styles.listTitle}>{selected.replace(/-/g, '.')}</Text>
             {selectedVisits.map((v) => (
@@ -174,21 +179,18 @@ export default function HistoryScreen({ dex, onOpenGym, onBack, onRefresh, userI
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { backgroundColor: RED, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, gap: 4, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
-  backRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backArrow: { color: '#fff', fontSize: 30, fontWeight: '300', marginTop: -2 },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800', marginTop: 2 },
-  summary: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 24 },
+  noDay: { textAlign: 'center', color: '#999', fontSize: 13, paddingTop: 20 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 16, paddingBottom: 8 },
   monthTitle: { fontSize: 16, fontWeight: '800' },
-  monthArrow: { fontSize: 28, color: '#111', paddingHorizontal: 8 },
-  monthArrowDim: { color: '#ccc' },
+  monthArrow: { paddingHorizontal: 8, paddingVertical: 4 },
+  legend: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, justifyContent: 'flex-end' },
+  legendText: { fontSize: 11, color: '#999', marginRight: 6 },
   week: { flexDirection: 'row' },
   weekday: { flex: 1, textAlign: 'center', fontSize: 11, color: '#999', paddingVertical: 4 },
   day: { flex: 1, alignItems: 'center', paddingVertical: 4, gap: 3 },
   dayCircle: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  daySelected: { backgroundColor: '#111' },
+  daySelected: { backgroundColor: RED },
   dayText: { fontSize: 14, color: '#111' },
   dayToday: { color: RED, fontWeight: '800' },
   dayTextSelected: { color: '#fff', fontWeight: '800' },

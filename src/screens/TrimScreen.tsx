@@ -1,16 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BackButton } from '../components/ScreenHeader';
+import { RED } from '../components/dex';
+import type { Gym } from '../data/gyms';
+import { colors } from '../theme';
+import Button from '../components/Button';
+import Card from '../components/Card';
+import { showToast } from '../components/Toast';
+import InfoTip from '../components/InfoTip';
 import { randomUUID } from 'expo-crypto';
 import * as MediaLibrary from 'expo-media-library';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Animated, LayoutAnimation, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { ClimbVideo, type FollowPlan } from '../../modules/climb-video';
 import FollowPreview from '../components/FollowPreview';
 import Timeline from '../components/Timeline';
 import type { Clip, PickedVideo } from '../types';
 import { clipsOf } from '../clips';
 import { deleteFile } from '../videoFiles';
-import type { Settings } from '../settings';
+import { type Settings, bumpHint, hintCount } from '../settings';
 import type { DexState } from '../store/dex';
 import { type GymCandidate, judgeSend, rememberManualGym, resolveGyms } from '../store/sends';
 import GymPickerSheet from '../components/GymPickerSheet';
@@ -30,6 +38,7 @@ type Props = {
   userId: string | null;
   member: boolean;
   dex: DexState;
+  onSaved?: (gym: Gym, basis: GymCandidate['basis'], shotAt?: number) => void;
 };
 
 const THUMB_COUNT = 12;
@@ -45,7 +54,8 @@ function formatSeconds(seconds: number) {
 }
 
 
-export default function TrimScreen({ video, settings, index, total, onBack, onNavigate, onUpdate, userId, member, dex }: Props) {
+export default function TrimScreen({ video, settings, index, total, onBack, onNavigate, onUpdate, userId, member, dex, onSaved }: Props) {
+  const pulse = useRef(new Animated.Value(1)).current;
   const initialClips = (v: PickedVideo) =>
     clipsOf(v, settings).map((c) => {
       const autoSent = c.autoSent !== undefined ? c.autoSent : judgeSend(v.tracks, c.start, c.end);
@@ -149,12 +159,15 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     };
   }, [userId, video.uri, dex.visits.length]);
 
+  const tapesFor = useRef<string | null>(null);
   const loadTapes = async (gymId: string) => {
+    tapesFor.current = gymId;
     try {
-      setTapes(await fetchTapes(gymId));
+      const data = await fetchTapes(gymId);
+      if (tapesFor.current === gymId) setTapes(data);
     } catch (e) {
       console.log('tapes load error', String(e));
-      setTapes(null);
+      if (tapesFor.current === gymId) setTapes(null);
     }
   };
 
@@ -175,13 +188,14 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   }, [player]);
 
   const togglePlay = () => {
-    if (playing) player.pause();
+    if (player.playing) player.pause();
     else playRange();
   };
 
   useEffect(() => {
     const sub = player.addListener('timeUpdate', ({ currentTime }) => {
       setPosition(currentTime);
+      setPlaying(player.playing);
       if (!freePlay.current && currentTime >= clip.end && currentTime < clip.end + 1) player.pause();
     });
     return () => sub.remove();
@@ -265,6 +279,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   const removeClip = (index: number) => {
     if (clips.length <= 1) return;
     const next = clips.filter((_, i) => i !== index);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setClips(next);
     setCurrent(Math.min(current, next.length - 1));
     onUpdate({ clips: next });
@@ -384,7 +399,12 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           Alert.alert('투표를 남기지 못했어요', '클립은 저장됐어요. 네트워크가 연결되면 암장 페이지에서 다시 해 주세요');
         }
       }
-      Alert.alert('저장했어요', `클립 ${done}개를 사진 앱에 넣었어요` + (recording ? ` · 등반 기록 ${done}개(완등 ${sent})` : ''));
+      showToast(`클립 ${done}개를 사진 앱에 넣었어요` + (recording ? ` · 등반 기록 ${done}개(완등 ${sent})` : ''));
+      Animated.sequence([
+        Animated.spring(pulse, { toValue: 1.08, friction: 4, tension: 160, useNativeDriver: true }),
+        Animated.spring(pulse, { toValue: 1, friction: 6, tension: 120, useNativeDriver: true }),
+      ]).start();
+      if (recording && choice) onSaved?.(choice.gym, choice.basis, video.createdAt);
     } catch (e) {
       Alert.alert('저장 실패', String(e));
     } finally {
@@ -393,16 +413,21 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   };
 
   const noSegments = video.segments !== undefined && video.segments.length === 0 && !video.candidates?.length;
+  const [showHints] = useState(() => {
+    const n = hintCount('trimHandles');
+    if (n < 3) bumpHint('trimHandles');
+    return n < 3;
+  });
   const status =
     video.segments === undefined
-      ? '시도 구간 찾는 중…'
+      ? '시도 찾는 중…'
       : noSegments
-        ? '시도 구간을 못 찾았어요. 직접 잡아 주세요'
-        : `시도 구간 ${clips.length}개${video.handheld ? ' (들고 찍은 영상: 사람이 보이는 구간)' : ''}`;
+        ? '시도를 못 찾았어요. 직접 잡아 주세요'
+        : `시도 ${clips.length}번${recording ? ` · 완등 ${clips.filter((c) => c.sent !== false).length}` : ''}${video.handheld ? ' (들고 찍은 영상)' : ''}`;
   const gymNotice = mediaDenied
     ? { title: '영상에서 암장을 못 찾았어요', body: '사진 위치 접근을 허용하면 다음부터 자동으로 잡아요' }
     : Platform.OS === 'android' && video.location === null && video.source === 'camera'
-      ? { title: '영상에 위치 정보가 없어요', body: "삼성 카메라는 '위치 태그'가 기본으로 꺼져 있어요. 카메라 설정에서 켜면 다음부터 암장을 자동으로 잡아요" }
+      ? { title: '영상에 위치 정보가 없어요', body: "카메라 설정에서 위치 태그를 켜면 다음부터 암장을 자동으로 잡아요" }
       : video.location === null
         ? { title: '영상에 위치 정보가 없어요', body: '암장을 직접 골라 주세요' }
         : { title: '영상의 위치·날짜로 암장을 못 찾았어요', body: null };
@@ -413,9 +438,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
   return (
     <View style={styles.root}>
     <View style={styles.topRow}>
-      <Pressable onPress={onBack} hitSlop={8}>
-        <Text style={styles.back}>← 목록</Text>
-      </Pressable>
+      <BackButton onPress={onBack} />
       <View style={styles.nav}>
         <Pressable onPress={() => onNavigate(-1)} disabled={index === 0} hitSlop={10}>
           <Ionicons name="chevron-back" size={24} color={index === 0 ? '#ccc' : '#111'} />
@@ -429,12 +452,13 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
       </View>
     </View>
     <ScrollView contentContainerStyle={styles.container}>
-      <Pressable style={[styles.videoBox, { width: boxWidth, height: previewHeight }]} onPress={togglePlay}>
+      <View style={[styles.videoBox, { width: boxWidth, height: previewHeight }]}>
         {shownPlan ? (
           <FollowPreview player={player} plan={shownPlan} width={previewWidth} height={previewHeight} />
         ) : (
           <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
         )}
+        <Pressable style={StyleSheet.absoluteFill} onPress={togglePlay} />
         <Pressable style={styles.mute} onPress={() => setMuted((m) => !m)} hitSlop={8}>
           <Ionicons name={muted ? 'volume-mute' : 'volume-high'} size={18} color="#fff" />
         </Pressable>
@@ -443,39 +467,44 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
             <Ionicons name="play" size={30} color="#fff" />
           </View>
         )}
-      </Pressable>
+      </View>
       {follow && planning && (
         <View style={styles.planning}>
           <ActivityIndicator size="small" color="#666" />
           <Text style={styles.followHint}>따라가기 경로 계산 중…</Text>
         </View>
       )}
-      {noSegments && <Text style={styles.tip}>멀리서 찍으면 사람을 못 찾을 수 있어요. 가까이서나 2배 줌으로 찍으면 잘 잡혀요</Text>}
+      {noSegments && (
+        <Card style={styles.tipCard}>
+          <Text style={styles.tip}>멀리서 찍으면 사람을 못 찾을 수 있어요. 가까이서나 2배 줌으로 찍으면 잘 잡혀요</Text>
+        </Card>
+      )}
       <View style={styles.statusRow}>
         <Text style={styles.status}>{status}</Text>
-        <Pressable onPress={() => setView(view ? null : windowFor(clip, video.duration))} hitSlop={8}>
-          <Text style={styles.reset}>{view ? '전체 보기' : '구간 확대'}</Text>
-        </Pressable>
-        {video.clips && (
-          <Pressable onPress={reset} hitSlop={8}>
-            <Text style={styles.reset}>처음으로</Text>
-          </Pressable>
-        )}
+        <Button variant="text" small label={view ? '전체 보기' : '구간 확대'} onPress={() => setView(view ? null : windowFor(clip, video.duration))} />
+        {video.clips && <Button variant="text" small label="처음으로" onPress={reset} />}
       </View>
       {clips.length > 1 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
           {clips.map((c, i) => (
             <Pressable key={i} style={[styles.chip, i === current && styles.chipActive, c.low && styles.chipLow, c.saved && styles.chipSaved]} onPress={() => selectClip(i)}>
+              {c.saved && <Ionicons name="checkmark-circle" size={14} color={i === current ? '#fff' : '#2a9d8f'} />}
+              {c.low && !c.saved && <Ionicons name="help-circle" size={14} color={i === current ? '#fff' : '#999'} />}
               <Text style={[styles.chipText, i === current && styles.chipTextActive]}>
-                {i + 1}. {formatSeconds(c.start)}–{formatSeconds(c.end)}
-                {c.saved ? ' ✓' : ''}
+                시도 {i + 1} · {formatSeconds(c.start)}–{formatSeconds(c.end)}
               </Text>
               <Pressable hitSlop={8} onPress={() => removeClip(i)}>
-                <Text style={[styles.chipRemove, i === current && styles.chipTextActive]}>×</Text>
+                <Ionicons name="close" size={14} color={i === current ? '#fff' : '#999'} />
               </Pressable>
             </Pressable>
           ))}
         </ScrollView>
+      )}
+      {clip.low && (
+        <View style={styles.lowRow}>
+          <Text style={styles.lowNote}>이 시도는 확신이 낮아요</Text>
+          <InfoTip text="사람이 가려지거나 멀어서 등반인지 확실하지 않은 구간이에요. 영상을 보고 맞으면 그대로 저장하고, 아니면 칩의 ×로 빼세요" />
+        </View>
       )}
       <Timeline
         thumbnails={thumbnails}
@@ -492,6 +521,11 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           if (follow) loadPlan();
         }}
       />
+      {showHints && (
+        <View style={styles.hints}>
+          <Text style={styles.hint}>검정 핸들을 끌어 시작·끝을 맞춰요 · 위 칩을 누르면 다른 시도로 넘어가요</Text>
+        </View>
+      )}
       <View style={styles.labels}>
         <Text style={styles.label}>시작 {formatSeconds(clip.start)}</Text>
         <Text style={styles.label}>현재 {formatSeconds(position)} · 길이 {formatSeconds(clip.end - clip.start)}</Text>
@@ -502,7 +536,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
           <Text style={styles.label}>클라이머 따라가기</Text>
           <Text style={styles.followHint}>클라이머를 따라가는 세로 9:16으로 저장해요</Text>
         </View>
-        <Switch value={follow} onValueChange={setFollow} trackColor={{ true: '#111' }} />
+        <Switch value={follow} onValueChange={setFollow} trackColor={{ true: RED }} />
       </View>
       {userId && resolved && candidates.length === 0 && (
         <View style={[styles.record, styles.recordOff]}>
@@ -562,6 +596,7 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
               <Text style={styles.recordGym}>{choice.gym.name}</Text>
               {(candidates.length > 1 || choice.basis === 'manual') && <Ionicons name="chevron-down" size={16} color="#666" />}
             </Pressable>
+            <InfoTip text="완등/추락은 등반 기록에 남아요. 자동 판정은 기본 완등이라 떨어진 시도면 추락으로 바꿔 주세요" />
             <View style={styles.sentSwitch}>
               {([[true, '완등'], [false, '추락']] as const).map(([v, text]) => (
                 <Pressable key={text} style={[styles.sentItem, (clip.sent ?? true) === v && styles.sentItemOn]} onPress={() => patchClip(current, { sent: v })}>
@@ -595,23 +630,28 @@ export default function TrimScreen({ video, settings, index, total, onBack, onNa
     </ScrollView>
     <View style={styles.bar}>
       <View style={styles.buttons}>
-        <Pressable style={styles.secondary} onPress={togglePlay}>
-          <Text style={styles.secondaryText}>{playing ? '일시정지' : '재생'}</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.primary, (saving !== null || needGym) && styles.disabled, clip.saved && styles.primarySaved]}
-          onPress={() => (clip.saved ? Alert.alert('이미 저장한 구간이에요', undefined, [{ text: '취소', style: 'cancel' }, { text: '다시 저장', onPress: () => save([clip]) }]) : save([clip]))}
-          disabled={saving !== null || needGym}
-        >
-          <Text style={styles.primaryText}>{saving ?? (needGym ? '암장을 골라 주세요' : clip.saved ? `${current + 1}번 저장됨 ✓` : `${current + 1}번 저장`)}</Text>
-        </Pressable>
+        <Button variant="secondary" label={playing ? '일시정지' : '재생'} onPress={togglePlay} style={styles.secondary} />
+        <Animated.View style={[styles.primary, { transform: [{ scale: pulse }] }]}>
+          <Button
+            label={saving ?? (needGym ? '암장을 골라 주세요' : clip.saved ? `${current + 1}번 저장됨` : `${current + 1}번 저장`)}
+            icon={clip.saved && !saving ? 'checkmark-circle' : undefined}
+            onPress={() => (clip.saved ? Alert.alert('이미 저장한 구간이에요', undefined, [{ text: '취소', style: 'cancel' }, { text: '다시 저장', onPress: () => save([clip]) }]) : save([clip]))}
+            disabled={saving !== null || needGym}
+            style={clip.saved ? styles.primarySaved : undefined}
+          />
+        </Animated.View>
       </View>
-      {clips.length > 1 && (
-        <Pressable onPress={() => save(clips.filter((c) => !c.saved))} disabled={saving !== null || unsaved === 0 || needGym} hitSlop={6} style={styles.allLink}>
-          <Text style={[styles.allLinkText, (saving !== null || unsaved === 0 || needGym) && styles.disabled]}>
-            {unsaved === 0 ? '모든 구간 저장됨 ✓' : unsaved === clips.length ? `모든 구간 저장 (${clips.length}개)` : `남은 구간 저장 (${unsaved}개)`}
-          </Text>
-        </Pressable>
+      {unsaved === 0 && clips.every((c) => c.saved) && index < total - 1 ? (
+        <Button variant="text" small label="다음 영상 →" onPress={() => onNavigate(1)} style={styles.allLink} />
+      ) : clips.length > 1 && (
+        <Button
+          variant="text"
+          small
+          label={unsaved === 0 ? '모든 시도 저장됨 ✓' : unsaved === clips.length ? `모든 시도 저장 (${clips.length}개)` : `남은 시도 저장 (${unsaved}개)`}
+          onPress={() => save(clips.filter((c) => !c.saved))}
+          disabled={saving !== null || unsaved === 0 || needGym}
+          style={styles.allLink}
+        />
       )}
     </View>
     {orderFor && (
@@ -637,10 +677,8 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24, gap: 10 },
   bar: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#ddd', backgroundColor: '#fff', gap: 6 },
-  allLink: { alignSelf: 'center', paddingVertical: 4 },
-  allLinkText: { fontSize: 14, color: '#0a58ca' },
-  back: { fontSize: 16, paddingVertical: 8 },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 4, backgroundColor: '#fff' },
+  allLink: { alignSelf: 'center' },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 8, paddingRight: 16, height: 48, backgroundColor: '#fff' },
   nav: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   navText: { fontSize: 14, color: '#333', minWidth: 44, textAlign: 'center' },
   videoBox: { alignSelf: 'center', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', borderRadius: 8, overflow: 'hidden' },
@@ -649,8 +687,8 @@ const styles = StyleSheet.create({
   mute: { position: 'absolute', right: 12, bottom: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
   status: { fontSize: 14, color: '#666', flex: 1 },
-  tip: { fontSize: 13, color: '#888', lineHeight: 19, backgroundColor: '#f7f7f9', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 },
-  reset: { fontSize: 14, color: '#0a58ca' },
+  tipCard: { paddingVertical: 10, paddingHorizontal: 12 },
+  tip: { fontSize: 13, color: '#888', lineHeight: 19 },
   chips: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   chip: {
     flexDirection: 'row',
@@ -661,12 +699,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#eee',
   },
-  chipActive: { backgroundColor: '#111' },
+  chipActive: { backgroundColor: RED },
   chipText: { fontSize: 13 },
   chipTextActive: { color: '#fff' },
-  chipRemove: { fontSize: 16, color: '#999' },
   chipLow: { borderWidth: 1, borderColor: '#bbb', borderStyle: 'dashed' },
+  lowRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 },
+  lowNote: { fontSize: 12, color: '#888', lineHeight: 17 },
   chipSaved: { borderWidth: 1, borderColor: '#2a9d8f' },
+  hints: { gap: 2, marginTop: -4 },
+  hint: { fontSize: 12, color: '#888', lineHeight: 17 },
   labels: { flexDirection: 'row', justifyContent: 'space-between' },
   followRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
   planning: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' },
@@ -674,14 +715,12 @@ const styles = StyleSheet.create({
   followHint: { fontSize: 12, color: '#888' },
   label: { fontSize: 14, color: '#333' },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  secondary: { flex: 1, paddingVertical: 14, borderRadius: 10, borderWidth: 1, borderColor: '#111', alignItems: 'center' },
-  secondaryText: { fontSize: 16 },
-  primary: { flex: 1, paddingVertical: 14, borderRadius: 10, backgroundColor: '#111', alignItems: 'center' },
-  primarySaved: { backgroundColor: '#3a3a44' },
-  primaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  secondary: { flex: 1 },
+  primary: { flex: 2 },
+  primarySaved: { backgroundColor: colors.textMuted },
   disabled: { opacity: 0.5 },
   savedNote: { fontSize: 13, color: '#888', textAlign: 'center' },
-  record: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: '#f7f7f9' },
+  record: { gap: 8, padding: 12, borderRadius: 16, backgroundColor: colors.surface },
   recordOff: { gap: 4 },
   recordTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
   recordBody: { fontSize: 13, color: '#777', lineHeight: 19 },
@@ -694,7 +733,7 @@ const styles = StyleSheet.create({
   recordHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   recordGymButton: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
   recordGym: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
-  recordLink: { fontSize: 13, color: '#0a58ca' },
+  recordLink: { fontSize: 13, color: colors.accent, fontWeight: '600' },
   sentSwitch: { flexDirection: 'row', backgroundColor: '#e6e6ea', borderRadius: 9, padding: 2 },
   sentItem: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 7 },
   sentItemOn: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 },

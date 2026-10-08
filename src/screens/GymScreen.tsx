@@ -1,24 +1,41 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
-import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { type Candidate, type Gym, distanceMeters, formatNo, nearbyGyms } from '../data/gyms';
-import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, Silhouette, allowedMeters, formatDate, formatDistance } from '../components/dex';
+import { CHECKIN_METERS, RED, SKIP_DISTANCE_CHECK, WallPanel, allowedMeters, formatDate, formatDistance } from '../components/dex';
 import { type DexState, dayKey, visitedToday } from '../store/dex';
 import TapeSection from '../components/TapeSection';
 import ClipPlayer from '../components/ClipPlayer';
 import { useRefreshControl } from '../components/refresh';
 import type { PickedVideo } from '../types';
 import { ClimbVideo } from '../../modules/climb-video';
-import { type GymSend, fetchGymSends, sameAttempt, updateSendRange, videoKey } from '../store/sends';
+import { type GymSend, fetchGymSends, resolveGyms, sameAttempt, updateSendRange, videoKey } from '../store/sends';
 import { askSettings } from '../permissions';
+import { Ionicons } from '@expo/vector-icons';
+import ScreenHeader from '../components/ScreenHeader';
+import { colors } from '../theme';
+import EmptyState from '../components/EmptyState';
+import Button from '../components/Button';
+import Card from '../components/Card';
+import GymReportSheet from '../components/GymReportSheet';
+import { PALETTE, type TapeData, fetchTapes, summarize } from '../store/tapes';
+
+function Chip({ icon, label, onPress }: { icon: React.ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void }) {
+  return (
+    <Pressable style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]} onPress={onPress}>
+      <Ionicons name={icon} size={16} color={colors.text} />
+      <Text style={styles.chipText}>{label}</Text>
+    </Pressable>
+  );
+}
 
 type Props = {
   gym: Gym;
   dex: DexState;
   videos: PickedVideo[];
   onBack: () => void;
-  onCheckIn: (candidates: Candidate[]) => void;
+  onCheckIn: (candidates: Candidate[], open?: boolean, instant?: boolean) => void;
   onRemoveVisit: (id: string) => void;
   onPhoto: (gym: Gym, photoUri: string) => void;
   onShowCard: (gym: Gym) => void;
@@ -82,6 +99,20 @@ export function choosePhoto(): Promise<PhotoChoice> {
 
 export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemoveVisit, onPhoto, onShowCard, day, ownerId, onNeedAuth, userId, onRefresh, guest }: Props) {
   const [tapeRefresh, setTapeRefresh] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
+  const tapeY = useRef(0);
+  const { width } = useWindowDimensions();
+  const clipW = (width - 32 - 16) / 3;
+  const heroSize = Math.min(width - 32, 360);
+  const boulder = gym.types.length === 0 || gym.types.includes('볼더링');
+  const [tapeData, setTapeData] = useState<TapeData | null>(null);
+  const [reporting, setReporting] = useState(false);
+  useEffect(() => {
+    if (!boulder) return;
+    fetchTapes(gym.id).then(setTapeData).catch(() => {});
+  }, [gym.id, boulder, tapeRefresh]);
+  const tapeSummary = tapeData?.set ? summarize(tapeData, userId) : null;
+  const tapeVotes = tapeData?.votes.length ?? 0;
   const refreshControl = useRefreshControl(onRefresh && (async () => { setTapeRefresh((n) => n + 1); await onRefresh(); }));
   const visits = dex.visits.filter((v) => v.gymId === gym.id).sort((a, b) => b.at.localeCompare(a.at));
   const photo = dex.photos[gym.id];
@@ -123,6 +154,22 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
     }),
   ];
   const clips = showAll || !day ? allClips : allClips.filter((c) => c.at && dayKey(c.at) === day);
+  const clipCounts = allClips.reduce<Record<string, number>>((acc, c) => {
+    if (c.label) acc[c.label] = (acc[c.label] ?? 0) + 1;
+    return acc;
+  }, {});
+  const labelOrder = tapeSummary ? [...tapeSummary].reverse().map((t) => t.label) : [];
+  const colorOf = (label: string) => tapeSummary?.find((t) => t.label === label)?.color ?? PALETTE.find((p) => p.label === label)?.color ?? '#ddd';
+  const clipGroups = (() => {
+    const map = new Map<string, number[]>();
+    clips.forEach((c, i) => {
+      const key = c.label ?? '';
+      map.set(key, [...(map.get(key) ?? []), i]);
+    });
+    const known = labelOrder.filter((l) => map.has(l));
+    const extra = [...map.keys()].filter((l) => l && !labelOrder.includes(l)).sort();
+    return [...known, ...extra, ...(map.has('') ? [''] : [])].map((label) => ({ label, indices: map.get(label) ?? [] }));
+  })();
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [missing, setMissing] = useState<Record<string, boolean>>({});
   const [playing, setPlaying] = useState<number | null>(null);
@@ -175,9 +222,22 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
   const [checking, setChecking] = useState(false);
   const doneToday = visitedToday(dex, gym.id);
 
+  const evidenceToday = videos.some(
+    (v) =>
+      !!v.createdAt &&
+      dayKey(v.createdAt) === dayKey(new Date()) &&
+      !!v.location &&
+      (v.clips ?? []).some((c) => c.saved && c.gymId === gym.id) &&
+      resolveGyms(v, dex).some((c) => c.gym.id === gym.id && c.basis === 'location'),
+  );
+
   const register = async () => {
     if (guest) {
       onCheckIn([]);
+      return;
+    }
+    if (evidenceToday) {
+      onCheckIn([{ gym, distance: 0 }], true, true);
       return;
     }
     setChecking(true);
@@ -198,23 +258,22 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} refreshControl={refreshControl}>
-      <Pressable onPress={onBack}>
-        <Text style={styles.back}>← 도감</Text>
-      </Pressable>
+    <View style={styles.screen}>
+    <ScreenHeader title={gym.name} onBack={onBack} />
+    <ScrollView ref={scrollRef} contentContainerStyle={styles.container} refreshControl={refreshControl}>
       <Pressable style={[styles.hero, visits.length > 0 && styles.heroVisited]} onPress={visits.length > 0 ? changePhoto : undefined}>
         {photo ? (
           <Image source={{ uri: photo }} style={styles.heroImage} />
         ) : (
           <View style={styles.heroEmpty}>
-            <Silhouette size={140} visited={visits.length > 0} seed={gym.id} region={gym.region1} />
+            <WallPanel width={heroSize} height={heroSize} visited={visits.length > 0} seed={gym.id} region={gym.region1} hold={heroSize * 0.5} />
             <Text style={styles.heroEmptyText}>{visits.length > 0 ? '눌러서 도감 사진 넣기' : '아직 가 보지 않은 암장'}</Text>
           </View>
         )}
         <Text style={styles.heroNo}>{formatNo(gym.no)}</Text>
         {visits.length > 0 && (
           <View style={styles.heroStamp}>
-            <Text style={styles.heroStampText}>포획 · {visits.length}회</Text>
+            <Text style={styles.heroStampText}>방문 {visits.length}회</Text>
           </View>
         )}
         {photo ? <Text style={styles.heroHint}>사진 바꾸기</Text> : null}
@@ -224,31 +283,37 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         {[`${gym.region1} ${gym.region2}`, gym.kind, ...gym.types].join(' · ')}
       </Text>
       <Text style={styles.address}>{gym.address}</Text>
-      <View style={styles.links}>
-        {gym.phone ? (
-          <Pressable onPress={() => Linking.openURL(`tel:${gym.phone}`)}>
-            <Text style={styles.link}>{gym.phone}</Text>
-          </Pressable>
-        ) : null}
-        <Pressable onPress={() => Linking.openURL(gym.placeUrl)}>
-          <Text style={styles.link}>카카오맵에서 보기</Text>
+      {boulder && tapeSummary && tapeSummary.length > 0 && (
+        <Pressable style={styles.tapeBar} onPress={() => scrollRef.current?.scrollTo({ y: Math.max(0, tapeY.current - 12), animated: true })}>
+          <View style={styles.tapeBarRow}>
+            {tapeSummary.map((t) => (
+              <View key={t.label} style={[styles.tapeSeg, { backgroundColor: t.color ?? '#ddd' }]} />
+            ))}
+          </View>
+          <Text style={styles.tapeBarText}>
+            난이도 {tapeSummary.length}개 · {tapeVotes > 0 ? `투표 ${tapeVotes}` : '추정'}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
         </Pressable>
-        {visits.length > 0 && (
-          <Pressable onPress={() => onShowCard(gym)}>
-            <Text style={styles.link}>도감 카드 보기</Text>
-          </Pressable>
-        )}
+      )}
+      <View style={styles.chips}>
+        {gym.phone ? <Chip icon="call-outline" label="전화" onPress={() => Linking.openURL(`tel:${gym.phone}`)} /> : null}
+        <Chip icon="map-outline" label="카카오맵" onPress={() => Linking.openURL(gym.placeUrl)} />
+        {visits.length > 0 && <Chip icon="id-card-outline" label="도감 카드" onPress={() => onShowCard(gym)} />}
       </View>
 
-      <Pressable style={[styles.primary, (checking || doneToday) && styles.disabled, doneToday && styles.done]} onPress={register} disabled={checking || doneToday}>
-        <Text style={styles.primaryText}>
-          {doneToday ? '오늘 방문 등록 완료 ✓' : checking ? '위치 확인 중…' : visits.length > 0 ? '오늘 방문 등록' : '도감에 등록'}
-        </Text>
-      </Pressable>
-      <Text style={styles.hint}>{doneToday ? '방문은 하루 한 번 기록돼요' : `암장 ${CHECKIN_METERS}m 안에서만 등록돼요 · 사진은 선택`}</Text>
+      <Button
+        label={doneToday ? '오늘 방문 등록 완료 ✓' : checking ? '위치 확인 중…' : visits.length > 0 ? '오늘 방문 등록' : '도감에 등록'}
+        onPress={register}
+        disabled={checking || doneToday}
+        style={[styles.primary, doneToday && styles.done]}
+      />
+      <Text style={styles.hint}>{doneToday ? '방문은 하루 한 번 기록돼요' : evidenceToday ? '오늘 여기서 찍은 영상이 있어요 · 바로 등록돼요' : `암장 ${CHECKIN_METERS}m 안에서만 등록돼요 · 사진은 선택`}</Text>
 
-      {(gym.types.length === 0 || gym.types.includes('볼더링')) && (
-        <TapeSection gymId={gym.id} userId={userId} checkedIn={visits.length > 0 || sends.length > 0} onNeedAuth={onNeedAuth} refreshKey={tapeRefresh} />
+      {boulder && (
+        <View onLayout={(e) => (tapeY.current = e.nativeEvent.layout.y)}>
+          <TapeSection gymId={gym.id} userId={userId} checkedIn={visits.length > 0 || sends.length > 0} onNeedAuth={onNeedAuth} refreshKey={tapeRefresh} clipCounts={clipCounts} />
+        </View>
       )}
 
       <Text style={styles.sectionTitle}>방문 {visits.length}회</Text>
@@ -265,7 +330,7 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
                 { text: '삭제', style: 'destructive', onPress: () => onRemoveVisit(v.id) },
               ])}
             >
-              <Text style={styles.visitRemove}>×</Text>
+              <Ionicons name="close" size={18} color="#bbb" style={styles.visitRemove} />
             </Pressable>
           </View>
         ))
@@ -282,20 +347,54 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
         )}
       </View>
       {clips.length === 0 ? (
-        <Text style={styles.empty}>{day && !showAll ? '이날 이 암장에서 저장한 클립이 없어요' : '이 암장에서 찍은 영상으로 클립을 저장하면 여기 모여요'}</Text>
+        day && !showAll ? (
+          <Text style={styles.empty}>이날 이 암장에서 저장한 클립이 없어요</Text>
+        ) : (
+          <EmptyState small title="아직 여기서 자른 클립이 없어요" lines={['이 암장에서 찍은 영상을 자르면 여기 모여요']} seed={gym.id} />
+        )
       ) : (
-        <View style={styles.clips}>
-          {clips.map((c, i) => (
-            <Pressable key={c.key} style={styles.clip} onPress={() => (missing[c.key] ? Alert.alert('원본 영상이 없어요', '사진 앱에서 원본을 지우면 기록만 남아요') : setPlaying(i))}>
-              {thumbs[c.key] ? <Image source={{ uri: thumbs[c.key] }} style={styles.clipImage} /> : null}
-              {missing[c.key] ? <Text style={styles.clipMissing}>원본 없음</Text> : null}
-              {c.label || !c.sent ? <Text style={styles.clipLabel}>{[c.label, c.sent ? null : '추락'].filter(Boolean).join(' · ')}</Text> : null}
-              <Text style={styles.clipLength}>{Math.round(c.end - c.start)}초</Text>
-              {c.at && (showAll || !day) ? <Text style={styles.clipDate}>{`${new Date(c.at).getMonth() + 1}/${new Date(c.at).getDate()}`}</Text> : null}
-            </Pressable>
-          ))}
+        <View style={styles.clipGroups}>
+          {clipGroups.map((group) => {
+            const sent = group.indices.filter((i) => clips[i].sent).length;
+            return (
+              <View key={group.label || '_none'} style={styles.clipGroup}>
+                <View style={styles.clipGroupHead}>
+                  <View style={[styles.clipSwatch, { backgroundColor: group.label ? colorOf(group.label) : '#ddd' }]} />
+                  <Text style={styles.clipGroupTitle}>{group.label || '난이도 미정'}</Text>
+                  <Text style={styles.clipGroupMeta}>
+                    {group.indices.length}개 · 완등 {sent}
+                    {group.indices.length - sent > 0 ? ` · 추락 ${group.indices.length - sent}` : ''}
+                  </Text>
+                </View>
+                <View style={styles.clips}>
+                  {group.indices.map((i) => {
+                    const c = clips[i];
+                    return (
+                      <Pressable key={c.key} style={[styles.clip, { width: clipW, height: (clipW * 4) / 3 }]} onPress={() => (missing[c.key] ? Alert.alert('원본 영상이 없어요', '사진 앱에서 원본을 지우면 기록만 남아요') : setPlaying(i))}>
+                        {thumbs[c.key] ? <Image source={{ uri: thumbs[c.key] }} style={styles.clipImage} /> : null}
+                        {missing[c.key] ? <Text style={styles.clipMissing}>원본 없음</Text> : null}
+                        {!c.sent ? <Text style={styles.clipLabel}>추락</Text> : null}
+                        <Text style={styles.clipLength}>{Math.round(c.end - c.start)}초</Text>
+                        {c.at && (showAll || !day) ? <Text style={styles.clipDate}>{`${new Date(c.at).getMonth() + 1}/${new Date(c.at).getDate()}`}</Text> : null}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          })}
         </View>
       )}
+      <Card style={styles.reportCard} onPress={() => (userId ? setReporting(true) : onNeedAuth())}>
+        <Ionicons name="help-circle-outline" size={22} color={colors.accent} />
+        <View style={styles.reportText}>
+          <Text style={styles.reportTitle}>뭔가 다른가요?</Text>
+          <Text style={styles.reportHint}>폐업·이전·정보가 다르면 알려 주세요</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      </Card>
+      {reporting && userId && <GymReportSheet gym={gym} userId={userId} onClose={() => setReporting(false)} />}
+    </ScrollView>
       {playing !== null && (
         <ClipPlayer
           items={clips.map((c) => ({ key: c.key, uri: c.uri, start: c.start, end: c.end, title: clipTitle(c), editable: !!c.record }))}
@@ -309,41 +408,56 @@ export default function GymScreen({ gym, dex, videos, onBack, onCheckIn, onRemov
           }}
         />
       )}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingBottom: 40, gap: 8 },
-  back: { fontSize: 16, paddingVertical: 8 },
+  screen: { flex: 1, backgroundColor: '#fff' },
+  container: { padding: 16, paddingTop: 8, paddingBottom: 40, gap: 8 },
   hero: { aspectRatio: 1, maxHeight: 360, alignSelf: 'center', width: '100%', borderRadius: 18, overflow: 'hidden', backgroundColor: '#eceef2', borderWidth: 3, borderColor: 'transparent' },
   heroVisited: { borderColor: RED, backgroundColor: '#fff3d6' },
   heroImage: { width: '100%', height: '100%' },
-  heroEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-  heroEmptyText: { color: '#999', fontSize: 13 },
+  heroEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  heroEmptyText: { position: 'absolute', bottom: 12, color: '#6b6b6b', fontSize: 13, fontWeight: '600', backgroundColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, overflow: 'hidden' },
   heroNo: { position: 'absolute', left: 12, top: 10, fontSize: 14, fontWeight: '800', color: '#fff', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
   heroStamp: { position: 'absolute', right: 10, top: 10, backgroundColor: RED, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   heroStampText: { color: '#fff', fontSize: 12, fontWeight: '800' },
   heroHint: { position: 'absolute', right: 10, bottom: 8, color: '#fff', fontSize: 12, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },
-  name: { fontSize: 22, fontWeight: '700', marginTop: 4 },
-  meta: { color: '#666' },
-  address: { color: '#333' },
-  links: { flexDirection: 'row', gap: 16 },
-  link: { color: '#0a58ca', fontSize: 14 },
-  primary: { paddingVertical: 14, borderRadius: 12, backgroundColor: RED, alignItems: 'center', marginTop: 8 },
-  primaryText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  sectionTitle: { fontSize: 15, fontWeight: '600', marginTop: 16 },
+  name: { fontSize: 24, fontWeight: '700', marginTop: 8 },
+  meta: { color: colors.textSub, fontSize: 13, marginTop: -4 },
+  address: { color: '#333', fontSize: 14 },
+  tapeBar: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
+  tapeBarRow: { flex: 1, flexDirection: 'row', height: 14, borderRadius: 7, overflow: 'hidden', gap: 2 },
+  tapeSeg: { flex: 1 },
+  tapeBarText: { fontSize: 13, color: colors.textSub, fontWeight: '600' },
+  chips: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.line },
+  chipPressed: { opacity: 0.6 },
+  chipText: { fontSize: 14, fontWeight: '600', color: colors.text },
+  primary: { marginTop: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', marginTop: 28 },
   clipHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   clipToggle: { fontSize: 13, color: '#666', fontWeight: '600' },
   empty: { color: '#999', fontSize: 13 },
   visitRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 },
   visit: { fontSize: 14, color: '#333' },
-  visitRemove: { fontSize: 18, color: '#bbb', paddingHorizontal: 6 },
+  visitRemove: { paddingHorizontal: 6 },
   hint: { fontSize: 12, color: '#999', textAlign: 'center' },
   disabled: { opacity: 0.6 },
-  done: { backgroundColor: '#3a3a44', opacity: 1 },
+  done: { backgroundColor: colors.textMuted },
+  reportCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 28, padding: 14 },
+  reportText: { flex: 1, gap: 2 },
+  reportTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
+  reportHint: { fontSize: 12, color: colors.textSub },
+  clipGroups: { gap: 16 },
+  clipGroup: { gap: 8 },
+  clipGroupHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  clipSwatch: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
+  clipGroupTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
+  clipGroupMeta: { fontSize: 13, color: colors.textSub },
   clips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  clip: { width: 90, height: 120, borderRadius: 8, backgroundColor: '#ddd', overflow: 'hidden' },
+  clip: { borderRadius: 10, backgroundColor: '#ddd', overflow: 'hidden' },
   clipImage: { width: '100%', height: '100%' },
   clipMissing: { position: 'absolute', top: 50, left: 0, right: 0, textAlign: 'center', color: '#888', fontSize: 11, fontWeight: '600' },
   clipDate: { position: 'absolute', left: 4, bottom: 4, color: '#fff', fontSize: 11, fontWeight: '700', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 4, borderRadius: 4, overflow: 'hidden' },

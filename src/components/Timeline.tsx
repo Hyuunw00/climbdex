@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { useRef, useState } from 'react';
 import { Image, PanResponder, StyleSheet, View } from 'react-native';
 
@@ -38,6 +39,14 @@ export default function Timeline({ thumbnails, duration, start, end, position, v
   };
   const toX = (t: number) => (ve > vs ? ((t - vs) / (ve - vs)) * width : 0);
 
+  const lastBump = useRef(0);
+  const bump = () => {
+    const now = Date.now();
+    if (now - lastBump.current < 250) return;
+    lastBump.current = now;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  };
+
   const makeResponder = (side: 'start' | 'end') =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -45,6 +54,7 @@ export default function Timeline({ thumbnails, duration, start, end, position, v
       onPanResponderTerminationRequest: () => false,
       onPanResponderGrant: () => {
         origin.current = range.current[side];
+        Haptics.selectionAsync().catch(() => {});
       },
       onPanResponderMove: (_, g) => {
         const { onChange: change, onSeek: seekTo, vs: a, ve: b } = callbacks.current;
@@ -52,15 +62,20 @@ export default function Timeline({ thumbnails, duration, start, end, position, v
         const { start: s, end: e } = range.current;
         if (side === 'start') {
           const next = Math.min(t, e - MIN_GAP);
+          if (next !== t || next <= 0) bump();
           change(next, e);
           seekTo(next);
         } else {
           const next = Math.max(t, s + MIN_GAP);
+          if (next !== t || next >= duration) bump();
           change(s, next);
           seekTo(next);
         }
       },
-      onPanResponderRelease: () => callbacks.current.onRelease?.(),
+      onPanResponderRelease: () => {
+        Haptics.selectionAsync().catch(() => {});
+        callbacks.current.onRelease?.();
+      },
       onPanResponderTerminate: () => callbacks.current.onRelease?.(),
     });
 

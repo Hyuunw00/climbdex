@@ -1,6 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
+import Card from '../components/Card';
+import DexHeader from '../components/DexHeader';
+import EmptyState from '../components/EmptyState';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { AppState, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import Button from '../components/Button';
+import { askSettings } from '../permissions';
+import { dismissToday, dismissedToday } from '../todayVideos';
 import { useRefreshControl } from '../components/refresh';
 import { type Candidate, type Gym, distanceMeters, gymById, gyms, nearbyGyms } from '../data/gyms';
 import { type DexState, lastVisits, visitedToday } from '../store/dex';
@@ -14,6 +21,8 @@ type Props = {
   onOpenHistory: () => void;
   onAccount: () => void;
   account: { name: string; email: string } | null;
+  clipCount: number;
+  onOpenSettings: () => void;
   onRefresh?: () => Promise<void>;
 };
 
@@ -21,11 +30,13 @@ const COLUMNS = 3;
 const NEAR = 5;
 const STALE_DAYS = 7;
 
-export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpenHistory, onAccount, account, onRefresh }: Props) {
+export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpenHistory, onAccount, account, clipCount, onOpenSettings, onRefresh }: Props) {
   const refreshControl = useRefreshControl(onRefresh);
   const { width } = useWindowDimensions();
   const [nearby, setNearby] = useState<Candidate[]>([]);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [locState, setLocState] = useState<'unknown' | 'granted' | 'ask' | 'denied'>('unknown');
+  const [locCardHidden, setLocCardHidden] = useState(() => dismissedToday('locationCard'));
 
   const last = useMemo(() => lastVisits(dex), [dex.visits]);
   const mine = useMemo(
@@ -42,21 +53,46 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
     return out;
   }, [mine]);
 
+  const loadPosition = async () => {
+    try {
+      const known = await Location.getLastKnownPositionAsync();
+      if (known) setPosition({ lat: known.coords.latitude, lng: known.coords.longitude });
+    } catch {}
+    try {
+      const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setPosition({ lat: coords.latitude, lng: coords.longitude });
+      setNearby(nearbyGyms(coords.latitude, coords.longitude, allowedMeters(coords.accuracy)).slice(0, 5));
+    } catch {}
+  };
+
+  const readPermission = async () => {
+    const permission = await Location.getForegroundPermissionsAsync();
+    if (permission.granted) {
+      setLocState('granted');
+      loadPosition();
+    } else {
+      setLocState(permission.canAskAgain ? 'ask' : 'denied');
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      const permission = await Location.requestForegroundPermissionsAsync();
-      if (!permission.granted) return;
-      try {
-        const known = await Location.getLastKnownPositionAsync();
-        if (known) setPosition({ lat: known.coords.latitude, lng: known.coords.longitude });
-      } catch {}
-      try {
-        const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-        setPosition({ lat: coords.latitude, lng: coords.longitude });
-        setNearby(nearbyGyms(coords.latitude, coords.longitude, allowedMeters(coords.accuracy)).slice(0, 5));
-      } catch {}
-    })();
+    readPermission();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') readPermission();
+    });
+    return () => sub.remove();
   }, []);
+
+  const allowLocation = async () => {
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (permission.granted) {
+      setLocState('granted');
+      loadPosition();
+    } else if (!permission.canAskAgain) {
+      setLocState('denied');
+      askSettings('위치 권한이 꺼져 있어요', '근처 암장을 찾고 도감에 등록하려면 설정에서 위치 접근을 허용해 주세요');
+    }
+  };
 
   const stale = useMemo(
     () =>
@@ -80,47 +116,60 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
   const cell = (width - 32 - 10 * (COLUMNS - 1)) / COLUMNS;
 
   const header = (
-    <View style={styles.header}>
-      <View style={styles.topRow}>
-        <Text style={styles.eyebrow}>CLIMBDEX · 대한민국</Text>
-        {account ? (
-          <Pressable style={styles.profileChip} onPress={onAccount} hitSlop={6}>
-            <View style={styles.chipAvatar}>
-              <Text style={styles.chipInitial}>{(account.name || account.email || '?').slice(0, 1).toUpperCase()}</Text>
-            </View>
-            <Text style={styles.chipName} numberOfLines={1}>
-              {account.name || account.email.split('@')[0]}
-            </Text>
-            <Text style={styles.chipArrow}>›</Text>
-          </Pressable>
-        ) : (
-          <Pressable onPress={onAccount} hitSlop={10}>
-            <Text style={styles.loginText}>로그인</Text>
-          </Pressable>
-        )}
-      </View>
-      <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.title}>암장 도감</Text>
+    <DexHeader
+      title="암장 도감"
+      account={account}
+      onAccount={onAccount}
+      onOpenSettings={onOpenSettings}
+      stats={[
+        { value: `${last.size} / ${gyms.length}`, label: '암장' },
+        { value: dex.visits.length, label: '방문' },
+        { value: clipCount, label: '클립' },
+      ]}
+      progress={{ value: last.size, total: gyms.length }}
+    />
+  );
+
+  const locationCard =
+    locState === 'ask' && !locCardHidden ? (
+      <Card style={styles.locCard}>
+        <Text style={styles.locTitle}>근처 암장을 알려드릴까요?</Text>
+        <Text style={styles.locHint}>암장에 있을 때 도감에 등록하려면 위치가 필요해요. 위치는 암장을 찾는 데만 써요</Text>
+        <View style={styles.locActions}>
+          <Button small label="허용하기" onPress={allowLocation} />
+          <Button
+            small
+            variant="text"
+            label="나중에"
+            onPress={() => {
+              dismissToday('locationCard');
+              setLocCardHidden(true);
+            }}
+          />
         </View>
-        <View style={styles.counter}>
-          <Text style={styles.counterBig}>{last.size}</Text>
-          <Text style={styles.counterSmall}>/ {gyms.length}</Text>
-        </View>
+      </Card>
+    ) : locState === 'denied' ? (
+      <View style={styles.locDenied}>
+        <Text style={styles.locHint}>위치가 꺼져 있어요. 위치 없이도 전체 도감에서 암장을 찾아볼 수 있어요</Text>
+        <Button small variant="text" label="설정 열기" onPress={() => askSettings('위치 권한이 꺼져 있어요', '근처 암장을 찾고 도감에 등록하려면 설정에서 위치 접근을 허용해 주세요')} />
       </View>
-      <Progress value={last.size} total={gyms.length} color="#fff" track="rgba(255,255,255,0.25)" />
-      <View style={styles.links}>
-        <Pressable style={styles.link} onPress={onOpenAll}>
-          <Text style={styles.linkText}>전체 도감</Text>
-          <Text style={styles.linkArrow}>›</Text>
-        </Pressable>
-        <Pressable style={styles.link} onPress={onOpenHistory}>
-          <Text style={styles.linkText}>내 기록</Text>
-          <Text style={styles.linkArrow}>›</Text>
-        </Pressable>
-      </View>
+    ) : null;
+
+  const quick = (
+    <View style={styles.quick}>
+      {locationCard && <View style={styles.full}>{locationCard}</View>}
+      <Card style={styles.quickCard} onPress={onOpenAll}>
+        <Ionicons name="albums-outline" size={20} color="#111" />
+        <Text style={styles.quickText}>전체 도감</Text>
+        <Ionicons name="chevron-forward" size={16} color="#999" />
+      </Card>
+      <Card style={styles.quickCard} onPress={onOpenHistory}>
+        <Ionicons name="calendar-outline" size={20} color="#111" />
+        <Text style={styles.quickText}>내 기록</Text>
+        <Ionicons name="chevron-forward" size={16} color="#999" />
+      </Card>
       {nearby.length > 0 && (
-        <Pressable style={styles.banner} onPress={() => onCheckIn(nearby)}>
+        <Card style={styles.banner} onPress={() => onCheckIn(nearby)}>
           <View style={styles.bannerDot} />
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>{nearby[0].gym.name}에 있네요</Text>
@@ -128,8 +177,8 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
               {visitedToday(dex, nearby[0].gym.id) ? '오늘 방문 등록 완료 · 암장 페이지 열기' : '도감에 등록하고 사진 찍기'}
             </Text>
           </View>
-          <Text style={styles.bannerArrow}>›</Text>
-        </Pressable>
+          <Ionicons name="chevron-forward" size={20} color="#111" />
+        </Card>
       )}
     </View>
   );
@@ -166,19 +215,24 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
         keyExtractor={(row) => row.map((g) => g.id).join('-')}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          !account ? (
-            <Pressable style={styles.guest} onPress={onAccount}>
+          <>
+          {quick}
+          {!account ? (
+            <Card style={styles.guest} onPress={onAccount}>
               <Text style={styles.guestTitle}>로그인하면 다녀온 암장이 여기 모여요</Text>
-              <Text style={styles.guestHint}>암장에서 방문 등록하고 사진을 남겨 도감을 채워 보세요 ›</Text>
-            </Pressable>
+              <Text style={styles.guestHint}>암장에서 방문 등록하고 사진을 남겨 도감을 채워 보세요</Text>
+            </Card>
           ) : mine.length > 0 ? (
             <Text style={styles.listTitle}>내 암장</Text>
-          ) : null
+          ) : (
+            <EmptyState small title="첫 암장을 도감에 등록해 보세요" lines={['암장에 가서 방문 등록하면 여기 쌓여요']} seed="dex" />
+          )}
+          </>
         }
-        renderItem={({ item: row }) => (
+        renderItem={({ item: row, index }) => (
           <View style={styles.row}>
-            {row.map((gym) => (
-              <GymCard key={gym.id} gym={gym} dex={dex} size={cell} onPress={() => onOpenGym(gym)} />
+            {row.map((gym, col) => (
+              <GymCard key={gym.id} gym={gym} dex={dex} size={cell} delay={index < 6 ? index * 60 + col * 30 : undefined} onPress={() => onOpenGym(gym)} />
             ))}
           </View>
         )}
@@ -190,33 +244,23 @@ export default function DexScreen({ dex, onOpenGym, onCheckIn, onOpenAll, onOpen
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { backgroundColor: RED, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, gap: 10, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  eyebrow: { color: 'rgba(255,255,255,0.75)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800', marginTop: 2 },
-  counter: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  counterBig: { color: '#fff', fontSize: 34, fontWeight: '800' },
-  counterSmall: { color: 'rgba(255,255,255,0.8)', fontSize: 15, fontWeight: '600' },
-  links: { flexDirection: 'row', gap: 8, marginTop: 2 },
-  link: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, height: 38, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.18)' },
-  linkText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  linkArrow: { color: 'rgba(255,255,255,0.8)', fontSize: 20 },
-  guest: { marginTop: 16, padding: 14, borderRadius: 12, backgroundColor: '#f6f6f8', gap: 4 },
+  quick: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+  full: { flexBasis: '100%' },
+  locCard: { gap: 6 },
+  locTitle: { fontSize: 15, fontWeight: '700', color: '#111' },
+  locHint: { fontSize: 13, color: '#666', lineHeight: 18 },
+  locActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  locDenied: { gap: 2, paddingHorizontal: 4 },
+  quickCard: { flexGrow: 1, flexBasis: '45%', flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 14 },
+  quickText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#111' },
+  guest: { marginTop: 12, padding: 14, gap: 4 },
   guestTitle: { fontSize: 15, fontWeight: '700', color: '#111' },
   guestHint: { fontSize: 13, color: '#666' },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  profileChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 4, paddingRight: 8, height: 32, borderRadius: 16, backgroundColor: '#fff', maxWidth: 180 },
-  chipAvatar: { width: 24, height: 24, borderRadius: 12, backgroundColor: RED, alignItems: 'center', justifyContent: 'center' },
-  chipInitial: { color: '#fff', fontSize: 12, fontWeight: '800' },
-  chipName: { color: '#111', fontSize: 13, fontWeight: '700', flexShrink: 1 },
-  loginText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  chipArrow: { color: '#999', fontSize: 18, marginTop: -2 },
-  banner: { marginTop: 4, padding: 12, borderRadius: 12, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', gap: 10 },
+  banner: { flexBasis: '100%', padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   bannerDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: RED },
   bannerText: { flex: 1, gap: 2 },
   bannerTitle: { color: '#111', fontSize: 15, fontWeight: '700' },
   bannerHint: { color: '#666', fontSize: 12 },
-  bannerArrow: { color: '#111', fontSize: 24 },
   list: { paddingHorizontal: 16, paddingBottom: 24 },
   suggestTitle: { fontSize: 20, fontWeight: '800', color: '#111', paddingTop: 28 },
   listTitle: { fontSize: 14, fontWeight: '700', color: '#666', paddingTop: 16, paddingBottom: 8 },

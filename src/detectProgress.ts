@@ -15,7 +15,7 @@ Notifications.setNotificationHandler({
 export async function prepareNotifications() {
   try {
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync(TAG, { name: '시도 구간 찾기', importance: Notifications.AndroidImportance.DEFAULT });
+      await Notifications.setNotificationChannelAsync(TAG, { name: '시도 찾기', importance: Notifications.AndroidImportance.DEFAULT });
     }
     const current = await Notifications.getPermissionsAsync();
     if (!current.granted && current.canAskAgain) await Notifications.requestPermissionsAsync();
@@ -29,14 +29,14 @@ export function keepAwake(on: boolean) {
 }
 
 export async function notifyDone(videos: number, clips: number) {
-  const body = `영상 ${videos}개 · 구간 ${clips}개`;
+  const body = `영상 ${videos}개 · 시도 ${clips}번`;
   if (AppState.currentState === 'active') {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     return;
   }
   try {
     await Notifications.scheduleNotificationAsync({
-      content: { title: '시도 구간을 다 찾았어요', body, sound: true, ...(Platform.OS === 'android' ? { channelId: TAG } : {}) },
+      content: { title: '시도를 다 찾았어요', body, sound: true, ...(Platform.OS === 'android' ? { channelId: TAG } : {}) },
       trigger: null,
     });
   } catch (e) {

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as MediaLibrary from 'expo-media-library';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -7,6 +8,8 @@ import { ClimbVideo } from '../../modules/climb-video';
 import { deleteFile } from '../videoFiles';
 import Timeline from './Timeline';
 import { SAVE_DENIED, askSettings } from '../permissions';
+import { colors } from '../theme';
+import { ToastHost, showToast } from './Toast';
 
 export type PlayItem = { key: string; uri: string; start: number; end: number; title: string; editable: boolean };
 
@@ -129,7 +132,7 @@ export default function ClipPlayer({ items, initial, onClose, onSaved }: Props) 
       else await MediaLibrary.saveToLibraryAsync(out);
       deleteFile(out);
       await onSaved(item.key, range.start, range.end);
-      Alert.alert('저장했어요', '사진 앱에 새 클립으로 넣었어요');
+      showToast('사진 앱에 새 클립으로 넣었어요');
     } catch (e) {
       Alert.alert('저장 실패', String((e as Error)?.message ?? e));
     } finally {
@@ -180,13 +183,13 @@ export default function ClipPlayer({ items, initial, onClose, onSaved }: Props) 
         )}
         <View style={styles.nav}>
           <Pressable onPress={() => move(-1)} disabled={index === 0} hitSlop={12}>
-            <Text style={[styles.arrow, index === 0 && styles.dim]}>‹</Text>
+            <Ionicons name="chevron-back" size={28} color={index === 0 ? '#444' : '#fff'} />
           </Pressable>
           <Text style={styles.count}>
             {index + 1}/{items.length}
           </Text>
           <Pressable onPress={() => move(1)} disabled={index === items.length - 1} hitSlop={12}>
-            <Text style={[styles.arrow, index === items.length - 1 && styles.dim]}>›</Text>
+            <Ionicons name="chevron-forward" size={28} color={index === items.length - 1 ? '#444' : '#fff'} />
           </Pressable>
         </View>
         <View style={styles.actions}>
@@ -200,6 +203,7 @@ export default function ClipPlayer({ items, initial, onClose, onSaved }: Props) 
           )}
         </View>
       </View>
+      <ToastHost above={16} />
     </Modal>
   );
 }
@@ -215,13 +219,11 @@ const styles = StyleSheet.create({
   timeline: { paddingHorizontal: 16, paddingTop: 12, gap: 6 },
   length: { color: '#aaa', fontSize: 12, textAlign: 'center' },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 32, paddingTop: 8 },
-  arrow: { color: '#fff', fontSize: 32, fontWeight: '300' },
-  dim: { color: '#444' },
   count: { color: '#fff', fontSize: 15, fontWeight: '700', minWidth: 48, textAlign: 'center' },
   actions: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 12 },
   secondary: { flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#555', alignItems: 'center' },
   secondaryText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  primary: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center' },
+  primary: { flex: 2, paddingVertical: 14, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center' },
   primaryOff: { opacity: 0.4 },
-  primaryText: { color: '#111', fontSize: 15, fontWeight: '700' },
+  primaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

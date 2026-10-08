@@ -1,4 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme';
+import { showInfo, showToast } from './Toast';
+import Sheet from './Sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
@@ -15,6 +18,7 @@ type Props = {
   checkedIn: boolean;
   onNeedAuth: () => void;
   refreshKey?: number;
+  clipCounts?: Record<string, number>;
 };
 
 const V_OPTIONS = Array.from({ length: V_MAX - V_MIN + 1 }, (_, i) => V_MIN + i);
@@ -23,24 +27,27 @@ export function Swatch({ color, size = 28 }: { color: string | null; size?: numb
   return <View style={{ width: size * 1.6, height: size * 0.6, borderRadius: 3, backgroundColor: color ?? '#ddd', borderWidth: 1, borderColor: 'rgba(0,0,0,0.15)' }} />;
 }
 
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
-  const insets = useSafeAreaInsets();
+
+function Skeleton() {
+  const fade = useRef(new Animated.Value(0.4)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([Animated.timing(fade, { toValue: 1, duration: 600, useNativeDriver: true }), Animated.timing(fade, { toValue: 0.4, duration: 600, useNativeDriver: true })]));
+    loop.start();
+    return () => loop.stop();
+  }, [fade]);
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={[styles.sheet, Platform.OS === 'android' && { paddingTop: insets.top + 20 }, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.sheetHeader}>
-          <Text style={styles.sheetTitle}>{title}</Text>
-          <Pressable onPress={onClose} hitSlop={10}>
-            <Ionicons name="close" size={26} color="#111" />
-          </Pressable>
-        </View>
-        {children}
-      </View>
-    </Modal>
+    <View style={styles.skeleton}>
+      {[120, 120, 120, 120].map((w, i) => (
+        <Animated.View key={i} style={[styles.skeletonRow, { opacity: fade }]}>
+          <View style={[styles.skeletonBar, { width: w }]} />
+          <View style={styles.skeletonText} />
+        </Animated.View>
+      ))}
+    </View>
   );
 }
 
-export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refreshKey }: Props) {
+export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refreshKey, clipCounts }: Props) {
   const [data, setData] = useState<TapeData | null>(null);
   const [failed, setFailed] = useState(false);
   const [voting, setVoting] = useState<TapeSummary | null>(null);
@@ -76,9 +83,22 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
       <View style={styles.titleRow}>
         <Text style={styles.sectionTitle}>난이도 표</Text>
         {data?.set && (
-          <Text style={styles.source}>
-            {[data.set.source === 'user' ? '제보 1명' : '추정', voteTotal > 0 ? `투표 ${voteTotal}` : null].filter(Boolean).join(' · ')}
-          </Text>
+          <Pressable
+            style={styles.sourceRow}
+            hitSlop={8}
+            onPress={() =>
+              showInfo(
+                data.set?.source === 'user'
+                  ? '이 순서는 먼저 다녀간 사람이 알려준 거예요. 난이도마다 투표가 쌓이면 V등급이 투표값으로 표시돼요'
+                  : '공개된 난이도 정보로 만든 추정값이에요. 도감에 등록했거나 여기서 클립을 저장한 사람이 투표할 수 있고, 10명이 투표하면 투표값으로 바뀌어요',
+              )
+            }
+          >
+            <Text style={styles.source}>
+              {[data.set.source === 'user' ? '제보 1명' : '추정', voteTotal > 0 ? `투표 ${voteTotal}` : null].filter(Boolean).join(' · ')}
+            </Text>
+            <Ionicons name="help-circle-outline" size={15} color={colors.textMuted} />
+          </Pressable>
         )}
       </View>
       {failed ? (
@@ -86,10 +106,15 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
           <Text style={styles.empty}>불러오지 못했어요. 눌러서 다시 시도</Text>
         </Pressable>
       ) : !data ? (
-        <Text style={styles.empty}>불러오는 중…</Text>
+        <Skeleton />
       ) : !data.set ? (
         <View style={styles.emptyBox}>
-          <Text style={styles.empty}>아직 난이도 순서가 없어요</Text>
+          <View style={styles.defaultBar}>
+            {PALETTE.map((p) => (
+              <View key={p.label} style={[styles.defaultSeg, { backgroundColor: p.color }]} />
+            ))}
+          </View>
+          <Text style={styles.empty}>확인 안 된 기본 순서예요. 이 암장 순서를 아시면 알려 주세요</Text>
           <Pressable style={styles.secondary} onPress={() => requireMember(() => setOrdering(true))}>
             <Text style={styles.secondaryText}>난이도 순서 알려 주세요</Text>
           </Pressable>
@@ -111,6 +136,7 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
                 </View>
                 <Text style={styles.rowV}>{formatRange(t.vMin, t.vMax)}</Text>
                 <Text style={styles.rowVotes}>{t.votes > 0 ? `투표 ${t.votes}` : ''}</Text>
+                {clipCounts?.[t.label] ? <Text style={styles.rowClips}>내 클립 {clipCounts[t.label]}</Text> : null}
               </Pressable>
             ))}
           </View>
@@ -156,7 +182,7 @@ export default function TapeSection({ gymId, userId, checkedIn, onNeedAuth, refr
             try {
               await sendReport(userId, gymId, kind, label, note, checkedIn);
               setReporting(false);
-              Alert.alert('신고 완료', '확인한 뒤 표를 고칠게요');
+              showToast('신고했어요 · 확인한 뒤 표를 고칠게요');
             } catch (e) {
               Alert.alert('보내지 못했어요', String(e));
             }
@@ -353,34 +379,42 @@ function isDark(color: string | null) {
 }
 
 const styles = StyleSheet.create({
-  titleRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 16 },
-  sectionTitle: { fontSize: 15, fontWeight: '600' },
-  source: { fontSize: 12, color: '#999' },
-  empty: { color: '#999', fontSize: 13 },
+  titleRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 28, marginBottom: 4 },
+  sectionTitle: { fontSize: 18, fontWeight: '700' },
+  sourceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  source: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
+  empty: { color: colors.textMuted, fontSize: 13 },
   emptyBox: { gap: 8, alignItems: 'flex-start' },
+  defaultBar: { alignSelf: 'stretch', flexDirection: 'row', height: 14, borderRadius: 7, overflow: 'hidden', gap: 2, opacity: 0.45 },
+  defaultSeg: { flex: 1 },
   boardWrap: { flexDirection: 'row', gap: 8, paddingVertical: 8 },
   rail: { width: 10, alignItems: 'center', gap: 4 },
   railArrow: { fontSize: 10, color: '#111', lineHeight: 12, marginBottom: -2 },
   railStep: { flex: 1, width: 4, borderRadius: 2, backgroundColor: '#111' },
   board: { flex: 1, gap: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 6, borderWidth: 2, borderColor: 'transparent', paddingRight: 6 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44, borderRadius: 8, borderWidth: 2, borderColor: 'transparent', paddingRight: 8 },
   rowVoted: { borderColor: RED },
-  bar: { width: 120, height: 26, borderRadius: 3, justifyContent: 'center', paddingHorizontal: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
-  barLabel: { fontSize: 12, fontWeight: '600', color: '#111' },
+  bar: { width: 120, height: 30, borderRadius: 6, justifyContent: 'center', paddingHorizontal: 10, borderWidth: 1, borderColor: colors.line },
+  barLabel: { fontSize: 14, fontWeight: '600', color: '#111' },
   barLabelLight: { color: '#fff' },
-  rowV: { fontSize: 14, fontWeight: '700', minWidth: 56 },
-  rowVotes: { fontSize: 12, color: '#999' },
-  hint: { fontSize: 12, color: '#999' },
-  report: { fontSize: 13, color: '#0a58ca', paddingVertical: 6 },
-  secondary: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, backgroundColor: '#111' },
+  rowV: { fontSize: 15, fontWeight: '700', minWidth: 56 },
+  rowVotes: { fontSize: 13, color: colors.textMuted },
+  rowClips: { fontSize: 12, color: colors.accent, fontWeight: '700', marginLeft: 'auto' },
+  skeleton: { gap: 8, paddingVertical: 8 },
+  skeletonRow: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 36 },
+  skeletonBar: { height: 26, borderRadius: 6, backgroundColor: colors.surface },
+  skeletonText: { width: 56, height: 14, borderRadius: 7, backgroundColor: colors.surface },
+  hint: { fontSize: 13, color: colors.textMuted },
+  report: { fontSize: 13, color: colors.accent, fontWeight: '600', paddingVertical: 6 },
+  secondary: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, backgroundColor: RED },
   secondaryText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   sheet: { flex: 1, padding: 20, gap: 12 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sheetTitle: { fontSize: 20, fontWeight: '700' },
+  sheetTitle: { fontSize: 18, fontWeight: '700' },
   voteHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   voteCurrent: { fontSize: 14, color: '#333' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cell: { width: 64, paddingVertical: 10, borderRadius: 10, backgroundColor: '#f4f4f6', alignItems: 'center' },
+  cell: { width: 64, height: 40, borderRadius: 10, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   cellOn: { backgroundColor: RED },
   cellText: { fontSize: 15, fontWeight: '600', color: '#111' },
   cellTextOn: { color: '#fff' },
@@ -390,13 +424,13 @@ const styles = StyleSheet.create({
   textButton: { alignItems: 'center', paddingVertical: 10 },
   textButtonLabel: { color: '#666', fontSize: 14 },
   segment: { flexDirection: 'row', gap: 8 },
-  segmentItem: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: '#f4f4f6', alignItems: 'center' },
-  segmentOn: { backgroundColor: '#111' },
+  segmentItem: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: colors.surface, alignItems: 'center' },
+  segmentOn: { backgroundColor: RED },
   segmentText: { fontSize: 14, color: '#111' },
   segmentTextOn: { color: '#fff', fontWeight: '600' },
   label: { fontSize: 13, color: '#666', marginTop: 4 },
   palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  towerBox: { flex: 1, backgroundColor: '#f6f6f8', borderRadius: 16, paddingTop: 10, overflow: 'hidden' },
+  towerBox: { flex: 1, backgroundColor: colors.surface, borderRadius: 16, paddingTop: 10, overflow: 'hidden' },
   towerTop: { fontSize: 12, fontWeight: '700', color: '#999', textAlign: 'center' },
   tower: { flex: 1 },
   towerContent: { flexGrow: 1, justifyContent: 'flex-end', gap: 4, paddingHorizontal: 16, paddingVertical: 8 },

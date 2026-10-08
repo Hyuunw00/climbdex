@@ -1,8 +1,12 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { type Gym, formatNo } from '../data/gyms';
 import type { DexState } from '../store/dex';
+import { colors } from '../theme';
 
-export const RED = '#d7263d';
+export const RED = colors.accent;
 export const CHECKIN_METERS = 100;
 export const SKIP_DISTANCE_CHECK = false;
 
@@ -43,14 +47,19 @@ export function Progress({ value, total, color = RED, track = '#eee' }: { value:
   );
 }
 
-export function GymCard({ gym, dex, size, onPress }: { gym: Gym; dex: DexState; size: number; onPress: () => void }) {
+export function GymCard({ gym, dex, size, onPress, delay }: { gym: Gym; dex: DexState; size: number; onPress: () => void; delay?: number }) {
   const count = dex.visits.filter((v) => v.gymId === gym.id).length;
   const visited = count > 0;
   const photo = visited ? dex.photos[gym.id] : undefined;
+  const rise = useRef(new Animated.Value(delay === undefined ? 1 : 0)).current;
+  useEffect(() => {
+    if (delay === undefined) return;
+    Animated.timing(rise, { toValue: 1, duration: 260, delay, useNativeDriver: true }).start();
+  }, [delay, rise]);
   return (
-    <Pressable style={[styles.cell, { width: size }]} onPress={onPress}>
+    <AnimatedPressable style={[styles.cell, { width: size, opacity: rise, transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]} onPress={onPress}>
       <View style={[styles.card, { height: size * 1.1 }, visited && styles.cardVisited]}>
-        {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <Silhouette size={size * 0.8} visited={visited} seed={gym.id} region={gym.region1} />}
+        {photo ? <Image source={{ uri: photo }} style={styles.photo} /> : <WallPanel width={size - 4} height={size * 1.1 - 4} visited={visited} seed={gym.id} region={gym.region1} />}
         <Text style={[styles.no, visited && styles.noVisited]}>{formatNo(gym.no)}</Text>
         {visited && (
           <View style={styles.stamp}>
@@ -61,7 +70,7 @@ export function GymCard({ gym, dex, size, onPress }: { gym: Gym; dex: DexState; 
       <Text style={[styles.name, !visited && styles.nameDim]} numberOfLines={2}>
         {gym.name}
       </Text>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
@@ -92,16 +101,34 @@ export function GymRow({ gym, dex, meta, onPress }: { gym: Gym; dex: DexState; m
 
 const HOLDS = [
   require('../../assets/holds/jug.png'),
-  require('../../assets/holds/crimp.png'),
   require('../../assets/holds/sloper.png'),
+  require('../../assets/holds/crimp.png'),
   require('../../assets/holds/pinch.png'),
   require('../../assets/holds/pocket.png'),
   require('../../assets/holds/volume.png'),
   require('../../assets/holds/foot.png'),
   require('../../assets/holds/edge.png'),
+  require('../../assets/holds/macro.png'),
+  require('../../assets/holds/dual.png'),
+  require('../../assets/holds/screwon.png'),
+  require('../../assets/holds/cube.png'),
+];
+const OUTLINES = [
+  require('../../assets/holds/outline/jug.png'),
+  require('../../assets/holds/outline/sloper.png'),
+  require('../../assets/holds/outline/crimp.png'),
+  require('../../assets/holds/outline/pinch.png'),
+  require('../../assets/holds/outline/pocket.png'),
+  require('../../assets/holds/outline/volume.png'),
+  require('../../assets/holds/outline/foot.png'),
+  require('../../assets/holds/outline/edge.png'),
+  require('../../assets/holds/outline/macro.png'),
+  require('../../assets/holds/outline/dual.png'),
+  require('../../assets/holds/outline/screwon.png'),
+  require('../../assets/holds/outline/cube.png'),
 ];
 
-const DIM = '#3a3a44';
+const DIM = '#b4b8bf';
 const REGION_COLORS: Record<string, string> = {
   서울: '#e63946',
   경기: '#f4743b',
@@ -132,16 +159,43 @@ function hash(seed: string) {
 }
 
 export function Silhouette({ size, visited, seed, region }: { size: number; visited: boolean; seed: string; region: string }) {
-  const source = HOLDS[hash(seed) % HOLDS.length];
+  const index = hash(seed) % HOLDS.length;
+  const source = visited ? HOLDS[index] : OUTLINES[index];
   return <Image source={source} style={{ width: size, height: size, tintColor: visited ? regionColor(region) : DIM }} resizeMode="contain" />;
+}
+
+const PANEL_COLS = 4;
+
+export function WallPanel({ width, height, visited, seed, region, hold }: { width: number; height: number; visited: boolean; seed: string; region: string; hold?: number }) {
+  const step = width / PANEL_COLS;
+  const rows = Math.max(2, Math.round(height / step));
+  const dots: { x: number; y: number }[] = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < PANEL_COLS; c++) dots.push({ x: step * (c + 0.5), y: (height / rows) * (r + 0.5) });
+  const holdSize = hold ?? Math.min(width, height) * 0.72;
+  return (
+    <View style={[styles.panel, { width, height }, visited ? styles.panelVisited : styles.panelEmpty]}>
+      {dots.map((d, i) => (
+        <View key={i} style={[styles.nut, visited ? styles.nutVisited : styles.nutEmpty, { left: d.x - 2.5, top: d.y - 2.5 }]} />
+      ))}
+      {visited && <View style={[styles.holdShadow, { width: holdSize * 0.9, height: holdSize * 0.5, borderRadius: holdSize * 0.3, top: height / 2 + holdSize * 0.1 }]} />}
+      <Silhouette size={holdSize} visited={visited} seed={seed} region={region} />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   track: { height: 6, borderRadius: 3, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 3 },
   cell: { gap: 5 },
-  card: { borderRadius: 14, backgroundColor: '#eceef2', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  cardVisited: { borderColor: RED, backgroundColor: '#fff3d6' },
+  card: { borderRadius: 14, backgroundColor: '#e8e9ec', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  cardVisited: { borderColor: RED, backgroundColor: '#ecdfc8' },
+  panel: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  panelVisited: { backgroundColor: '#ecdfc8' },
+  panelEmpty: { backgroundColor: '#e8e9ec' },
+  nut: { position: 'absolute', width: 5, height: 5, borderRadius: 2.5 },
+  nutVisited: { backgroundColor: 'rgba(90,70,40,0.22)' },
+  nutEmpty: { backgroundColor: 'rgba(0,0,0,0.08)' },
+  holdShadow: { position: 'absolute', backgroundColor: 'rgba(60,40,10,0.18)' },
   photo: { width: '100%', height: '100%' },
   no: { position: 'absolute', left: 8, top: 6, fontSize: 11, fontWeight: '700', color: '#8a8a94' },
   noVisited: { color: '#fff', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 },

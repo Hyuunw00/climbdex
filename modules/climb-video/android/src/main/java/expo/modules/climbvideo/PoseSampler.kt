@@ -237,8 +237,9 @@ class PoseSampler(private val context: Context) {
           }
           val unique = mutableListOf<Candidate>()
           for (c in found.sortedByDescending { it.confidence }) {
-            if (unique.none { sqrt((c.x - it.x) * (c.x - it.x) + (c.y - it.y) * (c.y - it.y)) < 0.1 }) unique.add(c)
+            if (unique.none { sqrt((c.x - it.x) * (c.x - it.x) + (c.y - it.y) * (c.y - it.y)) < max(0.1, 2.0 * max(c.torso, it.torso)) }) unique.add(c)
           }
+          tracks.removeAll { it.samples.size < 5 && t - it.lastT > 2.0 }
           val taken = mutableSetOf<Int>()
           for (c in unique) {
             var best: Int? = null

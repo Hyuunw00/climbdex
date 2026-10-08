@@ -29,6 +29,8 @@ export default function Timeline({ thumbnails, duration, start, end, position, v
   const callbacks = useRef({ onChange, onSeek, onScrub, onRelease, vs, ve });
   callbacks.current = { onChange, onSeek, onScrub, onRelease, vs, ve };
   const origin = useRef(0);
+  const containerRef = useRef<View>(null);
+  const pageX = useRef(0);
 
   const toTime = (x: number) => {
     const { vs: a, ve: b } = callbacks.current;
@@ -69,8 +71,8 @@ export default function Timeline({ thumbnails, duration, start, end, position, v
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: (e) => scrubTo(e.nativeEvent.locationX),
-      onPanResponderMove: (e) => scrubTo(e.nativeEvent.locationX),
+      onPanResponderGrant: (_, g) => scrubTo(g.x0 - pageX.current),
+      onPanResponderMove: (_, g) => scrubTo(g.moveX - pageX.current),
     }),
   ).current;
 
@@ -80,10 +82,14 @@ export default function Timeline({ thumbnails, duration, start, end, position, v
 
   return (
     <View
+      ref={containerRef}
       style={styles.container}
       onLayout={(e) => {
         widthRef.current = e.nativeEvent.layout.width;
         setWidth(e.nativeEvent.layout.width);
+        containerRef.current?.measureInWindow((x) => {
+          pageX.current = x;
+        });
       }}
     >
       <View style={styles.strip} pointerEvents="none">

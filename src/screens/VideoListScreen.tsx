@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PickedVideo } from '../types';
 import { type DetectProgress, formatRemaining } from '../detectProgress';
@@ -22,6 +22,8 @@ type Props = {
   onHereDismiss: () => void;
 };
 
+let savedOffset = 0;
+
 function formatSeconds(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -38,6 +40,8 @@ function statusOf(video: PickedVideo, settings: Settings) {
 }
 
 export default function VideoListScreen({ videos, progress, settings, onOpenSettings, onAdd, onRemove, onClear, onOpen, here, onHere, onHereDismiss }: Props) {
+  const listRef = useRef<FlatList<PickedVideo>>(null);
+  const restored = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const pick = async () => {
@@ -127,9 +131,17 @@ export default function VideoListScreen({ videos, progress, settings, onOpenSett
         </Pressable>
       )}
       <FlatList
+        ref={listRef}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         data={videos}
+        onScroll={(e) => { savedOffset = e.nativeEvent.contentOffset.y; }}
+        scrollEventThrottle={100}
+        onContentSizeChange={() => {
+          if (restored.current || savedOffset <= 0) return;
+          restored.current = true;
+          listRef.current?.scrollToOffset({ offset: savedOffset, animated: false });
+        }}
         keyExtractor={(item, index) => `${item.uri}-${index}`}
         ListEmptyComponent={<Text style={styles.empty}>고른 영상이 없어요</Text>}
         renderItem={({ item, index }) => (

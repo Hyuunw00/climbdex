@@ -9,9 +9,6 @@ export type GymCandidate = { gym: Gym; basis: Basis };
 export type SendRecord = { gymId: string; basis: Basis; clip: Clip; label: string | null; sent: boolean; vMin: number | null; vMax: number | null };
 
 const VIDEO_RADIUS = 200;
-const FALL_DROP = 1.5;
-const FALL_WINDOW = 0.6;
-const STILL = 1.5;
 
 const manualPicks = new Map<string, Gym>();
 
@@ -47,37 +44,10 @@ export function resolveGyms(video: PickedVideo, dex: DexState): GymCandidate[] {
   return [];
 }
 
-function median(values: number[]) {
-  const sorted = [...values].sort((a, b) => a - b);
-  return sorted[Math.floor((sorted.length - 1) / 2)];
-}
-
 export function judgeSend(tracks: number[][][] | undefined, start: number, end: number): boolean | null {
   if (!tracks) return null;
-  const people = tracks.map((track) => track.filter((s) => s.length >= 5 && s[0] >= start && s[0] <= end));
-  const person = people.reduce((best, p) => (p.length > best.length ? p : best), [] as number[][]);
-  if (person.length < 10) return null;
-  const torsos = person.map((s) => s[3]).filter((v) => v > 0);
-  if (torsos.length === 0) return null;
-  const torso = median(torsos);
-  const t = person.map((s) => s[0]);
-  const y = person.map((s) => s[2]);
-  for (let i = 0; i < t.length; i++) {
-    let low = Infinity;
-    for (let k = i + 1; k < t.length && t[k] - t[i] <= FALL_WINDOW; k++) if (y[k] < low) low = y[k];
-    if (low > y[i] - FALL_DROP * torso) continue;
-    const fallT = t[i];
-    let peak = -Infinity;
-    for (let k = 0; k <= i; k++) if (t[k] >= fallT - 3 && y[k] > peak) peak = y[k];
-    let still = 0;
-    let k = i;
-    while (k > 0 && Math.abs(y[k - 1] - peak) < 0.3 * torso) {
-      k--;
-      still = fallT - t[k];
-    }
-    return still >= STILL;
-  }
-  return null;
+  const samples = tracks.reduce((n, track) => n + track.filter((s) => s.length >= 5 && s[0] >= start && s[0] <= end).length, 0);
+  return samples >= 10 ? true : null;
 }
 
 export type MySend = { gymId: string; at: string; sent: boolean };
